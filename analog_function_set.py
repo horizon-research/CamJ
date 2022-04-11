@@ -12,5 +12,8 @@ class AFS:
     def write(self, x):
         return x
 
+    def scaling(self, factor, x):
+        return factor * x
+
     def quantization(self, reso, x, x_max):
         return np.round(x / x_max * (2 ** reso - 1)) / (2 ** reso - 1) * x_max
