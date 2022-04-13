@@ -47,9 +47,10 @@ class AFS:
         return x1 / x2, delay, energy
 
     def AMSmultiply(self, reso, w, w_max, x):
+        y, _, _ = self.quantization(reso, w, w_max) * x
         delay = 0
         energy = 0
-        return self.quantization(reso, w, w_max) * x, delay, energy
+        return y, delay, energy
 
     def max(self, x1, x2):
         delay = 0
@@ -61,13 +62,17 @@ class AFS:
         energy = 0
         return np.minimum(x1, x2), delay, energy
 
-    def quantization(self, reso, x, x_max):
-        delay = 0
-        energy = 0
-        return np.round(x / x_max * (2 ** reso - 1)) / (2 ** reso - 1) * x_max, delay, energy
+    def quantization(self, reso, x, x_max, arch='ss'):
+        y = np.round(x / x_max * (2 ** reso - 1)) / (2 ** reso - 1) * x_max
+        if arch == 'ss':
+            delay = 0
+            energy = 0
+        if arch == 'sar':
+            delay = 0
+            energy = 0
+        return y, delay, energy
 
     def threshold(self, x, type):
-        y = 0
         if type == 'sign':
             y = np.sign(x)
             delay = 0
