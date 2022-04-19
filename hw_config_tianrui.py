@@ -114,8 +114,9 @@ class AnalogStorage(object):
     def delay(self):
         pass
 
-    def accuracy(self):
+    def stored_value(self):
         input = self.input * (1 - self.holding_time * self.droop_rate)
+        return input
 
 
 ########################################################################################################################
