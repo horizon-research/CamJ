@@ -1,9 +1,14 @@
 import numpy as np
+import analog_paras as paras
 
 
 # interface to support ReRAM and CIM
+# interface to support logarithm operation
+
 # delay unit: clock cycles
-# energy unit: pJ
+# energy unit: pJ/operation
+
+# trade-off between energy and accuracy
 
 class AFS:
     def __init__(self):
@@ -12,14 +17,10 @@ class AFS:
         pass
 
     def read(self, x):
-        delay = 0
-        energy = 0
-        return x, delay, energy
+        return x, paras.Energy.read, paras.Delay.read
 
     def write(self, x):
-        delay = 0
-        energy = 0
-        return x, delay, energy
+        return x, paras.Energy.write, paras.Delay.write
 
     def scaling(self, factor, x):
         delay = 0
