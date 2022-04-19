@@ -84,15 +84,21 @@ class AnalogStorage(object):
     """docstring for DataStorage"""
 
     def __init__(self,
+                 input,
                  capacitance,
                  droop_rate,
+                 holding_time,
+                 supply_voltage,
                  size,
                  technology,
                  access_type,
                  access_num,
                  arrangement):
+        self.input = input
         self.capacitance = capacitance
         self.droop_rate = droop_rate
+        self.holding_time = holding_time
+        self.supply_voltage = supply_voltage
         self.size = size
         self.technology = technology
         self.access_type = access_type
@@ -109,7 +115,7 @@ class AnalogStorage(object):
         pass
 
     def accuracy(self):
-        pass
+        input = self.input * (1 - self.holding_time * self.droop_rate)
 
 
 ########################################################################################################################
