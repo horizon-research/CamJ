@@ -43,6 +43,7 @@ class DigitalStorage(object):
             delay_ += unit_write_delay_ * self.access_num / self.port_num
         return delay_
 
+
 class DRAM(DigitalStorage):
     def __init__(self):
         super().__init__(cell_type='DRAM',
@@ -53,6 +54,7 @@ class DRAM(DigitalStorage):
                          access_type,
                          access_num,
                          arrangement)
+
 
 class SRAM(DigitalStorage):
     def __init__(self):
@@ -78,6 +80,39 @@ class RegisterFile(DigitalStorage):
                          arrangement)
 
 
+class AnalogStorage(object):
+    """docstring for DataStorage"""
+
+    def __init__(self,
+                 capacitance,
+                 droop_rate,
+                 size,
+                 technology,
+                 access_type,
+                 access_num,
+                 arrangement):
+        self.capacitance = capacitance
+        self.droop_rate = droop_rate
+        self.size = size
+        self.technology = technology
+        self.access_type = access_type
+        self.access_num = access_num
+        self.arrangement = arrangement
+
+    def area(self):
+        pass
+
+    def energy(self):
+        pass
+
+    def delay(self):
+        pass
+
+    def accuracy(self):
+        pass
+
+
+########################################################################################################################
 line_buffer1 = SRAM(
     storage_type=LINE_BUFFER,
     impl=SRAM,
@@ -98,31 +133,6 @@ scratchpad1 = DigitalStorage(
     access_stage=["Conv2D_1"],
     location=STORAGE_LAYER,
 )
-
-
-class AnalogStorage(object):
-    """docstring for DataStorage"""
-
-    def __init__(
-            self,
-            storage_type: int,
-            impl: int,
-            size: tuple,
-            mem_technology: int,  # this will specify the bandwitdh, latency, etc.
-            port: int,
-            port_accessibility: int,
-            access_stage: list,
-            location: int,
-    ):
-        super(DigitalStorage, self).__init__()
-        self.type = storage_type
-        self.impl = impl
-        self.size = size
-        self.mem_technology = mem_technology
-        self.port = port
-        self.port_accessibility = port_accessibility
-        self.access_stage = access_stage
-        self.location = location
 
 
 class ADC(object):
