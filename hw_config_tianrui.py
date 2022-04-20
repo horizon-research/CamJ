@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class DigitalStorage(object):
     """docstring for DataStorage"""
 
@@ -146,10 +149,69 @@ class ADC(object):
 class ChargeOperation(object):
     """docstring for charge-domain analog operations"""
 
+    def __init__(self,
+                 inputQ,
+                 outputQ):
+        self.inputQ = inputQ
+        self.outputQ = outputQ
+
+    def MatrixMultiplier_active(self,
+                                weight,  # CDAC_reso-bit digital code
+                                CDAC_reso,
+                                C_unit,
+                                C2,
+                                opamp_gain):
+        A = opamp_gain
+        CDAC = np.zeros((CDAC_reso))
+        for i in range(CDAC_reso):
+            CDAC[i] = C_unit * 2 ** (CDAC_reso - i)
+        k = C2 * (A + 1) / (C2 * (A + 1) + np.sum(np.multiply(CDAC, weight)))
+        mu = np.sum(np.multiply(CDAC, weight)) / C2 * A / (A + 1)
+        return [self.outputQ, area_, energy_, delay_]
+
+    def MatrixMultiplier_passive(self,
+                                 weight,  # CDAC_reso-bit digital code
+                                 CDAC_reso,
+                                 C_unit,
+                                 C2):
+        CDAC = np.zeros((CDAC_reso))
+        for i in range(CDAC_reso):
+            CDAC[i] = C_unit * 2 ** (CDAC_reso - i)
+        k = C2 / (C2 + np.sum(np.multiply(CDAC, weight)))
+        mu = np.sum(np.multiply(CDAC, weight)) / C2
+        return [self.outputQ, area_, energy_, delay_]
+
+
+class VoltageOperation(object):
+    """docstring for voltage-domain analog operations"""
+
+    def __init__(self,
+                 inputV,
+                 outputV):
+        self.inputV = inputV
+        self.outputV = outputV
+
+
+class CurrentOperation(object):
+    """docstring for current-domain analog operations"""
+
+    def __init__(self,
+                 inputI,
+                 outputI):
+        self.inputI = inputI
+        self.outputI = outputI
+
+    def add(self):
+        pass
+
+
+class TimeOperation(object):
+    """docstring for charge-domain analog operations"""
+
     def __init__(self):
         pass
 
-    def MatrixMultiplier(self):
+    def exposure(self):
         pass
 
 
