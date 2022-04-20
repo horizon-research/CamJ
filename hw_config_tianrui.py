@@ -84,7 +84,6 @@ class AnalogStorage(object):
     """docstring for DataStorage"""
 
     def __init__(self,
-                 input,
                  capacitance,
                  droop_rate,
                  holding_time,
@@ -94,7 +93,6 @@ class AnalogStorage(object):
                  access_type,
                  access_num,
                  arrangement):
-        self.input = input
         self.capacitance = capacitance
         self.droop_rate = droop_rate
         self.holding_time = holding_time
@@ -114,55 +112,48 @@ class AnalogStorage(object):
     def delay(self):
         pass
 
-    def stored_value(self):
-        input = self.input * (1 - self.holding_time * self.droop_rate)
+    def stored_value(self, input):
+        input = input * (1 - self.holding_time * self.droop_rate)
         return input
 
 
-########################################################################################################################
-line_buffer1 = SRAM(
-    storage_type=LINE_BUFFER,
-    impl=SRAM,
-    size=[ROW, COLUMN],
-    mem_technology=65,
-    port=[4],
-    port_accessibility=[SHARED],
-    access_stage=["DivBy16", "Conv2D_1"],
-    location=COMPUTE_LAYER,
-)
-
-scratchpad1 = DigitalStorage(
-    type=SCRATCHPAD,
-    impl=SRAM,
-    mem_technology=65,
-    port=[4],
-    port_accessibility=[SHARED],
-    access_stage=["Conv2D_1"],
-    location=STORAGE_LAYER,
-)
-
-
 class ADC(object):
-    """docstring for ADC"""
+    """docstring for differential-input rail-to-rail ADC"""
 
     def __init__(
             self,
-            type: INT,
-            pixel_adc_ratio: tuple,
-            location=location
-    ):
-        super(ADC, self).__init__()
-        self.type
-        self.pixel_adc_ratio
-        self.location = location
+            type,
+            supply_voltage,
+            resolution):
+        self.type = type
+        self.supply_voltage = supply_voltage
+        self.resolution = resolution
+
+    def area(self):
+        pass
+
+    def energy(self):
+        pass
+
+    def delay(self):
+        pass
+
+    def quantization_noise(self):  # [unit: V]
+        LSB = self.supply_voltage / 2 ** (self.resolution - 1)
+        return 1 / 12 * LSB ** 2
 
 
-adc = ADC(
-    SINGLE_SLOPE,  # ADC type?
-    pixel_adc_ratio=(1, 256),  # or (1, 1), (4, 4)
-    location=SENSOR_LAYER,
-)
+class ChargeOperation(object):
+    """docstring for charge-domain analog operations"""
 
+    def __init__(self):
+        pass
+
+    def MatrixMultiplier(self):
+        pass
+
+
+########################################################################################################################
 
 class ProcessUnit(object):
     """docstring for ProcessUnit"""
