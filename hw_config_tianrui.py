@@ -1,6 +1,43 @@
 import numpy as np
 
 
+class PixelArray(object):
+    """docstring for pixel array"""
+
+    def __init__(self,
+                 size,
+                 ismonochrome):
+        self.size = size
+        self.ismonochrome = ismonochrome
+
+    def pixel(self,
+              type):
+        pass
+
+    def exposure(self,
+                 type):
+        if type == 'rolling_shutter':
+            pass
+        if type == 'multi_rolling_shutter':
+            pass
+        if type == 'global_shutter':
+            pass
+        if type == 'rolling_band_shutter':
+            pass
+        if type == 'pixel_wise_shutter':
+            pass
+
+    def area(self):
+        pass
+
+    def energy(self):
+        pass
+
+    def delay(self):
+        pass
+
+
+########################################################################################################################
 class DigitalStorage(object):
     """docstring for DataStorage"""
 
@@ -83,6 +120,7 @@ class RegisterFile(DigitalStorage):
                          arrangement)
 
 
+########################################################################################################################
 class AnalogStorage(object):
     """docstring for DataStorage"""
 
@@ -120,17 +158,19 @@ class AnalogStorage(object):
         return input
 
 
+########################################################################################################################
 class ADC(object):
     """docstring for differential-input rail-to-rail ADC"""
 
-    def __init__(
-            self,
-            type,
-            supply_voltage,
-            resolution):
+    def __init__(self,
+                 type,
+                 supply_voltage,
+                 resolution,
+                 freq_s):
         self.type = type
         self.supply_voltage = supply_voltage
         self.resolution = resolution
+        self.freq_s = freq_s
 
     def area(self):
         pass
@@ -146,17 +186,18 @@ class ADC(object):
         return 1 / 12 * LSB ** 2
 
 
+########################################################################################################################
 class ChargeOperation(object):
     """docstring for charge-domain analog operations"""
 
     def __init__(self,
-                 inputQ,
-                 outputQ):
-        self.inputQ = inputQ
-        self.outputQ = outputQ
+                 VDD):
+        self.VDD = VDD
 
     def MatrixMultiplier_active(self,
-                                weight,  # CDAC_reso-bit digital code
+                                input,
+                                output,
+                                weight,  # floating point, normalized
                                 CDAC_reso,
                                 C_unit,
                                 C2,
@@ -167,19 +208,29 @@ class ChargeOperation(object):
             CDAC[i] = C_unit * 2 ** (CDAC_reso - i)
         k = C2 * (A + 1) / (C2 * (A + 1) + np.sum(np.multiply(CDAC, weight)))
         mu = np.sum(np.multiply(CDAC, weight)) / C2 * A / (A + 1)
-        return [self.outputQ, area_, energy_, delay_]
+        return [output, area_, energy_, delay_]
 
     def MatrixMultiplier_passive(self,
-                                 weight,  # CDAC_reso-bit digital code
-                                 CDAC_reso,
+                                 input,  # vector
+                                 output,  # scalar
+                                 weight,  # vector, floating point, normalized to [-1,1]
+                                 CDAC_reso,  # including sign-bit
                                  C_unit,
                                  C2):
         CDAC = np.zeros((CDAC_reso))
         for i in range(CDAC_reso):
             CDAC[i] = C_unit * 2 ** (CDAC_reso - i)
+
+        weight = np.round(weight * (2 ** (CDAC_reso - 1) - 1))
         k = C2 / (C2 + np.sum(np.multiply(CDAC, weight)))
         mu = np.sum(np.multiply(CDAC, weight)) / C2
-        return [self.outputQ, area_, energy_, delay_]
+
+        for c in range(len(input)):
+            weight[c] = mu[c]
+            for i in range(c, 12, 1):
+                weight[c] *= k[i]
+        output = np.sum(np.multiply(weight, input))
+        return [output, area_, energy_, delay_]
 
 
 class VoltageOperation(object):
@@ -196,22 +247,23 @@ class CurrentOperation(object):
     """docstring for current-domain analog operations"""
 
     def __init__(self,
-                 inputI,
-                 outputI):
-        self.inputI = inputI
-        self.outputI = outputI
+                 VDD):
+        self.VDD = VDD
 
-    def add(self):
-        pass
+    def scaling(self,
+                input,
+                output,
+                scale):
+        output = input * scale
+        power_ = self.VDD * (input + output)
+        energy_ = power_ * delay_
+        return [output, area_, energy_, delay_]
 
 
 class TimeOperation(object):
-    """docstring for charge-domain analog operations"""
+    """docstring for time-domain analog operations"""
 
     def __init__(self):
-        pass
-
-    def exposure(self):
         pass
 
 
