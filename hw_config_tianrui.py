@@ -153,37 +153,10 @@ class AnalogStorage(object):
     def delay(self):
         pass
 
-    def stored_value(self, input):
-        input = input * (1 - self.holding_time * self.droop_rate)
-        return input
-
-
-########################################################################################################################
-class ADC(object):
-    """docstring for differential-input rail-to-rail ADC"""
-
-    def __init__(self,
-                 type,
-                 supply_voltage,
-                 resolution,
-                 freq_s):
-        self.type = type
-        self.supply_voltage = supply_voltage
-        self.resolution = resolution
-        self.freq_s = freq_s
-
-    def area(self):
-        pass
-
-    def energy(self):
-        pass
-
-    def delay(self):
-        pass
-
-    def quantization_noise(self):  # [unit: V]
-        LSB = self.supply_voltage / 2 ** (self.resolution - 1)
-        return 1 / 12 * LSB ** 2
+    def stored_value(self,
+                     input):
+        output = input * (1 - self.holding_time * self.droop_rate)
+        return output
 
 
 ########################################################################################################################
@@ -195,10 +168,9 @@ class ChargeOperation(object):
         self.VDD = VDD
 
     def MatrixMultiplier_active(self,
-                                input,
-                                output,
-                                weight,  # floating point, normalized
-                                CDAC_reso,
+                                input,  # vector
+                                weight,  # vector, floating point, normalized to [-1,1]
+                                CDAC_reso,  # including sign-bit
                                 C_unit,
                                 C2,
                                 opamp_gain):
@@ -206,13 +178,20 @@ class ChargeOperation(object):
         CDAC = np.zeros((CDAC_reso))
         for i in range(CDAC_reso):
             CDAC[i] = C_unit * 2 ** (CDAC_reso - i)
+
+        weight = np.round(weight * (2 ** (CDAC_reso - 1) - 1))
         k = C2 * (A + 1) / (C2 * (A + 1) + np.sum(np.multiply(CDAC, weight)))
         mu = np.sum(np.multiply(CDAC, weight)) / C2 * A / (A + 1)
+
+        for c in range(len(input)):
+            weight[c] = mu[c]
+            for i in range(c, 12, 1):
+                weight[c] *= k[i]
+        output = np.sum(np.multiply(weight, input))
         return [output, area_, energy_, delay_]
 
     def MatrixMultiplier_passive(self,
                                  input,  # vector
-                                 output,  # scalar
                                  weight,  # vector, floating point, normalized to [-1,1]
                                  CDAC_reso,  # including sign-bit
                                  C_unit,
@@ -252,7 +231,6 @@ class CurrentOperation(object):
 
     def scaling(self,
                 input,
-                output,
                 scale):
         output = input * scale
         power_ = self.VDD * (input + output)
@@ -268,72 +246,168 @@ class TimeOperation(object):
 
 
 ########################################################################################################################
+class AnalogScalarDistance(object):
+    """docstring for analog scalar distance"""
 
-class ProcessUnit(object):
-    """docstring for ProcessUnit"""
+    def __init__(self,
+                 VDD):
+        self.VDD = VDD
 
-    def __init__(
-            self,
-            name: str,
-            domain: int,
-            location: int,
-            throughput: float,
-            latency: float,
-            power: float,
-            area: float,
-    ):
-        super(ProcessUnit, self).__init__()
+    def signed_multiply(self,
+                        input,
+                        weight,
+                        domain):
+        if domain == 'charge':
+            pass
 
-        self.name = name
-        self.domain = domain
-        self.location = location
-        self.throughput = throughput
-        self.latency = latency
-        self.power = power
-        self.area = area
+    def unsigned_multiply(self):
+        pass
 
-    def set_input_buffer(input_buffer):
-        self.input_buffer = input_buffer
+    def l1(self):
+        pass
 
-    def set_output_buffer(output_buffer):
-        self.output_buffer = output_buffer
+    def l2(self):
+        pass
+
+    def square(self):
+        pass
+
+    def none(self):
+        pass
 
 
-compute_sum_16_unit = ProcessUnit(
-    name="ComputeSum16",
-    domain=ANALOG,
-    location=SENSOR_LAYER,
-    throughput= ??,
-latency = ??,
-power = ??,
-area = ??
-)
+class AnalogVectorDistance(object):
+    """docstring for analog vector distance"""
 
-compute_sum_16_unit.set_input_buffer(input_data)
-compute_sum_16_unit.set_output_buffer(adc)
+    def __init__(self,
+                 VDD):
+        self.VDD = VDD
 
-div_by_16_unit = ProcessUnit(
-    name="DivBy16",
-    domain=DIGITAL,
-    location=COMPUTE_LAYER,
-    throughput= ??,
-latency = ??,
-power = ??,
-area = ??
-)
+    def accumulation(self):
+        pass
 
-div_by_16_unit.set_input_buffer(adc)
-div_by_16_unit.set_output_buffer(line_buffer1)
+    def average(self):
+        pass
 
-conv2d_unit = ProcessUnit(
-    name="Conv2D_1",
-    domain=DIGITAL,
-    location=COMPUTE_LAYER,
-    throughput= ??,
-latency = ??,
-power = ??,
-area = ??
-)
+    def none(self):
+        pass
 
-conv2d_unit.set_input_buffer(line_buffer1)
-conv2d_unit.set_output_buffer(scratchpad1)
+
+########################################################################################################################
+class DomainConverter(object):
+    """docstring for analog domain conversion"""
+
+    def __init__(self):
+        pass
+
+    def voltage2charge(self):
+        pass
+
+    def charge2voltage(self):
+        pass
+
+    def voltage2current(self):
+        pass
+
+    def current2voltage(self):
+        pass
+
+    def voltage2time(self):
+        pass
+
+    def time2voltage(self):
+        pass
+
+    def current2charge(self):
+        pass
+
+    def charge2current(self):
+        pass
+
+    def current2time(self):
+        pass
+
+    def time2current(self):
+        pass
+
+    def charge2time(self):
+        pass
+
+    def time2charge(self):
+        pass
+
+
+########################################################################################################################
+
+class ProcessElement(object):
+    """docstring for ProcessElement"""
+
+    def __init__(self):
+        pass
+
+
+########################################################################################################################
+class ADC(object):
+    """docstring for differential-input rail-to-rail ADC"""
+
+    def __init__(self,
+                 type,
+                 supply_voltage,
+                 resolution,
+                 freq_s):
+        self.type = type
+        self.supply_voltage = supply_voltage
+        self.resolution = resolution
+        self.freq_s = freq_s
+
+    def area(self):
+        pass
+
+    def energy(self):
+        pass
+
+    def delay(self):
+        pass
+
+    def quantization_noise(self):  # [unit: V]
+        LSB = self.supply_voltage / 2 ** (self.resolution - 1)
+        return 1 / 12 * LSB ** 2
+
+
+########################################################################################################################
+class PostADCThreshold(object):
+    """docstring for thresholding functions after ADC"""
+
+    def __init__(self):
+        pass
+
+    def threshold(self, x, type):
+        if type == 'sign':
+            y = np.sign(x)
+            delay = 0
+            energy = 0
+        if type == 'min':
+            y = np.min(x)
+            delay = 0
+            energy = 0
+        if type == 'max':
+            y = np.max(x)
+            delay = 0
+            energy = 0
+        if type == 'mean':
+            y = np.mean(x)
+            delay = 0
+            energy = 0
+        if type == 'sigmoid':
+            y = 1 / (1 + np.exp(-x))
+            delay = 0
+            energy = 0
+        if type == 'relu':
+            y = x * (x > 0)
+            delay = 0
+            energy = 0
+        if type == 'accumulate':
+            y = np.sum(x)
+            delay = 0
+            energy = 0
+        return y, delay, energy
