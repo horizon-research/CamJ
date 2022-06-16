@@ -3,8 +3,22 @@ import analog_function_set
 
 AFS = analog_function_set.AFS()
 
-# ComputeSum (4x4 block in analog domain)
+# JSSC'21
 
+#pixel exposure (light -> PWM)
+
+# interface (PWM -> I)
+
+#MAC, column paralle (I -> V)
+
+
+#ADC (V -> D)
+
+
+
+
+
+#################################################################
 # user define
 ###computation model
 # operation
