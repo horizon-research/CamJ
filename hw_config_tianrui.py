@@ -6,13 +6,22 @@ class PixelArray(object):
 
     def __init__(self,
                  size,
+                 pitch,
                  ismonochrome):
         self.size = size
+        self.pitch =pitch
         self.ismonochrome = ismonochrome
 
     def pixel(self,
               type):
-        pass
+        if type == '3T-APS':
+            pass
+        if type == '4T-APS':
+            pass
+        if type == 'DPS':
+            pass
+        if type == 'PWM':
+            pass
 
     def exposure(self,
                  type):
