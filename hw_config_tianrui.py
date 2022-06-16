@@ -229,12 +229,13 @@ class CurrentOperation(object):
                  VDD):
         self.VDD = VDD
 
-    def scaling(self,
+    def l1_norm(self,
                 input,
+                weight,
                 scale):
-        output = input * scale
-        power_ = self.VDD * (input + output)
-        energy_ = power_ * delay_
+        output = np.abs(input - weight)
+        # power_ = self.VDD * (input + output)
+        # energy_ = power_ * delay_
         return [output, area_, energy_, delay_]
 
 
