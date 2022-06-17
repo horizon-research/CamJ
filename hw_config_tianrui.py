@@ -1,19 +1,18 @@
 import numpy as np
 
 
-class PixelArray(object):
-    """docstring for pixel array"""
+class Pixel(object):
+    """docstring for pixel"""
 
     def __init__(self,
-                 size,
                  pitch,
-                 ismonochrome):
-        self.size = size
-        self.pitch =pitch
+                 ismonochrome,
+                 type
+                 ):
+        self.pitch = pitch
         self.ismonochrome = ismonochrome
+        self.type = type
 
-    def pixel(self,
-              type):
         if type == '3T-APS':
             pass
         if type == '4T-APS':
@@ -24,17 +23,25 @@ class PixelArray(object):
             pass
 
     def exposure(self,
-                 type):
+                 type,
+                 n_rows,
+                 n_columns):
         if type == 'rolling_shutter':
-            pass
+            n_rows = 1
+            n_columns = self.size[1]
         if type == 'multi_rolling_shutter':
-            pass
+            n_rows = n_rows
+            n_columns = self.size[1]
         if type == 'global_shutter':
-            pass
+            n_rows = self.size[0]
+            n_columns = self.size[1]
         if type == 'rolling_band_shutter':
-            pass
+            n_rows = n_rows
+            n_columns = n_columns
         if type == 'pixel_wise_shutter':
-            pass
+            n_rows = 1
+            n_columns = 1
+        return n_rows, n_columns
 
     def area(self):
         pass
@@ -44,6 +51,7 @@ class PixelArray(object):
 
     def delay(self):
         pass
+
 
 
 ########################################################################################################################
@@ -120,6 +128,18 @@ class SRAM(DigitalStorage):
 class RegisterFile(DigitalStorage):
     def __init__(self):
         super().__init__(cell_type='RF',
+                         size,
+                         technology,
+                         port_num,
+                         port_type,
+                         access_type,
+                         access_num,
+                         arrangement)
+
+
+class DFF(DigitalStorage):
+    def __init__(self):
+        super().__init__(cell_type='DFF',
                          size,
                          technology,
                          port_num,
@@ -382,6 +402,7 @@ class ADC(object):
     def quantization_noise(self):  # [unit: V]
         LSB = self.supply_voltage / 2 ** (self.resolution - 1)
         return 1 / 12 * LSB ** 2
+
 
 
 ########################################################################################################################
