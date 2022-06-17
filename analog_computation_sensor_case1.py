@@ -12,66 +12,59 @@ import matplotlib.pyplot as plt
 # Define pixel
 # pixel exposure (light -> PWM), three-row-wise
 Pixel = nx.Graph(array_size=[128, 1],
-                 column_share_factor=1)
+                 column_share_factor=1,
+                 inputBW=3,  # select 3 pixel rows at once
+                 outputBW=3,  # output through 3 column bus
+                 fire_factor=3)
 Pixel.add_node('pixel',
-               data=config.Pixel(pitch=7.6, ismonochrome=False, type='PWM'),
-               inputBW=3,
-               outputBW=3)
+               data=config.Pixel(pitch=7.6, ismonochrome=False, type='PWM'))
 
 # Define weight memory
 # DFF
-DigitalStorage = config.DigitalStorage(size=[1, 9], )
-config.DFF()
+Weight_memory = config.DFF()
 
 # Define interface of weight between weight memory and PE
 # current DAC, in-block element parallel, D -> I
 Interface_weight = nx.Graph(array_size=[1, 9],
-                            column_share_factor=128)
+                            column_share_factor=128,
+                            inputBW=3,
+                            outputBW=3,
+                            fire_factor=3)
 Interface_weight.add_node('weighted current biasing',
-                          data=config.AnalogCell(celltype='DAC-2'),
-                          inputBW=9,
-                          outputBW=9)
+                          data=config.AnalogCell(celltype='DAC-2'))
 
 # Define PE
 # current-domain MAC, column parallel, I -> V
 PE = nx.Graph(array_size=[1, 1],
-              column_share_factor=1)  # each cell template is a node
+              column_share_factor=1,
+              inputBW_x=3,
+              inputBW_w=3,
+              outputBW=1)  # each cell template is a node
 PE.add_node('SCI-1',
             data=config.AnalogCell(celltype='amplifier-2'),
-            inputBW=1,
-            outputBW=1)
+            fire_factor=3)
 PE.add_node('SCI-2',
             data=config.AnalogCell(celltype='amplifier-2'),
-            inputBW=1,
-            outputBW=1)
+            fire_factor=3)
 PE.add_node('SCI-3',
             data=config.AnalogCell(celltype='amplifier-2'),
-            inputBW=1,
-            outputBW=1)
+            fire_factor=3)
 PE.add_node('SCI-4',
             data=config.AnalogCell(celltype='amplifier-2'),
-            inputBW=1,
-            outputBW=1)
+            fire_factor=3)
 PE.add_node('SCI-5',
             data=config.AnalogCell(celltype='amplifier-2'),
-            inputBW=1,
-            outputBW=1)
+            fire_factor=3)
 PE.add_node('SCI-6',
             data=config.AnalogCell(celltype='amplifier-2'),
-            inputBW=1,
-            outputBW=1)
+            fire_factor=3)
 PE.add_node('C_P',
-            data=config.AnalogCell(celltype='sampler-1'),
-            inputBW=3,
-            outputBW=1)
+            data=config.AnalogCell(celltype='sampler-1'))
 PE.add_node('C_N',
-            data=config.AnalogCell(celltype='sampler-1'),
-            inputBW=3,
-            outputBW=1)
+            data=config.AnalogCell(celltype='sampler-1'))
 PE.add_node('comparator',
             data=config.AnalogCell(celltype='comparator-1'),
-            inputBW=2,
-            outputBW=1)
+            fire_factor=1)
 
 PE.add_edges_from([('SCI-1', 'C_P'), ('SCI-2', 'C_P'), ('SCI-3', 'C_P')], aBW=1)
 PE.add_edges_from([('SCI-4', 'C_N'), ('SCI-5', 'C_N'), ('SCI-6', 'C_N')], aBW=1)
