@@ -53,7 +53,6 @@ class Pixel(object):
         pass
 
 
-
 ########################################################################################################################
 class DigitalStorage(object):
     """docstring for DataStorage"""
@@ -186,6 +185,41 @@ class AnalogStorage(object):
                      input):
         output = input * (1 - self.holding_time * self.droop_rate)
         return output
+
+
+########################################################################################################################
+class AnalogCell(object):
+    def __init__(self,
+                 celltype):
+        self.celltype = celltype
+
+
+########################################################################################################################
+class ADC(object):
+    """docstring for differential-input rail-to-rail ADC"""
+
+    def __init__(self,
+                 type,
+                 supply_voltage,
+                 resolution,
+                 freq_s):
+        self.type = type
+        self.supply_voltage = supply_voltage
+        self.resolution = resolution
+        self.freq_s = freq_s
+
+    def area(self):
+        pass
+
+    def energy(self):
+        pass
+
+    def delay(self):
+        pass
+
+    def quantization_noise(self):  # [unit: V]
+        LSB = self.supply_voltage / 2 ** (self.resolution - 1)
+        return 1 / 12 * LSB ** 2
 
 
 ########################################################################################################################
@@ -365,44 +399,6 @@ class DomainConverter(object):
 
     def time2charge(self):
         pass
-
-
-########################################################################################################################
-
-class ProcessElement(object):
-    """docstring for ProcessElement"""
-
-    def __init__(self):
-        pass
-
-
-########################################################################################################################
-class ADC(object):
-    """docstring for differential-input rail-to-rail ADC"""
-
-    def __init__(self,
-                 type,
-                 supply_voltage,
-                 resolution,
-                 freq_s):
-        self.type = type
-        self.supply_voltage = supply_voltage
-        self.resolution = resolution
-        self.freq_s = freq_s
-
-    def area(self):
-        pass
-
-    def energy(self):
-        pass
-
-    def delay(self):
-        pass
-
-    def quantization_noise(self):  # [unit: V]
-        LSB = self.supply_voltage / 2 ** (self.resolution - 1)
-        return 1 / 12 * LSB ** 2
-
 
 
 ########################################################################################################################
