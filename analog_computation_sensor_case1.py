@@ -66,24 +66,29 @@ PE.add_node('comparator',
             data=config.AnalogCell(celltype='comparator-1'),
             fire_factor=1)
 
-PE.add_edges_from([('SCI-1', 'C_P'), ('SCI-2', 'C_P'), ('SCI-3', 'C_P')], aBW=1)
-PE.add_edges_from([('SCI-4', 'C_N'), ('SCI-5', 'C_N'), ('SCI-6', 'C_N')], aBW=1)
-PE.add_edges_from([('C_P', 'comparator'), ('C_N', 'comparator')], aBW=1)
+PE.add_edges_from([('SCI-1', 'C_P'), ('SCI-2', 'C_P'), ('SCI-3', 'C_P')],
+                  transmission_cycle=1)
+PE.add_edges_from([('SCI-4', 'C_N'), ('SCI-5', 'C_N'), ('SCI-6', 'C_N')],
+                  transmission_cycle=1)
+PE.add_edges_from([('C_P', 'comparator'), ('C_N', 'comparator')],
+                  transmission_cycle=1)
 
 # Define ADC
 # SS ADC, column parallel, V -> D
 ADC = nx.Graph(array_size=[1, 1],
-               column_share_factor=1)
+               column_share_factor=1,
+               inputBW=1,
+               fire_factor=1)
 ADC.add_node('ADC',
              data=config.ADC(type='SS', resolution=8))
 
 # Define sensor system
 Sensor_System = nx.Graph()
-Sensor_System.add_node(Interface_weight)
 Sensor_System.add_node(Pixel)
+Sensor_System.add_node(Interface_weight)
 Sensor_System.add_node(PE)
 Sensor_System.add_node(ADC)
 
-Sensor_System.add_edge(Pixel, PE, aBW=3)
-Sensor_System.add_edge(Interface_weight, PE, aBW=1)
-Sensor_System.add_edge(PE, ADC, aBW=1)
+Sensor_System.add_edge(Pixel, PE)
+Sensor_System.add_edge(Interface_weight, PE)
+Sensor_System.add_edge(PE, ADC)
