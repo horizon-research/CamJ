@@ -6,11 +6,11 @@ class Pixel(object):
 
     def __init__(self,
                  pitch,
-                 ismonochrome,
+                 technology,
                  type
                  ):
         self.pitch = pitch
-        self.ismonochrome = ismonochrome
+        self.technology = technology
         self.type = type
 
         if type == '3T-APS':
@@ -200,13 +200,13 @@ class ADC(object):
 
     def __init__(self,
                  type,
-                 supply_voltage,
+                 FOM,
                  resolution,
-                 freq_s):
+                 sampling_rate):
         self.type = type
-        self.supply_voltage = supply_voltage
+        self.FOM = FOM
         self.resolution = resolution
-        self.freq_s = freq_s
+        self.sampling_rate = sampling_rate
 
     def area(self):
         pass
