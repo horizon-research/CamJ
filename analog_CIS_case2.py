@@ -14,7 +14,7 @@ Pixel_array = nx.Graph(array_size=[128, 128],  # [n_row, n_col]
                        outputBW=[3, 128]  # output through 3 column bus
                        )
 Pixel_array.add_node('pixel',
-                     performance=config.PWM.performance(pitch=7.6, technology=0.18, type='PWM'))
+                     performance=config.PWM.performance(pitch=7.6, technology=0.18))
 
 # Define weight memory
 # DFF

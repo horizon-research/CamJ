@@ -3,8 +3,14 @@
 
 
 # attribute definition
-# inputBW: input data volume in its datatype per hardware unit fire
-# outputBW: output data volume in its datatype per hardware unit fire
+# BW_input: # of input wires
+# BW_output: # of output wires
+# batch_input: # of inputs in the unit of BW_input required by one batch of outputs
+# computation_cycle: # of clock cycles required by one batch of outputs
+
+# if BW_input (n^th stage) = BW_output ((n-1)^th stage), then no intermediate buffer is needed.
+
+# Designers should select circuit template and provide timing diagram
 
 import numpy as np
 import networkx as nx
@@ -18,7 +24,7 @@ Pixel_array = nx.Graph(array_size=[128, 128],  # [n_row, n_col]
                        outputBW=[3, 128]  # output through 3 column bus
                        )
 Pixel_array.add_node('pixel',
-                     performance=config.PWM.performance(pitch=7.6, technology=0.18, type='PWM'))
+                     performance=config.PWM.performance(pitch=7.6, technology=0.18))
 
 # Define weight memory
 # DFF
