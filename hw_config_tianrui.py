@@ -229,6 +229,30 @@ class Voltage_Sampler(AnalogCell):
         return [energy, area, delay]
 
 
+class Comparator(AnalogCell):
+    def __init__(self):
+        super().__init__()
+
+    def performance(self):
+        return [energy, area, delay]
+
+
+class Passive_SC(AnalogCell):
+    def __init__(self):
+        super().__init__()
+
+    def performance(self):
+        return [energy, area, delay]
+
+
+class Voltage_WTA(AnalogCell):
+    def __init__(self):
+        super().__init__()
+
+    def performance(self):
+        return [energy, area, delay]
+
+
 ########################################################################################################################
 class ADC(object):
     """docstring for differential-input rail-to-rail ADC"""
@@ -309,40 +333,6 @@ class ChargeOperation(object):
                 weight[c] *= k[i]
         output = np.sum(np.multiply(weight, input))
         return [output, area_, energy_, delay_]
-
-
-class VoltageOperation(object):
-    """docstring for voltage-domain analog operations"""
-
-    def __init__(self,
-                 inputV,
-                 outputV):
-        self.inputV = inputV
-        self.outputV = outputV
-
-
-class CurrentOperation(object):
-    """docstring for current-domain analog operations"""
-
-    def __init__(self,
-                 VDD):
-        self.VDD = VDD
-
-    def l1_norm(self,
-                input,
-                weight,
-                scale):
-        output = np.abs(input - weight)
-        # power_ = self.VDD * (input + output)
-        # energy_ = power_ * delay_
-        return [output, area_, energy_, delay_]
-
-
-class TimeOperation(object):
-    """docstring for time-domain analog operations"""
-
-    def __init__(self):
-        pass
 
 
 ########################################################################################################################

@@ -1,7 +1,6 @@
 # Case study of "A 0.5-V Real-Time Computational CMOS Image Sensor With Programmable Kernel for Feature Extraction", in JSSC'21.
 # https://ieeexplore.ieee.org/document/9250500
-# 1. Define each component in the manner of column circuitry connection
-# 2. The entire system is the duplication of column circuitry
+
 
 # attribute definition
 # inputBW: input data volume in its datatype per hardware unit fire
