@@ -1,11 +1,8 @@
-# Case study of "A 0.5-V Real-Time Computational CMOS Image Sensor With Programmable Kernel for Feature Extraction", in JSSC'21.
-# https://ieeexplore.ieee.org/document/9250500
+# Case study of "A 0.8V Intelligent Vision Sensor with Tiny Convolutional Neural Network and Programmable Weights Using Mixed-Mode Processing-in-Sensor Technique for Image Classification", in ISSCC'22.
+# https://ieeexplore.ieee.org/document/9731675
 # 1. Define each component in the manner of column circuitry connection
 # 2. The entire system is the duplication of column circuitry
 
-# attribute definition
-# inputBW: input data volume in its datatype per hardware unit fire
-# outputBW: output data volume in its datatype per hardware unit fire
 
 import numpy as np
 import networkx as nx
@@ -16,66 +13,58 @@ import matplotlib.pyplot as plt
 # pixel exposure (light -> PWM), three-row-wise
 Pixel_array = nx.Graph(array_size=[128, 128],  # [n_row, n_col]
                        color_filter='none',
-                       outputBW=[3, 128]  # output through 3 column bus
-                       )
+                       # inputBW=3,  # select 3 pixel rows at once
+                       outputBW=[3, 128],  # output through 3 column bus
+                       fire_factor=3)
 Pixel_array.add_node('pixel',
-                     performance=config.PWM.performance(pitch=7.6, technology=0.18, type='PWM'))
+                     data=config.Pixel(pitch=7.6, technology=0.18, type='PWM'))
 
 # Define weight memory
 # DFF
 Weight_memory = nx.Graph(array_size=[1, 9],
-                         outputBW=[1, 9]
-                         )
-Weight_memory.add_node('DFF',
-                       performance=config.DFF.performance(wordwidth=5))
+                         outputBW=[1, 3],
+                         fire_factor=3)
+Weight_memory.add_node('DFF', data=config.DFF())
 
 # Define interface of weight between weight memory and PE
 # current DAC, in-block element parallel, D -> I
-Weight_interface = nx.Graph(array_size=[1, 9],
-                            outputBW=[1, 9]
-                            )
-Weight_interface.add_node('weighted current biasing',
-                          cell_template='current DAC',
-                          performance=config.Current_DAC.performance(resolution=3)
-                          )
+Interface_weight = nx.Graph(array_size=[1, 9],
+                            # column_share_factor=128,
+                            # inputBW=3,
+                            outputBW=[1, 3],
+                            fire_factor=3)
+Interface_weight.add_node('weighted current biasing',
+                          data=config.AnalogCell(celltype='DAC-2'))
 
 # Define PE
 # current-domain MAC, column parallel, I -> V
 # each cell template is a node
 PE = nx.Graph(array_size=[1, 128],
               # column_share_factor=1,
-              inputBW=[[3, 1], [1, 3]],  # [x, w]
-              outputBW=1,
-              output_spatial_factor=,
-              output_temporal_factor=)
+              inputBW=[[3, 1], [3, 1]],  # [x, w]
+              outputBW=1)
 PE.add_node('SCI-1',
-            cell_template='current mirror',
-            performance=config.Current_Mirror.performance(VDD=0.5, I=1e-6, t=5e-6),
+            data=config.AnalogCell(celltype='current mirror'),
             fire_factor=3)
 PE.add_node('SCI-2',
-            cell_template='current mirror',
-            performance=config.Current_Mirror.performance(VDD=0.5, I=1e-6, t=5e-6),
+            data=config.AnalogCell(celltype='current mirror'),
             fire_factor=3)
 PE.add_node('SCI-3',
-            cell_template='current mirror',
-            performance=config.Current_Mirror.performance(VDD=0.5, I=1e-6, t=5e-6),
+            data=config.AnalogCell(celltype='current mirror'),
             fire_factor=3)
 PE.add_node('SCI-4',
-            cell_template='current mirror',
-            performance=config.Current_Mirror.performance(VDD=0.5, I=1e-6, t=5e-6),
+            data=config.AnalogCell(celltype='current mirror'),
             fire_factor=3)
 PE.add_node('SCI-5',
-            cell_template='current mirror',
-            performance=config.Current_Mirror.performance(VDD=0.5, I=1e-6, t=5e-6),
+            data=config.AnalogCell(celltype='current mirror'),
             fire_factor=3)
 PE.add_node('SCI-6',
-            cell_template='current mirror',
-            performance=config.Current_Mirror.performance(VDD=0.5, I=1e-6, t=5e-6),
+            data=config.AnalogCell(celltype='current mirror'),
             fire_factor=3)
 PE.add_node('C_P',
-            performance=config.Voltage_Sampler.performance())
+            data=config.AnalogCell(celltype='voltage sampler'))
 PE.add_node('C_N',
-            performance=config.Voltage_Sampler.performance())
+            data=config.AnalogCell(celltype='voltage sampler'))
 
 PE.add_edges_from([('SCI-1', 'C_P'), ('SCI-2', 'C_P'), ('SCI-3', 'C_P')],
                   transmission_cycle=1)
@@ -85,8 +74,9 @@ PE.add_edges_from([('SCI-4', 'C_N'), ('SCI-5', 'C_N'), ('SCI-6', 'C_N')],
 # Define ADC
 # SS ADC, column parallel, V -> D
 ADC = nx.Graph(array_size=[1, 128],
+               # column_share_factor=1,
                inputBW=1,
-               outputBW=1)
+               fire_factor=1)
 ADC.add_node('ADC',
              data=config.ADC(type='SS', FOM=20e-15, resolution=8, sampling_rate=4e5))
 
@@ -104,13 +94,12 @@ Sensor_IO.add_edges_from([('MUX', 'shift_register')],
 # Define sensor system
 Sensor_System = nx.Graph()
 Sensor_System.add_node(Pixel_array)
-Sensor_System.add_node(Weight_interface)
+Sensor_System.add_node(Interface_weight)
 Sensor_System.add_node(PE)
 Sensor_System.add_node(ADC)
 
-Sensor_System.add_edges_from([(Pixel_array, PE)],
-                             transmission_cycle=1)
-Sensor_System.add_edge(Weight_interface, PE)
+Sensor_System.add_edge(Pixel_array, PE)
+Sensor_System.add_edge(Interface_weight, PE)
 Sensor_System.add_edge(PE, ADC)
 
 # looking for analog microarchitecture modelling? (benchmark)

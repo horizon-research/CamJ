@@ -13,15 +13,6 @@ class Pixel(object):
         self.technology = technology
         self.type = type
 
-        if type == '3T-APS':
-            pass
-        if type == '4T-APS':
-            pass
-        if type == 'DPS':
-            pass
-        if type == 'PWM':
-            pass
-
     def exposure(self,
                  type,
                  n_rows,
@@ -43,13 +34,28 @@ class Pixel(object):
             n_columns = 1
         return n_rows, n_columns
 
-    def area(self):
+
+class APS(Pixel):
+    def __init__(self):
+        super().__init__()
+
+    def performance(self):
         pass
 
-    def energy(self):
+
+class DPS(Pixel):
+    def __init__(self):
+        super().__init__()
+
+    def performance(self):
         pass
 
-    def delay(self):
+
+class PWM(Pixel):
+    def __init__(self):
+        super().__init__()
+
+    def performance(self):
         pass
 
 
@@ -147,6 +153,9 @@ class DFF(DigitalStorage):
                          access_num,
                          arrangement)
 
+    def performance(self):
+        pass
+
 
 ########################################################################################################################
 class AnalogStorage(object):
@@ -189,9 +198,35 @@ class AnalogStorage(object):
 
 ########################################################################################################################
 class AnalogCell(object):
-    def __init__(self,
-                 celltype):
-        self.celltype = celltype
+    def __init__(self):
+        pass
+
+
+class Current_DAC(AnalogCell):
+    def __init__(self):
+        super().__init__()
+
+    def performance(self):
+        return [energy, area, delay]
+
+
+class Current_Mirror(AnalogCell):
+    def __init__(self):
+        super().__init__()
+
+    def performance(self,
+                    VDD,
+                    I,
+                    t):
+        return [energy, area, delay]
+
+
+class Voltage_Sampler(AnalogCell):
+    def __init__(self):
+        super().__init__()
+
+    def performance(self):
+        return [energy, area, delay]
 
 
 ########################################################################################################################
@@ -212,7 +247,8 @@ class ADC(object):
         pass
 
     def energy(self):
-        pass
+        energy = self.FOM * (2 ** self.resolution)
+        return energy
 
     def delay(self):
         pass
