@@ -93,17 +93,27 @@ Sensor_System.add_node(MaxPooling_unit_2)
 Sensor_System.add_node(ADC)
 Sensor_System.add_node(Sensor_IO)
 
-Sensor_System.add_edges_from([(Pixel_array, Convolution_unit_1)],
-                             transmission_cycle=1)
-Sensor_System.add_edges_from([(Convolution_unit_1, MaxPooling_unit_1)],
-                             transmission_cycle=1)
-Sensor_System.add_edges_from([(MaxPooling_unit_1, Convolution_unit_2)],
-                             transmission_cycle=1)
-Sensor_System.add_edges_from([(Convolution_unit_2, MaxPooling_unit_2)],
-                             transmission_cycle=1)
-Sensor_System.add_edges_from([(MaxPooling_unit_2, ADC)],
-                             transmission_cycle=1)
-Sensor_System.add_edges_from([(ADC, Sensor_IO)],
-                             transmission_cycle=1)
+Sensor_System.add_edge(Pixel_array, Convolution_unit_1,
+                       transmission_cycle=1)
+Sensor_System.add_edge(Convolution_unit_1, MaxPooling_unit_1,
+                       transmission_cycle=1)
+Sensor_System.add_edge(MaxPooling_unit_1, Convolution_unit_2,
+                       transmission_cycle=1)
+Sensor_System.add_edge(Convolution_unit_2, MaxPooling_unit_2,
+                       transmission_cycle=1)
+Sensor_System.add_edge(MaxPooling_unit_2, ADC,
+                       transmission_cycle=1)
+Sensor_System.add_edge(ADC, Sensor_IO,
+                       transmission_cycle=1)
 
-total_delay =
+total_delay = Sensor_System.edges[Pixel_array, Convolution_unit_1]['transmission_cycle'] \
+              * Convolution_unit_1['batch_input'] + Convolution_unit_1['computation_cycle'] + \
+              Sensor_System.edges[Convolution_unit_1, MaxPooling_unit_1]['transmission_cycle'] \
+              * MaxPooling_unit_1['batch_input'] + MaxPooling_unit_1['computation_cycle'] + \
+              Sensor_System.edges[MaxPooling_unit_1, Convolution_unit_2]['transmission_cycle'] \
+              * Convolution_unit_2['batch_input'] + Convolution_unit_2['computation_cycle'] + \
+              Sensor_System.edges[Convolution_unit_2, MaxPooling_unit_2]['transmission_cycle'] \
+              * MaxPooling_unit_2['batch_input'] + MaxPooling_unit_2['computation_cycle'] + \
+              Sensor_System.edges[MaxPooling_unit_2, ADC]['transmission_cycle'] \
+              * ADC['batch_input'] + ADC['computation_cycle'] + \
+              Sensor_System.edges[ADC, Sensor_IO]['transmission_cycle']
