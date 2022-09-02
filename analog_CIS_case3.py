@@ -76,8 +76,8 @@ ADC.add_node('ADC',
 
 # Define Sensor IO
 # MUX + shift register
-Sensor_IO = nx.Graph(BW_input=[1, 40],
-                     BW_output=[1, 40]
+Sensor_IO = nx.Graph(BW_input=[1, 10, ADC.nodes['ADC']['resolution']],
+                     BW_output=[1, 10, ADC.nodes['ADC']['resolution']]
                      )
 Sensor_IO.add_node('mux and shift register',
                    performance=
