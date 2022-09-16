@@ -1,20 +1,18 @@
-def mapping_function():
+def mapping_function_case3():
     mapping = {
-        "CurrInput": "ADC",
-        "PrevInput": "ADC",
+        "ImageCapture": "PixelArray",
+        "CDS": "ConvCircuit_1",
 
-        "BBoxFinding": "BBoxDetection",
-        "EdgeDetection": "EdgeDetection",
-        "Thresholding": "Thresholding",
-        "Eventification": "Eventification",
+        "Conv2D_1": "ConvCircuit_1",
+        "MaxPooling_1": "MPCircuit_1",
+        "ReLU_1": "MPCircuit_1",
+        "Conv2D_2": "ConvCircuit_2",
+        "MaxPooling_2": "MPCircuit_2",
+        "ReLU_2": "MPCircuit_2",
 
-        "Conv2D_1": "InSensorSystolicArray",
-        "Conv2D_2": "InSensorSystolicArray",
-        "Conv2D_3": "InSensorSystolicArray",
-        "FC_1": "InSensorSystolicArray",
-        "FC_2": "InSensorSystolicArray",
+        "Quantization": "ADC",
 
-        "EncoderDecoder": "NearSensorSystolicArray"
+        "FC": "DigitalProcessor"
     }
 
     return mapping
