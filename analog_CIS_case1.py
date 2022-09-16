@@ -17,7 +17,7 @@
 
 import numpy as np
 import networkx as nx
-import hw_config_tianrui as config
+import hw_config_analog as config
 import matplotlib.pyplot as plt
 
 # Define pixel
