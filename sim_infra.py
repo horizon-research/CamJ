@@ -1,4 +1,15 @@
 
+'''
+	This class is used to record which HW compute unit is currently occupied by a SW stage.
+	Basic assumption is that when a SW stage occupies a HW unit, it won't release the HW unit
+	until it finishes all its computation.
+
+	How to ReservationBoard class:
+	* check_reservation: to check whether a HW unit is being occupied.
+	* reserve_hw_unit: to reserve the HW unit. 
+	* reserve_by: to check if a HW unit is reserved by a certain SW stage.
+	* release_hw_unit: to release the HW unit for other SW stage use.
+'''
 class ReservationBoard(object):
 	"""docstring for ReservationBoard"""
 	def __init__(self, hw_compute_units):
