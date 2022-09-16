@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 # pixel exposure (light -> PWM), three-row-wise
 Pixel_array = nx.Graph(array_size=[128, 128],  # [n_row, n_col]
                        color_filter='none',
+                       BW_input=[3, 128],
                        BW_output=[3, 128]  # output through 3 column bus
                        )
 Pixel_array.add_node('pixel',

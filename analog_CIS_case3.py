@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 # pixel exposure (light -> voltage), rolling shutter
 Pixel_array = nx.Graph(array_size=[120, 160],  # [n_row, n_col]
                        color_filter='none',
+                       BW_input=[1, 160],  # rolling shutter
                        BW_output=[1, 160]
                        )  # black-box level
 Pixel_array.add_node('pixel',
@@ -79,7 +80,7 @@ ADC.add_node('ADC',
 Sensor_IO = nx.Graph(BW_input=[1, 10, ADC.nodes['ADC']['resolution']],
                      BW_output=[1, 10, ADC.nodes['ADC']['resolution']]
                      )
-Sensor_IO.add_node('mux and shift register',
+Sensor_IO.add_node('mux and shift register and mipi csi transceiver',
                    performance=
                    )
 
