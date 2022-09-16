@@ -1,6 +1,7 @@
 from enum import Enum
 
 class ProcessorLocation(Enum):
+	INVALID = 0
 	SENSOR_LAYER = 1
 	COMPUTE_LAYER = 2
 	OFF_CHIP = 3

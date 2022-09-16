@@ -9,7 +9,7 @@ directory = os.getcwd()
 # setting path
 sys.path.append(os.path.dirname(directory))
 
-from framework.sw_framework_interface import ProcessStage, DNNProcessStage, PixelInput, build_sw_graph
+from sw_framework_interface import ProcessStage, DNNProcessStage, PixelInput, build_sw_graph
 
 def sw_pipeline():
 

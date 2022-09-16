@@ -18,12 +18,12 @@ class DigitalStorage(object):
 		self, 
 		name: str,
 		access_units: list, # a list of hardware units that access this storage
-		location=0: int,  # location of this unit
+		location=ProcessorLocation.INVALID,  # location of this unit
 	):
 		super(DigitalStorage, self).__init__()
 		self.name = name
 		self.access_units = access_units
-		assert(location > 0, "the storage location needs to be greater than 0, got: %d" % location)
+		assert(location != ProcessorLocation.INVALID, "the storage location needs to be initialized.")
 		self.location = location
 		# important to initialize the reserved_buffer to empty dict.
 		self.reserved_buffer = {}
