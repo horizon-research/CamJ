@@ -1,5 +1,8 @@
 import numpy as np
 
+'''
+	TODO: For now, just consider ADC as a compute unit, can be modified it later.
+'''
 class ADC(object):
 	"""docstring for ADC"""
 	def __init__(
@@ -112,6 +115,13 @@ class ComputeUnit(object):
 		self.output_buffer_size = {}
 		self.output_index_list = {}
 
+	'''
+		# Input/output Data Dependency Configuration 
+
+		All the input_/output_ related functions are used to define the dataflow.
+		The input/output data indexes are used for HW unit to write data at the 
+		correct location.
+	'''
 	# needs to set the input and output buffer
 	def set_input_buffer(self, input_buffer):
 		self.input_buffer = input_buffer
@@ -156,6 +166,12 @@ class ComputeUnit(object):
 	def set_output_buffer_index(self, sw_stage, output_buffer_index):
 		self.output_index_list[sw_stage] = output_buffer_index
 
+	'''
+		# Compute-related Functions
+
+		Those functions are used for cycle-level simulation, make sure each batch of 
+		compute are finished based on the defined delay time.
+	'''
 	# initialize the cycle number that needs to be elapsed before writing the output
 	def init_elapse_cycle(self):
 		self.elapse_cycle = self.delay
@@ -181,7 +197,11 @@ class ComputeUnit(object):
 	def __repr__(self):
 		return self.name
 
+'''
+	Systolic Array, it is an unique architecture design.
 
+	TODO: right now, the input/output throughput logic are not correct. Needs to be fixed.
+'''
 class SystolicArray(object):
 	"""docstring for SystolicArray"""
 	def __init__(
