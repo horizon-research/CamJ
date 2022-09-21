@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 # obtain x and w from sw
 # derive mismatch from end-accuracy
 
-# Define pixel
+# Define pixel array and pixel
 # pixel exposure (light -> PWM), three-row-wise
 Pixel_array = nx.Graph(color_filter='none',
                        BW_input=[3, 126],
@@ -49,6 +49,9 @@ Weight_interface = nx.Graph(position='chip',
                             )
 Weight_interface.add_node('weighted current biasing',
                           cell_template='current DAC',
+                          BW_input=[1, 1],
+                          batch_input=1,
+                          BW_output=[1, 1],
                           performance=[],
                           duplication=[1, 9],
                           intrinsic_delay=1,
@@ -62,7 +65,7 @@ Weight_interface.add_node('weighted current biasing',
 # Define PE
 # current-domain MAC, column parallel, I -> V, max-pooling (part-1)
 PE_array = nx.Graph(position='column',
-                    BW_input=[[3, 3], [3, 128]],  # [w, x]
+                    BW_input=[[3, 3], [3, 126]],  # [w, x]
                     batch_input=1,
                     BW_output=[1, 42]
                     )
@@ -71,7 +74,7 @@ PE = nx.Graph(BW_input=[[3, 3], [3, 3]],  # [w, x]
               BW_output=[1, 1],
               duplication=[1, 42],
               domain_input=['current', 'time'],
-              domain_output='current'
+              domain_output='voltage'
               )
 PE_array.add_node(PE)
 PE.add_node('SCI',
@@ -117,24 +120,30 @@ PE.add_edge('SCI', 'capacitor',
             transmission_cycle=1)
 PE.add_edge('capacitor', 'comparator',
             transmission_cycle=1)
-PE.graph['computation_cycle'] = PE.edges['SCI', 'capacitor']['transmission_cycle'] * PE.nodes['SCI']['duplication'] + \
-                                PE.edges['capacitor', 'comparator']['transmission_cycle'] * PE.nodes['comparator'][
-                                    'duplication']
+PE.graph['computation_cycle'] = \
+    (
+            PE.nodes['SCI']['intrinsic_delay']
+            + PE.edges['SCI', 'capacitor']['transmission_cycle']
+            + PE.nodes['capacitor']['intrinsic_delay']
+    ) \
+    * PE.nodes['SCI']['duplication'] + \
+    PE.edges['capacitor', 'comparator']['transmission_cycle'] * PE.nodes['comparator'][
+        'duplication']
 
 # Define ADC
 # SS ADC, column parallel, V -> D
-ADC = nx.Graph(position='column',
-               BW_input=[1, 21],
-               batch_input=1,
-               BW_output=[1, 21]
-               )
-ADC.add_node('ADC',
-             data=hw.ADC(type='SS', FOM=20e-15, resolution=8, sampling_rate=4e5),
-             duplication=[1, 21],
-             intrinsic_delay=8,
-             domain_input='voltage',
-             domain_output='digit'
-             )
+ADC_array = nx.Graph(position='column',
+                     BW_input=[1, 21],
+                     batch_input=1,
+                     BW_output=[1, 21]
+                     )
+ADC_array.add_node('ADC',
+                   data=hw.ADC(type='SS', FOM=20e-15, resolution=8, sampling_rate=4e5),
+                   duplication=[1, 21],
+                   intrinsic_delay=8,
+                   domain_input='voltage',
+                   domain_output='digit'
+                   )
 
 # Define digital processor
 # max-pooling (part-2) + FC
@@ -146,10 +155,10 @@ Digital_processor.add_node('fc')
 
 # derive mismatch from end-accuracy
 # analytical_output = I * delta_t / C, I: weight, delta_t: x
-x_mismatch = 0
+# x_mismatch = 0
 ideal_output = PE.nodes['capacitor']['ideal_output']
 actual_output = PE.nodes['capacitor']['value_output']
-
+[[x, x_mismatch], [w, w_mismatch], [C, C_mismatch]] = A_Kind_of_Optimizer(ideal_output, actual_output)
 
 # determine unit performance
 # performance is returned in [energy, latency, area]
@@ -157,7 +166,7 @@ Pixel_array.nodes['pixel']['performance'] = hw.PWM.performance(pitch=7.6, techno
 Weight_memory.nodes['DFF']['performance'] = hw.DFF.performance()
 Weight_interface.nodes['weighted current biasing']['performance'] = hw.Current_DAC.performance(reso=3, w_mismatch)
 PE.nodes['SCI']['performance'] = hw.Current_Mirror.performance()
-PE.nodes['capacitor']['performance'] = hw.Voltage_Sampler.performance(C)
+PE.nodes['capacitor']['performance'] = hw.Voltage_Sampler.performance(C, C_mismatch)
 PE.nodes['comparator']['performance'] = hw.Comparator.performance()
 
 # mapping checkpoint, loop over back, determine how to get system performance from unit performance
