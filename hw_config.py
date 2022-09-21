@@ -6,7 +6,7 @@ from enum_const import ProcessorLocation, ProcessDomain
 from memory import Scratchpad
 from hw_compute import ADC, ComputeUnit, SystolicArray
 from mapping_file import mapping_function
-from sw_pipeline import sw_pipeline, build_sw_graph
+from SW_pipeline import sw_pipeline, build_sw_graph
 
 
 def hw_config():
@@ -158,7 +158,7 @@ def hw_config():
 
 
 # this function creates the mapping from sw stage to hw unit.
-# sw stage to hw unit is one-to-one mapping.
+# sw stage to hw unit is one-to-one mapping. ???
 # hw unit to sw stage is one-to-multi mapping.
 def map_sw_hw(mapping_dict, sw_stage_list, hw_dict):
     sw2hw = {}

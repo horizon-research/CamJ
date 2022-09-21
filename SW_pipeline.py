@@ -11,6 +11,65 @@ sys.path.append(os.path.dirname(directory))
 from framework.sw_framework_interface import ProcessStage, DNNProcessStage, PixelInput, build_sw_graph
 
 
+def sw_pipeline_case2(K=8):
+    sw_stage_list = []
+    ImageCapture_stage = PixelInput(
+        name="ImageCapture",
+        input_size=[126, 126, 1],  # light
+        output_size=[126, 126, 1]
+    )
+    sw_stage_list.append(ImageCapture_stage)
+
+    conv2d_stage = DNNProcessStage(
+        name="Conv2D",
+        op_type="Conv2D",
+        ifmap_size=[126, 126, 1],
+        kernel_size=[3, 3, 1, K],  # [height,width,input_channel,output_channel]
+        stride=3
+    )
+    sw_stage_list.append(conv2d_stage)
+
+    relu_stage = DNNProcessStage(
+        name="ReLU",
+        op_type="ReLU",
+        ifmap_size=[42, 42, K]
+    )
+    sw_stage_list.append(relu_stage)
+
+    maxpooling_stage = DNNProcessStage(
+        name="MaxPooling",
+        op_type="MaxPooling",
+        ifmap_size=[42, 42, K],
+        kernel_size=[2, 2, 1, 1],
+        stride=2
+    )
+    sw_stage_list.append(maxpooling_stage)
+
+    quantization_stage = ProcessStage(
+        name="Quantization",
+        input_size=[21, 21, K],
+        output_size=[21, 21, K]
+    )
+    sw_stage_list.append(quantization_stage)
+
+    fc_stage = DNNProcessStage(
+        name="FC",
+        op_type="FC",
+        ifmap_size=[21, 21, K],
+        kernel_size=[21, 21, K],
+        stride=1
+    )
+    sw_stage_list.append(fc_stage)
+
+    conv2d_stage.set_input_stage(ImageCapture_stage)
+    relu_stage.set_input_stage(conv2d_stage)
+    maxpooling_stage.set_input_stage(relu_stage)
+    quantization_stage.set_input_stage(maxpooling_stage)
+    fc_stage.set_input_stage(quantization_stage)
+
+    return sw_stage_list
+
+
 def sw_pipeline_case3():
     sw_stage_list = []
     ImageCapture_stage = PixelInput(
@@ -91,5 +150,5 @@ def sw_pipeline_case3():
 
 
 if __name__ == '__main__':
-    sw_stage_list = sw_pipeline()
+    sw_stage_list = sw_pipeline_case3()
     build_sw_graph(sw_stage_list)

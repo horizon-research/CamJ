@@ -1,0 +1,182 @@
+# Case study of "A 0.8V Intelligent Vision Sensor with Tiny Convolutional Neural Network and Programmable Weights Using Mixed-Mode Processing-in-Sensor Technique for Image Classification", in ISSCC'22.
+# https://ieeexplore.ieee.org/document/9731675
+
+
+import numpy as np
+import networkx as nx
+import HW_config_analog as hw
+import SW_pipeline as sw
+import matplotlib.pyplot as plt
+
+# obtain x and w from sw
+# derive mismatch from end-accuracy
+
+# Define pixel
+# pixel exposure (light -> PWM), three-row-wise
+Pixel_array = nx.Graph(color_filter='none',
+                       BW_input=[3, 126],
+                       BW_output=[3, 126]  # output through 3 column bus
+                       )
+Pixel_array.add_node('pixel',
+                     BW_input=[1, 1],
+                     batch_input=1,
+                     BW_output=[1, 1],
+                     performance=[],
+                     duplication=[126, 126],  # [n_row, n_col]
+                     domain_input='optical',
+                     domain_output='time',
+                     value_input=x,
+                     value_output=np.random.normal(x, x * x_mismatch),
+                     ideal_output=x
+                     )
+
+# Define weight memory
+# DFF
+Weight_memory = nx.Graph(position='chip',
+                         array_size=[3, 3],
+                         BW_output=[3, 3]
+                         )
+Weight_memory.add_node('DFF',
+                       performance=[]
+                       )
+
+# Define interface of weight between weight memory and PE
+# current DAC, in-block element parallel, D -> I
+Weight_interface = nx.Graph(position='chip',
+                            BW_input=[3, 3],
+                            batch_input=1,
+                            BW_output=[3, 3]
+                            )
+Weight_interface.add_node('weighted current biasing',
+                          cell_template='current DAC',
+                          performance=[],
+                          duplication=[1, 9],
+                          intrinsic_delay=1,
+                          domain_input='digit',
+                          domain_output='current',
+                          value_input=w,
+                          value_output=np.random.normal(w, w * w_mismatch),
+                          ideal_output=w
+                          )
+
+# Define PE
+# current-domain MAC, column parallel, I -> V, max-pooling (part-1)
+PE_array = nx.Graph(position='column',
+                    BW_input=[[3, 3], [3, 128]],  # [w, x]
+                    batch_input=1,
+                    BW_output=[1, 42]
+                    )
+PE = nx.Graph(BW_input=[[3, 3], [3, 3]],  # [w, x]
+              batch_input=1,
+              BW_output=[1, 1],
+              duplication=[1, 42],
+              domain_input=['current', 'time'],
+              domain_output='current'
+              )
+PE_array.add_node(PE)
+PE.add_node('SCI',
+            cell_template='current mirror',
+            BW_input=[[1, 1], [1, 1]],
+            batch_input=1,
+            BW_output=[1, 1],
+            performance=[],
+            duplication=[1, 9],
+            intrinsic_delay=1,
+            domain_input=['current', 'time'],
+            domain_output='charge',
+            value_input=[Weight_interface.nodes['weighted current biasing']['value_output'],
+                         Pixel_array.nodes['pixel']['value_output']],
+            value_output=Weight_interface.nodes['weighted current biasing']['value_output'] *
+                         Pixel_array.nodes['pixel']['value_output'],
+            ideal_output=Weight_interface.nodes['weighted current biasing']['value_output'] *
+                         Pixel_array.nodes['pixel']['value_output']
+            )
+PE.add_node('capacitor',
+            cell_template='voltage sampler',
+            BW_input=[1, 1],
+            batch_input=9,
+            BW_output=[1, 1],
+            performance=[],
+            duplication=[1, 4],
+            intrinsic_delay=1,
+            domain_input='charge',
+            domain_output='voltage',
+            value_input=PE.nodes['SCI']['value_output'],
+            value_output=PE.nodes['SCI']['value_output'] / np.random.normal(C, C * C_mismatch),
+            ideal_output=PE.nodes['SCI']['value_output'] / C
+            )
+PE.add_node('comparator',
+            cell_template='comparator',
+            performance=[],
+            duplication=[1, 1],
+            domain_input='voltage',
+            domain_output='digit'
+            )
+
+PE.add_edge('SCI', 'capacitor',
+            transmission_cycle=1)
+PE.add_edge('capacitor', 'comparator',
+            transmission_cycle=1)
+PE.graph['computation_cycle'] = PE.edges['SCI', 'capacitor']['transmission_cycle'] * PE.nodes['SCI']['duplication'] + \
+                                PE.edges['capacitor', 'comparator']['transmission_cycle'] * PE.nodes['comparator'][
+                                    'duplication']
+
+# Define ADC
+# SS ADC, column parallel, V -> D
+ADC = nx.Graph(position='column',
+               BW_input=[1, 21],
+               batch_input=1,
+               BW_output=[1, 21]
+               )
+ADC.add_node('ADC',
+             data=hw.ADC(type='SS', FOM=20e-15, resolution=8, sampling_rate=4e5),
+             duplication=[1, 21],
+             intrinsic_delay=8,
+             domain_input='voltage',
+             domain_output='digit'
+             )
+
+# Define digital processor
+# max-pooling (part-2) + FC
+Digital_processor = nx.Graph(BW_input=[1, 21, ADC.nodes['ADC']['resolution']],
+                             BW_output=[1, 21, ADC.nodes['ADC']['resolution']]
+                             )
+Digital_processor.add_node('max pooling')
+Digital_processor.add_node('fc')
+
+# derive mismatch from end-accuracy
+# analytical_output = I * delta_t / C, I: weight, delta_t: x
+x_mismatch = 0
+ideal_output = PE.nodes['capacitor']['ideal_output']
+actual_output = PE.nodes['capacitor']['value_output']
+
+
+# determine unit performance
+# performance is returned in [energy, latency, area]
+Pixel_array.nodes['pixel']['performance'] = hw.PWM.performance(pitch=7.6, technology=0.18, x_mismatch)
+Weight_memory.nodes['DFF']['performance'] = hw.DFF.performance()
+Weight_interface.nodes['weighted current biasing']['performance'] = hw.Current_DAC.performance(reso=3, w_mismatch)
+PE.nodes['SCI']['performance'] = hw.Current_Mirror.performance()
+PE.nodes['capacitor']['performance'] = hw.Voltage_Sampler.performance(C)
+PE.nodes['comparator']['performance'] = hw.Comparator.performance()
+
+# mapping checkpoint, loop over back, determine how to get system performance from unit performance
+
+
+# sensor IO is kind of standard and universal, so it is excluded from the hardware graph
+# Define sensor system
+Sensor_System = nx.Graph()
+Sensor_System.add_node(Pixel_array)
+Sensor_System.add_node(Weight_interface)
+Sensor_System.add_node(PE_array)
+Sensor_System.add_node(ADC)
+Sensor_System.add_node(Digital_processor)
+
+Sensor_System.add_edge(Pixel_array, PE_array,
+                       transmission_cycle=1)
+Sensor_System.add_edge(Weight_interface, PE_array,
+                       transmission_cycle=1)
+Sensor_System.add_edge(PE_array, ADC,
+                       transmission_cycle=1)
+Sensor_System.add_edge(ADC, Digital_processor,
+                       transmission_cycle=1)

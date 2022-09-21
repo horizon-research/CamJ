@@ -1,3 +1,18 @@
+def mapping_function_case2():
+    mapping = {
+        "ImageCapture": "PixelArray",
+
+        "Conv2D": "PE",
+        "ReLU": "PE",
+        "MaxPooling": "PE",
+
+        "Quantization": "ADC",
+
+        "FC": "DigitalProcessor"
+    }
+
+    return mapping
+
 def mapping_function_case3():
     mapping = {
         "ImageCapture": "PixelArray",
