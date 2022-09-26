@@ -238,6 +238,7 @@ class ComputeUnit(object):
 	# process one cycle
 	def process_one_cycle(self):
 		self.elapse_cycle -= 1
+		print("[PROCESS]", self.name, "just compute 1 cycle, %d cycles left" % self.elapse_cycle)
 
 	# check if the compute is finished, if finished, reset the elapse cycle number
 	def finish_computation(self):
@@ -401,7 +402,7 @@ class SystolicArray(object):
 	# process one cycle
 	def process_one_cycle(self):
 		self.elapse_cycle -= 1
-		print(self.name, "just compute 1 cycle, %d cycles left" % self.elapse_cycle)
+		print("[PROCESS]", self.name, "just compute 1 cycle, %d cycles left" % self.elapse_cycle)
 
 	# check if the compute is finished, if finished, reset the elapse cycle number
 	def finish_computation(self):

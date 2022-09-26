@@ -18,9 +18,9 @@ def hw_config():
 		size = (2, 8, 512*512/8), 	# assume double buffer scratchpad with 8 banks each.
 									# to store two 512x512 frames
 		clock = 500, 	# MHz
-		read_port = 8,
-		write_port = 8,
-		read_write_port = 8,
+		read_port = 64,
+		write_port = 64,
+		read_write_port = 64,
 		access_units = ["EdgeDetection", "BBoxDetection", "Eventification", "Thresholding"
 						"InSensorSystolicArray", "OffchipBuffer", "ADC"],
 		write_energy = 3,
@@ -33,9 +33,9 @@ def hw_config():
 		name="OffchipBuffer",
 		size = (2, 16, 1024*64), 	# assume double buffer scratchpad with 2MB size
 		clock = 500, 	# MHz
-		read_port = 16,
-		write_port = 16,
-		read_write_port = 16,
+		read_port = 256,
+		write_port = 256,
+		read_write_port = 256,
 		access_units = ["InSensorBuffer", "NearSensorSystolicArray", "OffchipDRAM",
 						"EdgeDetection", "BBoxDetection"],
 		write_energy = 30,
