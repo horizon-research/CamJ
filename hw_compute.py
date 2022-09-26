@@ -17,15 +17,22 @@ class ADC(object):
 		self.name = "ADC"
 		self.type = type
 		self.pixel_adc_ratio = pixel_adc_ratio
+		self.input_throughput = None
 		self.output_throughput = output_throughput
 		self.location = location
 		self.input_buffer = None
 		self.input_hw_units = {}
 		self.output_buffer_size = {}
 		self.output_index_list = {}
-
+		# parameters for computing stage
 		self.delay = 1
 		self.elapse_cycle = -1
+		# parameters for reading stage
+		self.read_cnt = -1 # num of input already being read for one compute
+		self.total_read = -1 # total num of reads
+		# parameters for writing stage
+		self.write_cnt = -1 # num of output already being written for one compute
+		self.total_write = -1 # total num of write
 
 	def set_input_buffer(self, input_buffer):
 		self.input_buffer = input_buffer
@@ -57,6 +64,51 @@ class ADC(object):
 	def finish_computation(self):
 		if self.elapse_cycle == 0:
 			self.elapse_cycle = -1
+			return True
+		else:
+			return False
+
+	'''
+		Functions related to reading stage
+	'''
+	def get_total_read(self):
+		# need to check if total_read has been initialized
+		# if not, calculate it before return
+		if self.total_read == -1:
+			total_read = 0
+			if self.input_throughput != None:
+				for throughput in self.input_throughput:
+					read_for_one_input = 1
+					for i in range(len(throughput)):
+						read_for_one_input *= throughput[i]
+
+					total_read += read_for_one_input
+
+			self.total_read = total_read
+
+		return self.total_read
+
+	# return number of read still un-read
+	def num_read_remain(self):
+		total_read = self.get_total_read()
+
+		# check if read_cnt has been initialized yet
+		if self.read_cnt >= 0:
+			return total_read - self.read_cnt
+		else:
+			return total_read
+
+
+	# log num of reads happened in this reading cycle
+	def read_from_input_buffer(self, read_cnt):
+		# initialize it before count
+		if self.read_cnt == -1:
+			self.read_cnt = 0
+		self.read_cnt += read_cnt
+
+	# check if current reading stage is finished
+	def check_read_finish(self):
+		if self.read_cnt == self.get_total_read():
 			return True
 		else:
 			return False
@@ -109,6 +161,12 @@ class ComputeUnit(object):
 		self.initial_delay = initial_delay
 		self.delay = delay
 		self.elapse_cycle = -1
+		# parameters for reading stage
+		self.read_cnt = -1 # num of input already being read for one compute
+		self.total_read = -1 # total num of reads
+		# parameters for writing stage
+		self.write_cnt = -1 # num of output already being written for one compute
+		self.total_write = -1 # total num of write
 
 		self.input_hw_units = {}
 		self.input_index_list = {}
@@ -135,7 +193,8 @@ class ComputeUnit(object):
 		if sw_stage not in self.input_hw_units:
 			self.input_hw_units[sw_stage] = [hw_unit]
 		else:
-			self.input_hw_units[sw_stage].append(hw_unit)
+			raise Exception("[set_input_hw_unit]: each input sw_stage can only map to one hw_unit")
+
 
 	# initialize input buffer index, so that we know where to the next data
 	# the buffer index will be indexed using (source hw unit, sw stage)
@@ -191,6 +250,52 @@ class ComputeUnit(object):
 	def compute_energy(self):
 		return self.energy
 
+	'''
+		Functions related to reading stage
+	'''
+	def get_total_read(self):
+		# need to check if total_read has been initialized
+		# if not, calculate it before return
+		if self.total_read == -1:
+			total_read = 0
+			if self.input_throughput != None:
+				for throughput in self.input_throughput:
+					read_for_one_input = 1
+					for i in range(len(throughput)):
+						read_for_one_input *= throughput[i]
+
+					total_read += read_for_one_input
+
+			self.total_read = total_read
+
+		return self.total_read
+
+	# return number of read still un-read
+	def num_read_remain(self):
+		total_read = self.get_total_read()
+
+		# check if read_cnt has been initialized yet
+		if self.read_cnt >= 0:
+			return total_read - self.read_cnt
+		else:
+			return total_read
+
+	# log num of reads happened in this reading cycle
+	def read_from_input_buffer(self, read_cnt):
+		# initialize it before count
+		if self.read_cnt == -1:
+			self.read_cnt = 0
+		self.read_cnt += read_cnt
+
+	# check if current reading stage is finished
+	def check_read_finish(self):
+		if self.read_cnt == self.get_total_read():
+			# reset num_read before return
+			self.read_cnt = -1
+			return True
+		else:
+			return False
+
 	def __str__(self):
 		return self.name
 
@@ -232,6 +337,12 @@ class SystolicArray(object):
 
 		self.delay = 10
 		self.elapse_cycle = -1
+		# parameters for reading stage
+		self.read_cnt = -1 # num of input already being read for one compute
+		self.total_read = -1 # total num of reads
+		# parameters for writing stage
+		self.write_cnt = -1 # num of output already being written for one compute
+		self.total_write = -1 # total num of write
 
 
 	# needs to set the input and output buffer
@@ -303,6 +414,49 @@ class SystolicArray(object):
 	def compute_energy(self):
 		return self.energy
 
+	'''
+		Functions related to reading stage
+	'''
+	def get_total_read(self):
+		# need to check if total_read has been initialized
+		# if not, calculate it before return
+		if self.total_read == -1:
+			total_read = 0
+			if self.input_throughput != None:
+				for throughput in self.input_throughput:
+					read_for_one_input = 1
+					for i in range(len(throughput)):
+						read_for_one_input *= throughput[i]
+
+					total_read += read_for_one_input
+
+			self.total_read = total_read
+
+		return self.total_read
+
+	# return number of read still un-read
+	def num_read_remain(self):
+		total_read = self.get_total_read()
+
+		# check if read_cnt has been initialized yet
+		if self.read_cnt >= 0:
+			return total_read - self.read_cnt
+		else:
+			return total_read
+
+	# log num of reads happened in this reading cycle
+	def read_from_input_buffer(self, read_cnt):
+		# initialize it before count
+		if self.read_cnt == -1:
+			self.read_cnt = 0
+		self.read_cnt += read_cnt
+
+	# check if current reading stage is finished
+	def check_read_finish(self):
+		if self.read_cnt == self.get_total_read():
+			return True
+		else:
+			return False
 	def __str__(self):
 		return self.name
 

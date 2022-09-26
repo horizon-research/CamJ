@@ -1,3 +1,7 @@
+'''
+	This file documents the global configuration enums.
+'''
+
 from enum import Enum
 
 class ProcessorLocation(Enum):
