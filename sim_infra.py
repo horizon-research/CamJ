@@ -69,7 +69,6 @@ class BufferMonitor(object):
 		if buffer is None:
 			return True
 
-		print(buffer)
 		assert self.occupied_read_port[buffer] <= self.total_read_port[buffer], \
 			"occupied_read_port cannot be greater than total_read_port"
 
@@ -114,6 +113,7 @@ class BufferMonitor(object):
 	# 	it returns number of ports that can be satisfied
 	# 	this number <= num_port
 	def request_write_port(self, buffer, num_port):
+		print(buffer)
 		avail_port = self.total_write_port[buffer] - self.occupied_write_port[buffer]
 		self.occupied_write_port[buffer] += avail_port
 		if avail_port > num_port:

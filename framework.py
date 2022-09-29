@@ -54,6 +54,7 @@ def main():
 
 	# initialize different stage list
 	idle_stage = {}
+	writing_stage = {}
 	reading_stage = {}
 	processing_stage = {}
 	finished_stage = {}
@@ -77,6 +78,43 @@ def main():
 				print("[FINISH]", sw_stage, "is finished already")
 				continue
 
+			# This check the writing stage. 
+			# First, check if there is any data to write,
+			# Second, check if there is any avialble ports in current cycle, 
+			# if yes, request port and write data.
+			if sw_stage in writing_stage:
+				print("[WRITE]", sw_stage, "in writing stage")
+				output_buffer = hw_unit.output_buffer
+				remain_write_cnt = hw_unit.num_write_remain()
+				print("[WRITE]", "[HW unit : SW stage]", hw_unit, sw_stage, "Output Buffer: ", output_buffer)
+				# this means that this hw_unit doesn't have any output data.
+				if remain_write_cnt == 0:
+					print("[WRITE]", hw_unit, "has no output data.")
+					# set sw_stage to idle stage
+					idle_stage[sw_stage] = True
+					writing_stage.pop(sw_stage)
+
+				# check if there is some write port available
+				elif buffer_monitor.check_buffer_available_write_port(output_buffer):
+					# request write port, it returns the current available write port
+					num_avail_write_port = buffer_monitor.request_write_port(output_buffer, remain_write_cnt)
+					# if number of available ports is greater than 0,
+					# then log the aoumd of read data, else, avoid logging
+					if num_avail_write_port > 0:
+						hw_unit.write_to_output_buffer(num_avail_write_port)
+						if hw_unit.check_write_finish():
+							print("[WRITE]", hw_unit, "finishes writing")
+							# set sw_stage to idle stage
+							idle_stage[sw_stage] = True
+							writing_stage.pop(sw_stage)
+
+				if check_stage_finish(hw_unit, sw_stage, hw2sw):
+					print("[WRITE]", sw_stage, "finish writing the buffer.", hw_unit, "is released.")
+					reservation_board.release_hw_unit(sw_stage, hw_unit)
+					finished_stage[sw_stage] = True
+					idle_stage.pop(sw_stage)
+
+
 			# this will check if a sw stage is already into computing phase,
 			# wait for the compute to be finished
 			if sw_stage in processing_stage:
@@ -88,25 +126,19 @@ def main():
 					write_output_throughput(hw_unit, sw_stage, hw2sw)
 
 					# if the computation is finished, remove the sw stage from processing stage list
-					# add sw_stage to idle stage
-					idle_stage[sw_stage] = True
+					# add sw_stage to writing stage
+					writing_stage[sw_stage] = True
 					processing_stage.pop(sw_stage)
-
-					if check_stage_finish(hw_unit, sw_stage, hw2sw):
-						print("[PROCESS]", sw_stage, "finish writing the buffer.", hw_unit, "is released.")
-						reservation_board.release_hw_unit(sw_stage, hw_unit)
-						finished_stage[sw_stage] = True
-						idle_stage.pop(sw_stage)
 
 			# check if the sw stage is in reading phase
 			elif sw_stage in reading_stage:
 				print("[READ]", sw_stage, "in reading stage")
 				# find input buffer and remaining amount of data need to be read
 				input_buffer = hw_unit.input_buffer
-				remain_data_cnt = hw_unit.num_read_remain()
+				remain_read_cnt = hw_unit.num_read_remain()
 				print("[READ]", "[HW unit : SW stage]", hw_unit, sw_stage, "Input Buffer: ", input_buffer)
 				# this means that this hw_unit doesn't have data dependencies.
-				if remain_data_cnt == 0:
+				if remain_read_cnt == 0:
 					print("[READ]", hw_unit, "is ready to compute, no data dependencies")
 					# refresh the compute status in hw_unit
 					hw_unit.init_elapse_cycle()
@@ -116,11 +148,11 @@ def main():
 				# check if there is some read port available
 				elif buffer_monitor.check_buffer_available_read_port(input_buffer):
 					# request read port, it returns the current available read port
-					num_avail_port = buffer_monitor.request_read_port(input_buffer, remain_data_cnt)
+					num_avail_read_port = buffer_monitor.request_read_port(input_buffer, remain_read_cnt)
 					# if number of available ports is greater than 0,
 					# then log the aoumd of read data, else, avoid logging
-					if num_avail_port > 0:
-						hw_unit.read_from_input_buffer(num_avail_port)
+					if num_avail_read_port > 0:
+						hw_unit.read_from_input_buffer(num_avail_read_port)
 						if hw_unit.check_read_finish():
 							print("[READ]", hw_unit, "is ready to compute")
 							# refresh the compute status in hw_unit
@@ -154,7 +186,7 @@ def main():
 				else:
 					print("[IDLE]", sw_stage, "in idle stage, input data NOT ready")
 		print("[Finished stage]: ", finished_stage)
-		if len(finished_stage.keys()) == 1: # len(sw_stage_list):
+		if len(finished_stage.keys()) == len(sw_stage_list):
 			print("DONE!")
 			exit()
 

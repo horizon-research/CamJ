@@ -113,6 +113,48 @@ class ADC(object):
 		else:
 			return False
 
+	'''
+		Functions related to writing stage
+	'''
+	def get_total_write(self):
+		# need to check if total_write has been initialized
+		# if not, calculate it before return
+		if self.total_write == -1:
+			total_write = 1
+			if self.output_throughput is not None:
+				for i in range(len(self.output_throughput)):
+					total_write *= self.output_throughput[i]
+
+			self.total_write = total_write
+
+		return self.total_write
+
+	# return number of write still un-read
+	def num_write_remain(self):
+		total_write = self.get_total_write()
+
+		# check if write_cnt has been initialized yet
+		if self.write_cnt >= 0:
+			return total_write - self.write_cnt
+		else:
+			return total_write
+
+	# log num of writes happened in this writing cycle
+	def write_to_output_buffer(self, write_cnt):
+		# initialize it before count
+		if self.write_cnt == -1:
+			self.write_cnt = 0
+		self.write_cnt += write_cnt
+
+	# check if current writing stage is finished
+	def check_write_finish(self):
+		if self.write_cnt == self.get_total_write():
+			# reset num_write before return
+			self.write_cnt = -1
+			return True
+		else:
+			return False
+
 	def __str__(self):
 		return self.name
 
@@ -297,6 +339,48 @@ class ComputeUnit(object):
 		else:
 			return False
 
+	'''
+		Functions related to writing stage
+	'''
+	def get_total_write(self):
+		# need to check if total_write has been initialized
+		# if not, calculate it before return
+		if self.total_write == -1:
+			total_write = 1
+			if self.output_throughput is not None:
+				for i in range(len(self.output_throughput)):
+					total_write *= self.output_throughput[i]
+
+			self.total_write = total_write
+
+		return self.total_write
+
+	# return number of write still un-read
+	def num_write_remain(self):
+		total_write = self.get_total_write()
+
+		# check if write_cnt has been initialized yet
+		if self.write_cnt >= 0:
+			return total_write - self.write_cnt
+		else:
+			return total_write
+
+	# log num of writes happened in this writing cycle
+	def write_to_output_buffer(self, write_cnt):
+		# initialize it before count
+		if self.write_cnt == -1:
+			self.write_cnt = 0
+		self.write_cnt += write_cnt
+
+	# check if current writing stage is finished
+	def check_write_finish(self):
+		if self.write_cnt == self.get_total_write():
+			# reset num_write before return
+			self.write_cnt = -1
+			return True
+		else:
+			return False
+
 	def __str__(self):
 		return self.name
 
@@ -458,6 +542,49 @@ class SystolicArray(object):
 			return True
 		else:
 			return False
+
+		'''
+		Functions related to writing stage
+	'''
+	def get_total_write(self):
+		# need to check if total_write has been initialized
+		# if not, calculate it before return
+		if self.total_write == -1:
+			total_write = 1
+			if self.output_throughput is not None:
+				for i in range(len(self.output_throughput)):
+					total_write *= self.output_throughput[i]
+
+			self.total_write = total_write
+
+		return self.total_write
+
+	# return number of write still un-read
+	def num_write_remain(self):
+		total_write = self.get_total_write()
+
+		# check if write_cnt has been initialized yet
+		if self.write_cnt >= 0:
+			return total_write - self.write_cnt
+		else:
+			return total_write
+
+	# log num of writes happened in this writing cycle
+	def write_to_output_buffer(self, write_cnt):
+		# initialize it before count
+		if self.write_cnt == -1:
+			self.write_cnt = 0
+		self.write_cnt += write_cnt
+
+	# check if current writing stage is finished
+	def check_write_finish(self):
+		if self.write_cnt == self.get_total_write():
+			# reset num_write before return
+			self.write_cnt = -1
+			return True
+		else:
+			return False
+
 	def __str__(self):
 		return self.name
 
