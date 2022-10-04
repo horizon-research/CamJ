@@ -26,6 +26,7 @@ class ADC(object):
 		self.output_index_list = {}
 		# parameters for computing stage
 		self.delay = 1
+		self.initial_delay = 0
 		self.elapse_cycle = -1
 		# parameters for reading stage
 		self.read_cnt = -1 # num of input already being read for one compute
@@ -59,6 +60,10 @@ class ADC(object):
 	# process one cycle
 	def process_one_cycle(self):
 		self.elapse_cycle -= 1
+
+	# dummy function
+	def start_init_delay(self):
+		pass
 
 	# check if the compute is finished, if finished, reset the elapse cycle number
 	def finish_computation(self):
@@ -200,6 +205,7 @@ class ComputeUnit(object):
 		self.energy = energy
 		self.area = area
 		# setup the delay for the entire compute
+		self.add_init_delay = False
 		self.initial_delay = initial_delay
 		self.delay = delay
 		self.elapse_cycle = -1
@@ -275,12 +281,19 @@ class ComputeUnit(object):
 	'''
 	# initialize the cycle number that needs to be elapsed before writing the output
 	def init_elapse_cycle(self):
-		self.elapse_cycle = self.delay
+		if self.add_init_delay:
+			self.elapse_cycle = self.delay + self.initial_delay
+			self.add_init_delay = False
+		else:
+			self.elapse_cycle = self.delay
 
 	# process one cycle
 	def process_one_cycle(self):
 		self.elapse_cycle -= 1
 		print("[PROCESS]", self.name, "just compute 1 cycle, %d cycles left" % self.elapse_cycle)
+
+	def start_init_delay(self):
+		self.add_init_delay = True
 
 	# check if the compute is finished, if finished, reset the elapse cycle number
 	def finish_computation(self):
@@ -420,6 +433,8 @@ class SystolicArray(object):
 		self.output_buffer_size = {}
 		self.output_index_list = {}
 
+		self.add_init_delay = False
+		self.initial_delay = 10
 		self.delay = 10
 		self.elapse_cycle = -1
 		# parameters for reading stage
@@ -481,12 +496,18 @@ class SystolicArray(object):
 
 	# initialize the cycle number that needs to be elapsed before writing the output
 	def init_elapse_cycle(self):
-		self.elapse_cycle = self.delay
-
+		if self.add_init_delay:
+			self.elapse_cycle = self.delay + self.initial_delay
+			self.add_init_delay = False
+		else:
+			self.elapse_cycle = self.delay
 	# process one cycle
 	def process_one_cycle(self):
 		self.elapse_cycle -= 1
 		print("[PROCESS]", self.name, "just compute 1 cycle, %d cycles left" % self.elapse_cycle)
+
+	def start_init_delay(self):
+		self.add_init_delay = True
 
 	# check if the compute is finished, if finished, reset the elapse cycle number
 	def finish_computation(self):
