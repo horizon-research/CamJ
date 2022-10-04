@@ -267,6 +267,19 @@ def check_input_buffer_data_ready(dst_input_buffer, dst_input_throughput, dst_in
 
 	else:
 		raise Exception("check_input_buffer_data_ready hasn't been implemented throughput other than 3 yet!")
+
+def scale_input_throughput_by_reuse(input_throughput, input_reuse, input_index, input_size):
+	flag = True
+	ret_throughput = []
+	for i in range(len(input_reuse)):
+		if flag and input_index[i] + input_throughput[i] == input_size[i]:
+			ret_throughput.append(int(input_throughput[i]))
+		else:
+			ret_throughput.append(int(input_throughput[i]/input_reuse[i]))
+			flag = False
+
+	return ret_throughput
+
 '''
 	increment the input buffer index, the input buffer index needs to be incremented before fetching
 	the next batch of data.
@@ -286,6 +299,8 @@ def increment_input_buffer_index(dst_hw_unit, sw_stage):
 	# needs to increment index for each input throughput
 	for i in range(len(dst_hw_unit.input_throughput)):
 		input_sw_stage = sw_stage.input_stages[i]
+		input_size = sw_stage.input_size[i]
+		input_reuse = sw_stage.input_reuse[i]
 		# 0 here is to find the first one item in the list,
 		# the list is a length of 1 list.
 		src_hw_unit = dst_hw_unit.input_hw_units[input_sw_stage][0]
@@ -294,9 +309,21 @@ def increment_input_buffer_index(dst_hw_unit, sw_stage):
 		dst_input_throughput = dst_hw_unit.input_throughput[i]
 		# get the previous input index
 		dst_input_index = dst_hw_unit.get_input_buffer_index(src_hw_unit, input_sw_stage)
+		dst_input_throughput = scale_input_throughput_by_reuse(
+			dst_input_throughput, 
+			input_reuse, 
+			dst_input_index, 
+			input_size
+		)
+		
 		# increment the input buffer index
 		new_dst_input_index = increment_buffer_index(dst_input_index, dst_input_buffer.shape, dst_input_throughput)
 		# set the new index
+		print(
+			"[increment_input_buffer_index]", sw_stage, 
+			"previous input index: ", dst_input_index, 
+			"new input index", new_dst_input_index
+		)
 		dst_hw_unit.set_input_buffer_index(src_hw_unit, input_sw_stage, new_dst_input_index)
 	return
 
