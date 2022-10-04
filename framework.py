@@ -6,14 +6,15 @@ import numpy as np
 from enum_const import ProcessorLocation, ProcessDomain
 from memory import Scratchpad
 from hw_compute import ADC, ComputeUnit, SystolicArray
-from mapping_file import mapping_function
-from sw_pipeline import sw_pipeline, build_sw_graph
 from sim_utils import map_sw_hw, check_buffer_consistency, build_buffer_edges, allocate_output_buffer, \
 					  increment_buffer_index, check_stage_finish, write_output_throughput, \
 					  check_input_buffer_data_ready, increment_input_buffer_index, check_input_buffer
-
 from sim_infra import ReservationBoard, BufferMonitor
-from hw_config import hw_config
+from sw_framework_interface import build_sw_graph
+
+from simple_img_pipeline.mapping_file import mapping_function
+from simple_img_pipeline.sw_pipeline import sw_pipeline, build_sw_graph
+from simple_img_pipeline.hw_config import hw_config
 
 
 def main():
@@ -63,7 +64,7 @@ def main():
 	for sw_stage in sw_stage_list:
 		idle_stage[sw_stage] = True
 
-	for cycle in range(10000000):
+	for cycle in range(40000):
 		print("\n\n#######  CYCLE %04d  ######" % cycle)
 		# always refresh the R/W port status first,
 		# otherwise, it won't release the port free.
@@ -98,15 +99,25 @@ def main():
 				elif buffer_monitor.check_buffer_available_write_port(output_buffer):
 					# request write port, it returns the current available write port
 					num_avail_write_port = buffer_monitor.request_write_port(output_buffer, remain_write_cnt)
-					# if number of available ports is greater than 0,
-					# then log the aoumd of read data, else, avoid logging
-					if num_avail_write_port > 0:
-						hw_unit.write_to_output_buffer(num_avail_write_port)
-						if hw_unit.check_write_finish():
-							print("[WRITE]", hw_unit, "finishes writing")
-							# set sw_stage to idle stage
-							idle_stage[sw_stage] = True
-							writing_stage.pop(sw_stage)
+					# print(output_buffer, num_avail_write_port)
+
+					# then, check if there is any space to write
+					if output_buffer.have_space_to_write(num_avail_write_port):
+						output_buffer.write_data(num_avail_write_port)
+						# if number of available ports is greater than 0,
+						# then log the aoumd of read data, else, avoid logging
+						if num_avail_write_port > 0:
+							hw_unit.write_to_output_buffer(num_avail_write_port)
+							if hw_unit.check_write_finish():
+								print("[WRITE]", hw_unit, "finishes writing")
+								# output data to the targeted buffer and increment output buffer index
+								write_output_throughput(hw_unit, sw_stage, hw2sw)
+								# set sw_stage to idle stage
+								idle_stage[sw_stage] = True
+								writing_stage.pop(sw_stage)
+					else:
+						print("[WRITE]", output_buffer, "have no space to write")
+
 
 				if check_stage_finish(hw_unit, sw_stage, hw2sw):
 					print("[WRITE]", sw_stage, "finish writing the buffer.", hw_unit, "is released.")
@@ -122,8 +133,8 @@ def main():
 				hw_unit.process_one_cycle()
 				# check_input_buffer(hw_unit, sw_stage)
 				if hw_unit.finish_computation():
-					# output data to the targeted buffer and increment output buffer index
-					write_output_throughput(hw_unit, sw_stage, hw2sw)
+					# # output data to the targeted buffer and increment output buffer index
+					# write_output_throughput(hw_unit, sw_stage, hw2sw)
 
 					# if the computation is finished, remove the sw stage from processing stage list
 					# add sw_stage to writing stage
@@ -149,16 +160,22 @@ def main():
 				elif buffer_monitor.check_buffer_available_read_port(input_buffer):
 					# request read port, it returns the current available read port
 					num_avail_read_port = buffer_monitor.request_read_port(input_buffer, remain_read_cnt)
-					# if number of available ports is greater than 0,
-					# then log the aoumd of read data, else, avoid logging
-					if num_avail_read_port > 0:
-						hw_unit.read_from_input_buffer(num_avail_read_port)
-						if hw_unit.check_read_finish():
-							print("[READ]", hw_unit, "is ready to compute")
-							# refresh the compute status in hw_unit
-							hw_unit.init_elapse_cycle()
-							processing_stage[sw_stage] = True
-							reading_stage.pop(sw_stage)
+
+					# check if there is any data can be read from buffer
+					if input_buffer.have_data_read(num_avail_read_port):
+						input_buffer.read_data(num_avail_read_port)
+						# if number of available ports is greater than 0,
+						# then log the aoumd of read data, else, avoid logging
+						if num_avail_read_port > 0:
+							hw_unit.read_from_input_buffer(num_avail_read_port)
+							if hw_unit.check_read_finish():
+								print("[READ]", hw_unit, "is ready to compute")
+								# refresh the compute status in hw_unit
+								hw_unit.init_elapse_cycle()
+								processing_stage[sw_stage] = True
+								reading_stage.pop(sw_stage)
+					else:
+						print("READ", input_buffer, "input_buffer have no new data to read")
 
 			# check if the sw stage is in idle phase
 			elif sw_stage in idle_stage:
@@ -170,6 +187,7 @@ def main():
 						print("[IDLE]", sw_stage, "request --> HW: ", hw_unit, "is available.")
 						# reserve the hw unit first
 						reservation_board.reserve_hw_unit(sw_stage, hw_unit)
+						hw_unit.start_init_delay()
 						# increment the input buffer index
 						increment_input_buffer_index(hw_unit, sw_stage)
 						# hw_unit.init_elapse_cycle()
