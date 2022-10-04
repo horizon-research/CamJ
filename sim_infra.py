@@ -113,7 +113,6 @@ class BufferMonitor(object):
 	# 	it returns number of ports that can be satisfied
 	# 	this number <= num_port
 	def request_write_port(self, buffer, num_port):
-		print(buffer)
 		avail_port = self.total_write_port[buffer] - self.occupied_write_port[buffer]
 		self.occupied_write_port[buffer] += avail_port
 		if avail_port > num_port:
