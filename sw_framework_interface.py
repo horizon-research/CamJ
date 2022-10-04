@@ -7,6 +7,7 @@ class PixelInput(object):
 	):
 
 		self.size = size
+		self.input_size = []
 		self.output_size = size
 		self.input_stages = []
 		self.name = name
@@ -32,11 +33,13 @@ class ProcessStage(object):
 		self, 
 		name: str,
 		input_size: list,
+		input_reuse: list,
 		output_size: list
 	):
 		super(ProcessStage, self).__init__()
 		self.name = name
 		self.input_size = input_size
+		self.input_reuse = input_reuse
 		self.output_size = output_size
 		self.input_stages = []
 		self.output_stages = []
@@ -98,6 +101,7 @@ class DNNProcessStage(object):
 		self.kernel_size = kernel_size
 		self.stride = stride
 		self.input_stages = []
+		self.input_reuse = [(stride, stride, 1)]
 		self.output_stages = []
 		self.ready_board = {}
 
@@ -227,8 +231,8 @@ def build_sw_graph(sw_stage_list):
 	root_src_stage = find_src_stages(sw_stage_list)
 	root_dst_stage = find_dst_stages(sw_stage_list)
 
-	print("root source: ", root_src_stage)
-	print("root target: ", root_dst_stage)
+	print("Root source: ", root_src_stage)
+	print("Final target: ", root_dst_stage)
 
 	graph_layers = []
 	ready_list = []
