@@ -97,11 +97,12 @@ class DNNProcessStage(object):
 		super(DNNProcessStage, self).__init__()
 		self.name = name
 		self.type = op_type 
+		self.input_size = [ifmap_size]
 		self.ifmap_size = ifmap_size
 		self.kernel_size = kernel_size
 		self.stride = stride
 		self.input_stages = []
-		self.input_reuse = [(stride, stride, 1)]
+		self.input_reuse = [(1, 1, 1)]
 		self.output_stages = []
 		self.ready_board = {}
 
@@ -118,7 +119,7 @@ class DNNProcessStage(object):
 				1
 			)
 		else:
-			raise Exception("Unsupported op types.")
+			raise Exception("Unsupported op types in class 'DNNProcessStage'.")
 
 	def flatten():
 		size = 1
