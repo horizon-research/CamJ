@@ -485,17 +485,36 @@ class SystolicArray(object):
 		self.output_buffer = output_buffer
 
 	def config_throughput(self, input_size, output_size, stride, kernel_size):
-		print("[SYSTOLIC] config: ", input_size, output_size, stride, kernel_size)
-		# compute the input throughput
+		print(
+			"[SYSTOLIC] config: ", 
+			"ifmap size: ", input_size, 
+			"ofmap size: ", output_size, 
+			"stride: ", stride, 
+			"kernel size: ", kernel_size)
+
+		# compute throughput dimension
+		# when the input size is smaller than size_dimension, we should take input_size as throughput
+		throughput_dimension_x = min(input_size[0][0]//stride, self.size_dimension[0])
+		# same as throughput_dimension_x.
+		throughput_dimension_y = min(input_size[0][1]//stride, self.size_dimension[1])
+		# print("[SYSTOLIC]", throughput_dimension_x, throughput_dimension_y, self.size_dimension)
+
+		# compute the input throughput, the input dependency for computing ofmap
 		self.input_throughput = [
-			(self.size_dimension[0]*stride, self.size_dimension[1]*stride, input_size[0][-1])
+			(throughput_dimension_x*stride, throughput_dimension_y*stride, input_size[0][-1])
 		]
 		
 		# compute the output throughput
-		self.output_throughput = (self.size_dimension[0], self.size_dimension[1], output_size[-1])
+		self.output_throughput = (throughput_dimension_x, throughput_dimension_y, output_size[-1])
 
 		# calculate the delay for one compute batch
 		self.delay = kernel_size*kernel_size*input_size[0][-1]*output_size[-1]
+
+		print(
+			"[SYSTOLIC] input throughput: ", self.input_throughput,
+			"output throughput: ", self.output_throughput,
+			"compute delay: ", self.delay 
+		)
 
 	# set the input hw units, the final input hw units is a list,
 	# we assume multiple hw units as input
