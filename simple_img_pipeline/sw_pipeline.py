@@ -17,7 +17,7 @@ def sw_pipeline():
 	sw_stage_list = []
 	conv_stage = ProcessStage(
 		name = "Conv",
-		input_size = [(32, 32, 1)],
+		input_size = [(30, 32, 1)],
 		output_size = (30, 30, 1),
 		input_reuse = [(1, 3, 1)]
 	)
@@ -31,7 +31,7 @@ def sw_pipeline():
 	)
 	sw_stage_list.append(abs_stage)
 
-	input_data = PixelInput((32, 32, 1), name="Input")
+	input_data = PixelInput((30, 32, 1), name="Input")
 	sw_stage_list.append(input_data)
 
 	conv_stage.set_input_stage(input_data)

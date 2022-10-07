@@ -23,7 +23,7 @@ def hw_config():
 
 	line_buffer = LineBuffer(
 		name = "LineBuffer",
-		size = (2, 256), 	# assume line buffer has two rows, each row can store 256 of data
+		size = (3, 32), 	# assume line buffer has three rows, each row can store 64 of data
 		hw_impl = "sram",
 		clock = 500, 	# MHz
 		location = ProcessorLocation.COMPUTE_LAYER,
@@ -38,7 +38,7 @@ def hw_config():
 	fifo_buffer = FIFO(
 		name="FIFO",
 		hw_impl = "sram",
-		count = 256,
+		count = 32,
 		clock = 500, 	# MHz
 		write_energy = 3,
 		read_energy = 1,
@@ -52,7 +52,7 @@ def hw_config():
 	fifo_buffer2 = FIFO(
 		name="FIFO2",
 		hw_impl = "sram",
-		count = 32*32,
+		count = 30*30,
 		clock = 500, 	# MHz
 		write_energy = 3,
 		read_energy = 1,
@@ -67,7 +67,7 @@ def hw_config():
 		name = "ADC",
 		type = 1, # this needs to be fixed, use some enum.
 		pixel_adc_ratio = (1, 32, 1),
-		output_throughput = (32, 1, 1), # redundent
+		output_throughput = (30, 1, 1), # redundent
 		location = ProcessorLocation.SENSOR_LAYER,
 	)
 	adc.set_output_buffer(line_buffer)
@@ -77,7 +77,7 @@ def hw_config():
 	 	name="ConvUnit",
 		domain=ProcessDomain.DIGITAL,
 		location=ProcessorLocation.SENSOR_LAYER,
-		input_throughput = [(2, 1, 1)],
+		input_throughput = [(1, 3, 1)],
 		output_throughput = (1, 1, 1), 
 		clock = 500, # MHz
 		energy = 1,
