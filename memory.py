@@ -23,10 +23,8 @@ class DigitalStorage(object):
 		super(DigitalStorage, self).__init__()
 		self.name = name
 		self.access_units = access_units
-		assert(
-			location != ProcessorLocation.INVALID, 
+		assert location != ProcessorLocation.INVALID, \
 			"the storage location needs to be initialized."
-		)
 		self.location = location
 		# important to initialize the reserved_buffer to empty dict.
 		self.reserved_buffer = {}
@@ -88,7 +86,7 @@ class DoubleBuffer(DigitalStorage):
 		access_units: list, 	# a list of hardware units that access this storage
 		location: int,  		# location of this unit
 	):
-		super(LineBuffer, self).__init__(
+		super(DoubleBuffer, self).__init__(
 			name = name,
 			access_units = access_units,
 			location = location
@@ -128,7 +126,7 @@ class DoubleBuffer(DigitalStorage):
 		In FIFO, every time you read a number, that number is no longer useful.
 	"""
 	def read_data(self, num_read):
-		self.stored_data -= self.duplication
+		self.stored_data -= num_read
 
 
 class LineBuffer(DigitalStorage):
@@ -170,6 +168,8 @@ class LineBuffer(DigitalStorage):
 		self.read_energy = read_energy * duplication
 		self.duplication = duplication
 
+		self.init_read = True
+
 	"""
 		Check if there is enough space to store the data
 	"""
@@ -201,7 +201,14 @@ class LineBuffer(DigitalStorage):
 		assert num_read == self.read_port, \
 			"number of read should be equal to the read port number in line buffer!"
 		
-		if num_read > self.stored_data:
+		print(
+			"[MEMORY] num_read: %d, stored_data: %d, offset : %d" % (
+			num_read, self.stored_data, self.size[0] * (self.size[1] - 1) * self.size[2])
+		)
+		if self.init_read and num_read > self.stored_data - self.size[0] * (self.size[1] - 1) * self.size[2]:
+			self.init_read = False
+			return False
+		elif not self.init_read and num_read > self.stored_data:
 			return False
 		else:
 			return True
