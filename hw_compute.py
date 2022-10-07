@@ -11,7 +11,8 @@ class ADC(object):
 		type: int,
 		pixel_adc_ratio: tuple,
 		output_throughput: tuple,
-		location
+		location,
+		power = 600
 	):
 		super(ADC, self).__init__()
 		self.name = "ADC"
@@ -20,6 +21,7 @@ class ADC(object):
 		self.input_throughput = None
 		self.output_throughput = output_throughput
 		self.location = location
+		self.power = 600
 		self.input_buffer = None
 		self.input_hw_units = {}
 		self.output_buffer_size = {}
@@ -34,6 +36,11 @@ class ADC(object):
 		# parameters for writing stage
 		self.write_cnt = -1 # num of output already being written for one compute
 		self.total_write = -1 # total num of write
+
+		# performance counter
+		self.sys_all_compute_cycle = 0
+		self.sys_all_write_cnt = 0
+		self.sys_all_read_cnt = 0
 
 	def set_input_buffer(self, input_buffer):
 		self.input_buffer = input_buffer
@@ -60,6 +67,7 @@ class ADC(object):
 	# process one cycle
 	def process_one_cycle(self):
 		self.elapse_cycle -= 1
+		self.sys_all_compute_cycle += 1
 
 	# dummy function
 	def start_init_delay(self):
@@ -110,6 +118,7 @@ class ADC(object):
 		if self.read_cnt == -1:
 			self.read_cnt = 0
 		self.read_cnt += read_cnt
+		self.sys_all_read_cnt += read_cnt
 
 	# check if current reading stage is finished
 	def check_read_finish(self):
@@ -150,6 +159,7 @@ class ADC(object):
 		if self.write_cnt == -1:
 			self.write_cnt = 0
 		self.write_cnt += write_cnt
+		self.sys_all_write_cnt += write_cnt
 
 	# check if current writing stage is finished
 	def check_write_finish(self):
@@ -159,6 +169,12 @@ class ADC(object):
 			return True
 		else:
 			return False
+
+	def compute_energy(self):
+		return 600*self.sys_all_compute_cycle
+
+	def communication_energy(self):
+		return int(0.5*(self.sys_all_write_cnt+self.sys_all_read_cnt))
 
 	def __str__(self):
 		return self.name
@@ -220,6 +236,11 @@ class ComputeUnit(object):
 		self.input_index_list = {}
 		self.output_buffer_size = {}
 		self.output_index_list = {}
+
+		# performance counter
+		self.sys_all_compute_cycle = 0
+		self.sys_all_write_cnt = 0
+		self.sys_all_read_cnt = 0
 
 	'''
 		# Input/output Data Dependency Configuration 
@@ -290,6 +311,7 @@ class ComputeUnit(object):
 	# process one cycle
 	def process_one_cycle(self):
 		self.elapse_cycle -= 1
+		self.sys_all_compute_cycle += 1
 		print("[PROCESS]", self.name, "just compute 1 cycle, %d cycles left" % self.elapse_cycle)
 
 	def start_init_delay(self):
@@ -304,7 +326,10 @@ class ComputeUnit(object):
 			return False
 
 	def compute_energy(self):
-		return self.energy
+		return int(self.energy * self.sys_all_compute_cycle / self.delay)
+
+	def communication_energy(self):
+		return int(0.5*(self.sys_all_read_cnt+self.sys_all_write_cnt))
 
 	'''
 		Functions related to reading stage
@@ -342,6 +367,7 @@ class ComputeUnit(object):
 		if self.read_cnt == -1:
 			self.read_cnt = 0
 		self.read_cnt += read_cnt
+		self.sys_all_read_cnt += read_cnt
 
 	# check if current reading stage is finished
 	def check_read_finish(self):
@@ -384,6 +410,7 @@ class ComputeUnit(object):
 		if self.write_cnt == -1:
 			self.write_cnt = 0
 		self.write_cnt += write_cnt
+		self.sys_all_write_cnt += write_cnt
 
 	# check if current writing stage is finished
 	def check_write_finish(self):
@@ -434,7 +461,7 @@ class SystolicArray(object):
 		self.output_index_list = {}
 
 		self.add_init_delay = False
-		self.initial_delay = 10
+		self.initial_delay = size_dimension[0]
 		self.delay = 10
 		self.elapse_cycle = -1
 		# parameters for reading stage
@@ -444,6 +471,11 @@ class SystolicArray(object):
 		self.write_cnt = -1 # num of output already being written for one compute
 		self.total_write = -1 # total num of write
 
+		# performance counter
+		self.sys_all_compute_cycle = 0
+		self.sys_all_write_cnt = 0
+		self.sys_all_read_cnt = 0
+
 
 	# needs to set the input and output buffer
 	def set_input_buffer(self, input_buffer):
@@ -451,6 +483,19 @@ class SystolicArray(object):
 
 	def set_output_buffer(self, output_buffer):
 		self.output_buffer = output_buffer
+
+	def config_throughput(self, input_size, output_size, stride, kernel_size):
+		print("[SYSTOLIC] config: ", input_size, output_size, stride, kernel_size)
+		# compute the input throughput
+		self.input_throughput = [
+			(self.size_dimension[0]*stride, self.size_dimension[1]*stride, input_size[0][-1])
+		]
+		
+		# compute the output throughput
+		self.output_throughput = (self.size_dimension[0], self.size_dimension[1], output_size[-1])
+
+		# calculate the delay for one compute batch
+		self.delay = kernel_size*kernel_size*input_size[0][-1]*output_size[-1]
 
 	# set the input hw units, the final input hw units is a list,
 	# we assume multiple hw units as input
@@ -504,6 +549,7 @@ class SystolicArray(object):
 	# process one cycle
 	def process_one_cycle(self):
 		self.elapse_cycle -= 1
+		self.sys_all_compute_cycle += 1
 		print("[PROCESS]", self.name, "just compute 1 cycle, %d cycles left" % self.elapse_cycle)
 
 	def start_init_delay(self):
@@ -518,25 +564,24 @@ class SystolicArray(object):
 			return False
 
 	def compute_energy(self):
-		return self.energy
+		return int(self.energy * self.sys_all_compute_cycle)
 
+	def communication_energy(self):
+		return int(0.5*(self.sys_all_read_cnt+self.sys_all_write_cnt))
 	'''
 		Functions related to reading stage
 	'''
 	def get_total_read(self):
-		# need to check if total_read has been initialized
-		# if not, calculate it before return
-		if self.total_read == -1:
-			total_read = 0
-			if self.input_throughput != None:
-				for throughput in self.input_throughput:
-					read_for_one_input = 1
-					for i in range(len(throughput)):
-						read_for_one_input *= throughput[i]
+		total_read = 0
+		if self.input_throughput != None:
+			for throughput in self.input_throughput:
+				read_for_one_input = 1
+				for i in range(len(throughput)):
+					read_for_one_input *= throughput[i]
 
-					total_read += read_for_one_input
+				total_read += read_for_one_input
 
-			self.total_read = total_read
+		self.total_read = total_read
 
 		return self.total_read
 
@@ -556,10 +601,13 @@ class SystolicArray(object):
 		if self.read_cnt == -1:
 			self.read_cnt = 0
 		self.read_cnt += read_cnt
+		self.sys_all_read_cnt += read_cnt
 
 	# check if current reading stage is finished
 	def check_read_finish(self):
 		if self.read_cnt == self.get_total_read():
+			# reset num_read before return
+			self.read_cnt = -1
 			return True
 		else:
 			return False
@@ -570,13 +618,13 @@ class SystolicArray(object):
 	def get_total_write(self):
 		# need to check if total_write has been initialized
 		# if not, calculate it before return
-		if self.total_write == -1:
-			total_write = 1
-			if self.output_throughput is not None:
-				for i in range(len(self.output_throughput)):
-					total_write *= self.output_throughput[i]
+		# if self.total_write == -1:
+		total_write = 1
+		if self.output_throughput is not None:
+			for i in range(len(self.output_throughput)):
+				total_write *= self.output_throughput[i]
 
-			self.total_write = total_write
+		self.total_write = total_write
 
 		return self.total_write
 
@@ -596,6 +644,7 @@ class SystolicArray(object):
 		if self.write_cnt == -1:
 			self.write_cnt = 0
 		self.write_cnt += write_cnt
+		self.sys_all_write_cnt += write_cnt
 
 	# check if current writing stage is finished
 	def check_write_finish(self):
