@@ -188,6 +188,17 @@ def main():
 
 			# check if the sw stage is in idle phase
 			elif sw_stage in idle_stage:
+				if not reservation_board.check_reservation(hw_unit):
+					# check if the hw unit is a systolic array instance,
+					# if yes, needs to modify the input/output throughput.
+					if isinstance(hw_unit, SystolicArray):
+						hw_unit.config_throughput(
+							sw_stage.input_size, 
+							sw_stage.output_size,
+							sw_stage.stride,
+							sw_stage.kernel_size[0]
+						)
+
 				# first to check if the input buffer contains the data
 				if check_input_buffer(hw_unit, sw_stage):
 					print("[IDLE]", sw_stage, "in idle stage, input data ready")
@@ -196,15 +207,7 @@ def main():
 						print("[IDLE]", sw_stage, "request --> HW: ", hw_unit, "is available.")
 						# reserve the hw unit first
 						reservation_board.reserve_hw_unit(sw_stage, hw_unit)
-						# check if the hw unit is a systolic array instance,
-						# if yes, needs to modify the input/output throughput.
-						if isinstance(hw_unit, SystolicArray):
-							hw_unit.config_throughput(
-								sw_stage.input_size, 
-								sw_stage.output_size,
-								sw_stage.stride,
-								sw_stage.kernel_size[0]
-							)
+						
 						hw_unit.start_init_delay()
 						# increment the input buffer index
 						increment_input_buffer_index(hw_unit, sw_stage)
