@@ -12,17 +12,17 @@ from sim_utils import map_sw_hw, check_buffer_consistency, build_buffer_edges, a
 from sim_infra import ReservationBoard, BufferMonitor
 from sw_framework_interface import build_sw_graph
 
-# from simple_img_pipeline.mapping_file import mapping_function
-# from simple_img_pipeline.sw_pipeline import sw_pipeline
-# from simple_img_pipeline.hw_config import hw_config
+from simple_img_pipeline.mapping_file import mapping_function
+from simple_img_pipeline.sw_pipeline import sw_pipeline
+from simple_img_pipeline.hw_config import hw_config
 
 # from isscc_22_08v.mapping_file import mapping_function
 # from isscc_22_08v.sw_pipeline import sw_pipeline
 # from isscc_22_08v.hw_config import hw_config
 
-from ieee_vr22.mapping_file import mapping_function
-from ieee_vr22.sw_pipeline import sw_pipeline
-from ieee_vr22.hw_config import hw_config
+# from ieee_vr22.mapping_file import mapping_function
+# from ieee_vr22.sw_pipeline import sw_pipeline
+# from ieee_vr22.hw_config import hw_config
 
 
 def main():
@@ -188,6 +188,10 @@ def main():
 
 			# check if the sw stage is in idle phase
 			elif sw_stage in idle_stage:
+				# this check is to help to config the systolic array into correct configuration
+				# before checking the data readiness.
+				# Otherwise, there can be some infinite checkings in the program due to incorrect
+				# systolic array configuration.
 				if not reservation_board.check_reservation(hw_unit):
 					# check if the hw unit is a systolic array instance,
 					# if yes, needs to modify the input/output throughput.
