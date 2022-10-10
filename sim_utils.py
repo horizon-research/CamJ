@@ -355,3 +355,11 @@ def check_input_buffer(dst_hw_unit, sw_stage):
 		print("[check_input_buffer]", dst_hw_unit, ", input sw_stage: ", input_sw_stage, "ready")
 
 	return True
+
+def check_finish_data_dependency(sw_stage, finished_stage):
+	for input_stage in sw_stage.input_stages:
+		if input_stage not in finished_stage:
+			raise Exception(
+				"[CHECK FAIL] %s's input stage, %s, is not finished. failed the data dependency" \
+				% (sw_stage.name, input_stage.name)
+			)

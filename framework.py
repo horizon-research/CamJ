@@ -8,7 +8,8 @@ from memory import Scratchpad
 from hw_compute import ADC, ComputeUnit, SystolicArray
 from sim_utils import map_sw_hw, check_buffer_consistency, build_buffer_edges, allocate_output_buffer, \
 					  increment_buffer_index, check_stage_finish, write_output_throughput, \
-					  check_input_buffer_data_ready, increment_input_buffer_index, check_input_buffer
+					  check_input_buffer_data_ready, increment_input_buffer_index, check_input_buffer, \
+					  check_finish_data_dependency
 from sim_infra import ReservationBoard, BufferMonitor
 from sw_framework_interface import build_sw_graph
 
@@ -23,7 +24,6 @@ from simple_img_pipeline.hw_config import hw_config
 # from ieee_vr22.mapping_file import mapping_function
 # from ieee_vr22.sw_pipeline import sw_pipeline
 # from ieee_vr22.hw_config import hw_config
-
 
 def main():
 	hw_dict = hw_config()
@@ -132,7 +132,11 @@ def main():
 					reservation_board.release_hw_unit(sw_stage, hw_unit)
 					print("SYS_READ", hw_unit.sys_all_read_cnt)
 					finished_stage[sw_stage] = True
+					# also need to pop sw_stage from the idle stage
 					idle_stage.pop(sw_stage)
+					# check if all input stages of sw_stage have been finished,
+					# this is used to check if there is data dependency is correct
+					check_finish_data_dependency(sw_stage, finished_stage)
 
 
 			# this will check if a sw stage is already into computing phase,
