@@ -6,7 +6,7 @@ def mapping_function():
 
 		# "BBoxFinding" : "BBoxDetection",
 		# "EdgeDetection" : "EdgeDetection",
-		# "Thresholding" : "Thresholding",
+		"Thresholding" : "ThresholdingUnit",
 		"Eventification" : "Eventification",
 
 		"Conv2D_1" : "InSensorSystolicArray",

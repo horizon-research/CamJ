@@ -68,6 +68,23 @@ def hw_config():
 	eventification_unit.set_input_buffer(fifo_buffer)
 	eventification_unit.set_output_buffer(double_buffer)
 
+	thresholding_unit = ComputeUnit(
+	 	name="ThresholdingUnit",
+		domain=ProcessDomain.DIGITAL,
+		location=ProcessorLocation.SENSOR_LAYER,
+		input_throughput = [(4, 1, 1), (64, 64, 1)],
+		output_throughput = (1, 1, 1), 
+		clock = 500, # MHz
+		energy = 64*4.6,
+		area = 10,
+		initial_delay = 0,
+		delay = 64,
+	)
+	hw_dict["compute"].append(thresholding_unit)
+
+	thresholding_unit.set_input_buffer(double_buffer)
+	thresholding_unit.set_output_buffer(double_buffer)	
+
 	in_sensor_dnn_acc = SystolicArray(
 		name="InSensorSystolicArray",
 		domain=ProcessDomain.DIGITAL,

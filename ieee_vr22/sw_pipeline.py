@@ -22,12 +22,13 @@ def sw_pipeline():
 	)
 	sw_stage_list.append(eventification_stage)
 
-	# thresholding_stage = ProcessStage(
-	# 	name = "Thresholding",
-	# 	input_size = [(4, 1, 1), (4, 1, 1), (256, 256, 1)],
-	# 	output_size = (1, 1, 1)
-	# )
-	# sw_stage_list.append(thresholding_stage)
+	thresholding_stage = ProcessStage(
+		name = "Thresholding",
+		input_size = [(4, 1, 1), (256, 256, 1)],
+		output_size = (1, 1, 1),
+		input_reuse = [(1, 1, 1), (1, 1, 1)]
+	)
+	sw_stage_list.append(thresholding_stage)
 
 	# edge_dectection_stage = ProcessStage(
 	# 	name = "EdgeDetection",
@@ -118,9 +119,8 @@ def sw_pipeline():
 
 	# edge_dectection_stage.set_input_stage(encoder_decoder_stage)
 
-	# thresholding_stage.set_input_stage(fc_2_stage)
-	# thresholding_stage.set_input_stage(bbox_find_stage)
-	# thresholding_stage.set_input_stage(eventification_stage)
+	thresholding_stage.set_input_stage(fc_2_stage)
+	thresholding_stage.set_input_stage(eventification_stage)
 
 	
 	# bbox_find_stage.set_input_stage(encoder_decoder_stage)
