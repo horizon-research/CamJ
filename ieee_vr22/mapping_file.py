@@ -12,8 +12,8 @@ def mapping_function():
 		"Conv2D_1" : "InSensorSystolicArray",
 		"Conv2D_2" : "InSensorSystolicArray",
 		"Conv2D_3" : "InSensorSystolicArray",
-		# "FC_1" : "InSensorSystolicArray",
-		# "FC_2" : "InSensorSystolicArray",
+		"FC_1" : "InSensorSystolicArray",
+		"FC_2" : "InSensorSystolicArray",
 
 		# "EncoderDecoder" : "NearSensorSystolicArray"
 	}

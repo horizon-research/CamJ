@@ -72,7 +72,7 @@ def hw_config():
 		name="InSensorSystolicArray",
 		domain=ProcessDomain.DIGITAL,
 		location=ProcessorLocation.COMPUTE_LAYER,
-		size_dimension=(8, 8),
+		size_dimension=(16, 16),
 		clock=500,
 		energy=16*16*4.6,
 		area=160

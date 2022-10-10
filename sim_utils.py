@@ -356,6 +356,13 @@ def check_input_buffer(dst_hw_unit, sw_stage):
 
 	return True
 
+def check_fc_input_ready(sw_stage, finished_stage):
+	for input_stage in sw_stage.input_stages:
+		if not input_stage in finished_stage:
+			return False
+
+	return True
+
 def check_finish_data_dependency(sw_stage, finished_stage):
 	for input_stage in sw_stage.input_stages:
 		if input_stage not in finished_stage:
