@@ -9,21 +9,21 @@ from hw_compute import ADC, ComputeUnit, SystolicArray
 from sim_utils import map_sw_hw, check_buffer_consistency, build_buffer_edges, allocate_output_buffer, \
 					  increment_buffer_index, check_stage_finish, write_output_throughput, \
 					  check_input_buffer_data_ready, increment_input_buffer_index, check_input_buffer, \
-					  check_finish_data_dependency
+					  check_finish_data_dependency, check_fc_input_ready
 from sim_infra import ReservationBoard, BufferMonitor
 from sw_framework_interface import build_sw_graph
 
-from simple_img_pipeline.mapping_file import mapping_function
-from simple_img_pipeline.sw_pipeline import sw_pipeline
-from simple_img_pipeline.hw_config import hw_config
+# from simple_img_pipeline.mapping_file import mapping_function
+# from simple_img_pipeline.sw_pipeline import sw_pipeline
+# from simple_img_pipeline.hw_config import hw_config
 
 # from isscc_22_08v.mapping_file import mapping_function
 # from isscc_22_08v.sw_pipeline import sw_pipeline
 # from isscc_22_08v.hw_config import hw_config
 
-# from ieee_vr22.mapping_file import mapping_function
-# from ieee_vr22.sw_pipeline import sw_pipeline
-# from ieee_vr22.hw_config import hw_config
+from ieee_vr22.mapping_file import mapping_function
+from ieee_vr22.sw_pipeline import sw_pipeline
+from ieee_vr22.hw_config import hw_config
 
 def main():
 	hw_dict = hw_config()
@@ -72,7 +72,7 @@ def main():
 	for sw_stage in sw_stage_list:
 		idle_stage[sw_stage] = True
 
-	for cycle in range(50000):
+	for cycle in range(70000):
 		print("\n\n#######  CYCLE %04d  ######" % cycle)
 		# always refresh the R/W port status first,
 		# otherwise, it won't release the port free.
@@ -201,14 +201,15 @@ def main():
 					# if yes, needs to modify the input/output throughput.
 					if isinstance(hw_unit, SystolicArray):
 						hw_unit.config_throughput(
-							sw_stage.input_size, 
+							sw_stage.ifmap_size, 
 							sw_stage.output_size,
 							sw_stage.stride,
-							sw_stage.kernel_size[0]
+							sw_stage.kernel_size[0],
+							sw_stage.op_type
 						)
 
 				# first to check if the input buffer contains the data
-				if check_input_buffer(hw_unit, sw_stage):
+				if check_input_buffer(hw_unit, sw_stage) or check_fc_input_ready(sw_stage, finished_stage):
 					print("[IDLE]", sw_stage, "in idle stage, input data ready")
 					# if the hw unit is not occupied by any sw stage, reserve the hw unit
 					if not reservation_board.check_reservation(hw_unit):

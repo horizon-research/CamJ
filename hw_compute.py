@@ -484,7 +484,7 @@ class SystolicArray(object):
 	def set_output_buffer(self, output_buffer):
 		self.output_buffer = output_buffer
 
-	def config_throughput(self, input_size, output_size, stride, kernel_size):
+	def config_throughput(self, input_size, output_size, stride, kernel_size, op_type):
 		print(
 			"[SYSTOLIC] config: ", 
 			"ifmap size: ", input_size, 
@@ -492,23 +492,36 @@ class SystolicArray(object):
 			"stride: ", stride, 
 			"kernel size: ", kernel_size)
 
-		# compute throughput dimension
-		# when the input size is smaller than size_dimension, we should take input_size as throughput
-		throughput_dimension_x = min(input_size[0][0]//stride, self.size_dimension[0])
-		# same as throughput_dimension_x.
-		throughput_dimension_y = min(input_size[0][1]//stride, self.size_dimension[1])
-		# print("[SYSTOLIC]", throughput_dimension_x, throughput_dimension_y, self.size_dimension)
+		if op_type == "Conv2D":
+			# compute throughput dimension
+			# when the input size is smaller than size_dimension, we should take input_size as throughput
+			throughput_dimension_x = min(input_size[0]//stride, self.size_dimension[0])
+			# same as throughput_dimension_x.
+			throughput_dimension_y = min(input_size[1]//stride, self.size_dimension[1])
+			# print("[SYSTOLIC]", throughput_dimension_x, throughput_dimension_y, self.size_dimension)
 
-		# compute the input throughput, the input dependency for computing ofmap
-		self.input_throughput = [
-			(throughput_dimension_x*stride, throughput_dimension_y*stride, input_size[0][-1])
-		]
-		
-		# compute the output throughput
-		self.output_throughput = (throughput_dimension_x, throughput_dimension_y, output_size[-1])
+			# compute the input throughput, the input dependency for computing ofmap
+			self.input_throughput = [
+				(throughput_dimension_x*stride, throughput_dimension_y*stride, input_size[-1])
+			]
+			
+			# compute the output throughput
+			self.output_throughput = (throughput_dimension_x, throughput_dimension_y, output_size[-1])
 
-		# calculate the delay for one compute batch
-		self.delay = kernel_size*kernel_size*input_size[0][-1]*output_size[-1]
+			# calculate the delay for one compute batch
+			self.delay = kernel_size*kernel_size*input_size[-1]*output_size[-1]
+		elif op_type == "FC":
+			self.input_throughput = [input_size]
+			
+			# compute the output throughput
+			self.output_throughput = output_size
+
+			fc_mac_cnt = input_size[0] * output_size[0]
+			# calculate the delay for one compute batch
+			self.delay = int(input_size[0] * output_size[0] / self.size_dimension[0])
+
+		else:
+			raise Exception("Unsupported op type when configuring throughput")
 
 		print(
 			"[SYSTOLIC] input throughput: ", self.input_throughput,

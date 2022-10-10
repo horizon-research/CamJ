@@ -96,7 +96,7 @@ class DNNProcessStage(object):
 	):
 		super(DNNProcessStage, self).__init__()
 		self.name = name
-		self.type = op_type 
+		self.op_type = op_type 
 		self.input_size = [ifmap_size]
 		self.ifmap_size = ifmap_size
 		self.kernel_size = kernel_size
@@ -105,6 +105,7 @@ class DNNProcessStage(object):
 		self.input_reuse = [(1, 1, 1)]
 		self.output_stages = []
 		self.ready_board = {}
+		self.needs_flatten = False
 
 		if op_type == "Conv2D":
 			self.output_size = (
@@ -121,12 +122,8 @@ class DNNProcessStage(object):
 		else:
 			raise Exception("Unsupported op types in class 'DNNProcessStage'.")
 
-	def flatten():
-		size = 1
-		for i in len(self.output_size):
-			size *= self.output_size[i]
-
-		self.output_size = (size, 1)
+	def flatten(self):
+		self.needs_flatten = True
 
 	def set_input_stage(self, stage):
 		self.input_stages.append(stage)
