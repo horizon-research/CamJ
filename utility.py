@@ -22,3 +22,11 @@ def gm_id(load_capacitance,
 def get_gain_min(resolution):
     gain_min = 2 ** resolution
     return gain_min
+
+
+def get_pixel_parasitic(array_v,
+                        technology,  # [nm]
+                        pitch  # [um]
+                        ):
+    C_p = 9e-15 / 130 / 5 * technology * pitch * array_v
+    return C_p
