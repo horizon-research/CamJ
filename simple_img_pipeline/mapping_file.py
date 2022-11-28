@@ -2,7 +2,8 @@
 def mapping_function():
 	mapping = {
 		"Input" : "ADC",
-		"Conv" : "ConvUnit",
+		"Conv1" : "Conv1Unit",
+		"Conv2" : "Conv2Unit",
 		"Abs" : "AbsUnit",
 	}
 
