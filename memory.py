@@ -1,6 +1,6 @@
 import numpy as np
-
 from enum_const import ProcessorLocation, ProcessDomain
+from flags import *
 
 '''
 This is the base class for digital storage memory.
@@ -39,26 +39,24 @@ class DigitalStorage(object):
 			SW_stage: 
 			e.g. [source_HW_unit] -- buffer --> [destination_HW_unit]
 	'''
-	def reserve_buffer(self, src_hw_unit, dst_hw_unit, sw_stage, buffer_size):
-		# print(buffer_size)
+	def reserve_buffer(self, src_hw_unit, dst_hw_unit, sw_stage, buffer_size, virtual_size):
 		# allocate a buffer to store the intermediate result.
 		if not (src_hw_unit, sw_stage) in self.reserved_buffer:
 			# (src_hw_unit, sw_stage) is the dict key.
-			self.reserved_buffer[src_hw_unit, sw_stage] = np.zeros(buffer_size)
+			self.reserved_buffer[src_hw_unit, sw_stage] = np.ones(virtual_size)
+			self.reserved_buffer[src_hw_unit, sw_stage][:buffer_size[0], :buffer_size[1], :buffer_size[2]] = 0
 
 		# initialize the index for both src_hw_unit (producer) and dst_hw_unit (consumer)
 		# so that both can find where they have read/written for this sw_stage.
 		src_hw_unit.init_output_buffer_index(sw_stage, buffer_size)
-		dst_hw_unit.init_input_buffer_index(src_hw_unit, sw_stage, buffer_size)
+		dst_hw_unit.init_input_buffer_index(src_hw_unit, sw_stage, virtual_size)
 		
-
 	'''
-		This function is similar to function, eserve_buffer. However, 
+		This function is similar to function, reserve_buffer. However, 
 		this function used to reserve the buffer to store the final result. 
 		only the source sw stage is required. No need for stage sw stage.
 	'''
 	def reserve_solo_buffer(self, src_hw_unit, sw_stage, buffer_size):
-		# print(buffer_size)
 		if not (src_hw_unit, sw_stage) in self.reserved_buffer:
 			self.reserved_buffer[src_hw_unit, sw_stage] = np.zeros(buffer_size)
 
@@ -191,7 +189,8 @@ class LineBuffer(DigitalStorage):
 			"FIFO exceeds its own capacity! abort!"
 
 		self.stored_data += num_write
-		print("[MEMORY] WRITE", self.name, "has %d of data" % self.stored_data)
+		if ENABLE_DEBUG:
+			print("[MEMORY] WRITE", self.name, "has %d of data" % self.stored_data)
 
 
 	"""
@@ -201,10 +200,6 @@ class LineBuffer(DigitalStorage):
 		assert num_read == self.read_port, \
 			"number of read should be equal to the read port number in line buffer!"
 		
-		print(
-			"[MEMORY] num_read: %d, stored_data: %d, offset : %d" % (
-			num_read, self.stored_data, self.size[0] * (self.size[1] - 1) * self.size[2])
-		)
 		if self.init_read and num_read > self.stored_data - self.size[0] * (self.size[1] - 1) * self.size[2]:
 			self.init_read = False
 			return False
@@ -223,7 +218,8 @@ class LineBuffer(DigitalStorage):
 			"the number of data reading from FIFO cannot be greater than the numnber of stored data!"
 
 		self.stored_data -= self.duplication
-		print("[MEMORY] READ", self.name, "has %d of data" % self.stored_data)
+		if ENABLE_DEBUG:
+			print("[MEMORY] READ", self.name, "has %d of data" % self.stored_data)
 
 class FIFO(DigitalStorage):
 	"""
@@ -302,6 +298,10 @@ class FIFO(DigitalStorage):
 
 		self.stored_data -= num_read
 
+
+"""
+	The rest of the code has not been enabled yet
+"""
 
 class Scratchpad(DigitalStorage):
 	"""docstring for Scratchpad"""
