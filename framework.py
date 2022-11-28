@@ -14,10 +14,6 @@ from sim_infra import ReservationBoard, BufferMonitor
 from sw_framework_interface import build_sw_graph
 from flags import *
 
-# from simple_img_pipeline.mapping_file import mapping_function
-# from simple_img_pipeline.sw_pipeline import sw_pipeline
-# from simple_img_pipeline.hw_config import hw_config
-
 # from isscc_22_08v.mapping_file import mapping_function
 # from isscc_22_08v.sw_pipeline import sw_pipeline
 # from isscc_22_08v.hw_config import hw_config
@@ -50,10 +46,13 @@ from flags import *
 # from rhythmic_pixel_21.sw_pipeline import sw_pipeline
 # from rhythmic_pixel_21.hw_config import hw_config
 
-
 from simple_img_pipeline.mapping_file import mapping_function
 from simple_img_pipeline.sw_pipeline import sw_pipeline
 from simple_img_pipeline.hw_config import hw_config
+
+# from simple_systolic_array.mapping_file import mapping_function
+# from simple_systolic_array.sw_pipeline import sw_pipeline
+# from simple_systolic_array.hw_config import hw_config
 
 def main():
 	hw_dict = hw_config()
@@ -104,7 +103,7 @@ def main():
 	for sw_stage in sw_stage_list:
 		idle_stage[sw_stage] = True
 
-	for cycle in range(3500):
+	for cycle in range(350000):
 		if cycle % PRINT_CYCLE == 0:
 			print("\n\n#######  CYCLE %04d  ######" % cycle)
 		# always refresh the R/W port status first,
@@ -262,8 +261,8 @@ def main():
 						hw_unit.config_throughput(
 							sw_stage.ifmap_size, 
 							sw_stage.output_size,
-							sw_stage.stride,
-							sw_stage.kernel_size[0],
+							sw_stage.stride[0][0],
+							sw_stage.kernel_size[0][0],
 							sw_stage.op_type
 						)
 					# same for neural processor instance
@@ -271,8 +270,8 @@ def main():
 						hw_unit.config_throughput(
 							sw_stage.ifmap_size, 
 							sw_stage.output_size,
-							sw_stage.stride,
-							sw_stage.kernel_size[0],
+							sw_stage.stride[0][0],
+							sw_stage.kernel_size[0][0],
 							sw_stage.op_type
 						)
 

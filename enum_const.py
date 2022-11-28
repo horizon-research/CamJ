@@ -13,3 +13,7 @@ class ProcessorLocation(Enum):
 class ProcessDomain(Enum):
 	ANALOG = 1
 	DIGITAL = 2
+
+class Padding(Enum):
+	NONE = 0
+	ZEROS = 1

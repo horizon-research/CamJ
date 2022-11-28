@@ -715,8 +715,10 @@ class SystolicArray(object):
 		# initialize it before count
 		if self.write_cnt == -1:
 			self.write_cnt = 0
+		prev_write_cnt = self.write_cnt
 		self.write_cnt += write_cnt
 		self.sys_all_write_cnt += write_cnt
+		return prev_write_cnt
 
 	# check if current writing stage is finished
 	def check_write_finish(self):
@@ -1009,8 +1011,10 @@ class NeuralProcessor(object):
 		# initialize it before count
 		if self.write_cnt == -1:
 			self.write_cnt = 0
+		prev_write_cnt = self.write_cnt
 		self.write_cnt += write_cnt
 		self.sys_all_write_cnt += write_cnt
+		return prev_write_cnt
 
 	# check if current writing stage is finished
 	def check_write_finish(self):
