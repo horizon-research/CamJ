@@ -8,28 +8,44 @@ from hw_compute import ADC, ComputeUnit, SystolicArray
 # an example of user defined hw configuration setup 
 def hw_config():
 
+	compute_op_power = 0.5 # pJ 65nm 
+
 	hw_dict = {
 		"memory": [],
 		"compute": [] 
 	}
 
-	fifo_buffer = FIFO(
-		name="FIFO",
+	fifo_buffer2 = FIFO(
+		name="FIFO_INIT",
 		hw_impl = "sram",
-		count = 128,
+		count = 1280,
 		clock = 500, 	# MHz
 		write_energy = 3,
 		read_energy = 1,
 		location = ProcessorLocation.COMPUTE_LAYER,
-		duplication = 64,
+		duplication = 100,
 		write_unit = "ADC",
+		read_unit = "ResizeUnit"
+	)
+	hw_dict["memory"].append(fifo_buffer2)
+
+	fifo_buffer = FIFO(
+		name="FIFO",
+		hw_impl = "sram",
+		count = 1280,
+		clock = 500, 	# MHz
+		write_energy = 3,
+		read_energy = 1,
+		location = ProcessorLocation.COMPUTE_LAYER,
+		duplication = 100,
+		write_unit = "ResizeUnit",
 		read_unit = "Eventification"
 	)
 	hw_dict["memory"].append(fifo_buffer)
 
 	double_buffer = DoubleBuffer(
 		name="DoubleBuffer",
-		size=(4, 4, 1024),
+		size=(4, 4, 4096),
 		clock = 500, 	# MHz
 		read_port = 16,
 		write_port = 16,
@@ -44,12 +60,29 @@ def hw_config():
 	adc = ADC(
 		name = "ADC",
 		type = 1, # this needs to be fixed, use some enum.
-		pixel_adc_ratio = (1, 64, 1),
-		output_throughput = (64, 1, 1), # redundent
+		pixel_adc_ratio = (1, 400, 1),
+		output_throughput = (640, 1, 1), # redundent
 		location = ProcessorLocation.SENSOR_LAYER,
 	)
-	adc.set_output_buffer(fifo_buffer)
+	adc.set_output_buffer(fifo_buffer2)
 	hw_dict["compute"].append(adc)
+
+	resize_unit = ComputeUnit(
+	 	name="ResizeUnit",
+		domain=ProcessDomain.DIGITAL,
+		location=ProcessorLocation.SENSOR_LAYER,
+		input_throughput = [(32, 2, 1)],
+		output_throughput = (16, 1, 1), 
+		clock = 500, # MHz
+		energy = 16*3*compute_op_power,
+		area = 10,
+		initial_delay = 0,
+		delay = 3,
+	)
+	hw_dict["compute"].append(resize_unit)
+
+	resize_unit.set_input_buffer(fifo_buffer2)
+	resize_unit.set_output_buffer(fifo_buffer)
 
 	eventification_unit = ComputeUnit(
 	 	name="Eventification",
@@ -58,7 +91,7 @@ def hw_config():
 		input_throughput = [(32, 1, 1), (32, 1, 1)],
 		output_throughput = (32, 1, 1), 
 		clock = 500, # MHz
-		energy = 32*4.6,
+		energy = 32*compute_op_power,
 		area = 10,
 		initial_delay = 0,
 		delay = 1,
@@ -72,13 +105,13 @@ def hw_config():
 	 	name="ThresholdingUnit",
 		domain=ProcessDomain.DIGITAL,
 		location=ProcessorLocation.SENSOR_LAYER,
-		input_throughput = [(4, 1, 1), (64, 64, 1)],
+		input_throughput = [(4, 1, 1), (320, 200, 1)],
 		output_throughput = (1, 1, 1), 
 		clock = 500, # MHz
-		energy = 64*4.6,
+		energy = 320*200*compute_op_power,
 		area = 10,
 		initial_delay = 0,
-		delay = 64,
+		delay = 640,
 	)
 	hw_dict["compute"].append(thresholding_unit)
 
@@ -91,7 +124,7 @@ def hw_config():
 		location=ProcessorLocation.COMPUTE_LAYER,
 		size_dimension=(16, 16),
 		clock=500,
-		energy=16*16*4.6,
+		energy=16*16*compute_op_power,
 		area=160
 	)
 	hw_dict["compute"].append(in_sensor_dnn_acc)

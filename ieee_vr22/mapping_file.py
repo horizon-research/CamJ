@@ -3,9 +3,10 @@ def mapping_function():
 	mapping = {
 		"CurrInput" : "ADC",
 		"PrevInput" : "ADC",
+		
+		"CurrResize" : "ResizeUnit",
+		"PrevResize" : "ResizeUnit",
 
-		# "BBoxFinding" : "BBoxDetection",
-		# "EdgeDetection" : "EdgeDetection",
 		"Thresholding" : "ThresholdingUnit",
 		"Eventification" : "Eventification",
 
@@ -15,7 +16,6 @@ def mapping_function():
 		"FC_1" : "InSensorSystolicArray",
 		"FC_2" : "InSensorSystolicArray",
 
-		# "EncoderDecoder" : "NearSensorSystolicArray"
 	}
 
 	return mapping
