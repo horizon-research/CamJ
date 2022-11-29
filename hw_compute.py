@@ -340,6 +340,7 @@ class ComputeUnit(object):
 			return False
 
 	def compute_energy(self):
+		# print(self.name, self.energy, self.sys_all_compute_cycle, self.delay)
 		return int(self.energy * self.sys_all_compute_cycle / self.delay)
 
 	def communication_energy(self):

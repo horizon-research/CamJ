@@ -193,7 +193,7 @@ def check_stage_finish(src_hw_unit, sw_stage, hw2sw):
 		if ENABLE_DEBUG:
 			print("[check_stage_finish]: ", output_buffer.shape, src_index)
 		sum_val = np.sum(output_buffer[:output_buffer_shape[0], :output_buffer_shape[1], :output_buffer_shape[2]])
-		print(sum_val, num_element)
+		# print(sum_val, num_element)
 		if sum_val != num_element:
 			# print(np.where(output_buffer == 0))
 			raise Exception("output buffer is not filled correctly!")

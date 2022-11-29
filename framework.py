@@ -18,9 +18,9 @@ from flags import *
 # from isscc_22_08v.sw_pipeline import sw_pipeline
 # from isscc_22_08v.hw_config import hw_config
 
-# from ieee_vr22.mapping_file import mapping_function
-# from ieee_vr22.sw_pipeline import sw_pipeline
-# from ieee_vr22.hw_config import hw_config
+from ieee_vr22.mapping_file import mapping_function
+from ieee_vr22.sw_pipeline import sw_pipeline
+from ieee_vr22.hw_config import hw_config
 
 # from isscc_16_1_42.mapping_file import mapping_function
 # from isscc_16_1_42.sw_pipeline import sw_pipeline
@@ -46,9 +46,9 @@ from flags import *
 # from rhythmic_pixel_21.sw_pipeline import sw_pipeline
 # from rhythmic_pixel_21.hw_config import hw_config
 
-from simple_img_pipeline.mapping_file import mapping_function
-from simple_img_pipeline.sw_pipeline import sw_pipeline
-from simple_img_pipeline.hw_config import hw_config
+# from simple_img_pipeline.mapping_file import mapping_function
+# from simple_img_pipeline.sw_pipeline import sw_pipeline
+# from simple_img_pipeline.hw_config import hw_config
 
 # from simple_systolic_array.mapping_file import mapping_function
 # from simple_systolic_array.sw_pipeline import sw_pipeline
@@ -103,7 +103,7 @@ def main():
 	for sw_stage in sw_stage_list:
 		idle_stage[sw_stage] = True
 
-	for cycle in range(350000):
+	for cycle in range(3500000):
 		if cycle % PRINT_CYCLE == 0:
 			print("\n\n#######  CYCLE %04d  ######" % cycle)
 		# always refresh the R/W port status first,
