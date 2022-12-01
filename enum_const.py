@@ -11,8 +11,12 @@ class ProcessorLocation(Enum):
 	OFF_CHIP = 3
 
 class ProcessDomain(Enum):
-	ANALOG = 1
-	DIGITAL = 2
+	DIGITAL = 1
+	CURRENT = 2
+	VOLTAGE = 3
+	CHARGE = 4
+	TIME = 5
+	OPTICAL = 6
 
 class Padding(Enum):
 	NONE = 0
