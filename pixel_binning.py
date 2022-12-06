@@ -1,6 +1,6 @@
 import numpy as np
 import networkx as nx
-from HW_config_analog import *
+from acomp_library import *
 # import SW_pipeline as sw
 import matplotlib.pyplot as plt
 
