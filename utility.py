@@ -25,8 +25,20 @@ def get_gain_min(resolution):
 
 
 def get_pixel_parasitic(array_v,
-                        technology,  # [nm]
+                        tech_node,  # [nm]
                         pitch  # [um]
                         ):
-    C_p = 9e-15 / 130 / 5 * technology * pitch * array_v
+    C_p = 9e-15 / 130 / 5 * tech_node * pitch * array_v
     return C_p
+
+
+def get_nominal_supply(tech_node):
+    if 130 < tech_node <= 180:
+        supply = 1.8
+    if 65 < tech_node <= 130:
+        supply = 1.5
+    if tech_node <= 65:
+        supply = 1.1
+    else:
+        raise Exception("Defined tech_node is not supported.")
+    return supply

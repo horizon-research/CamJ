@@ -6,7 +6,7 @@ class PinnedPD(object):
     """docstring for pixel"""
 
     def __init__(self,
-                 pd_capacitance=10e-12,
+                 pd_capacitance=100e-15,
                  pd_supply=3.3
                  ):
         self.pd_capacitance = pd_capacitance
@@ -21,33 +21,39 @@ class APS(PinnedPD):
     def __init__(self,
                  pd_capacitance,
                  pd_supply,
-                 num_transistor,
-                 fd_capacitance,
-                 num_readout,
-                 t_readout,
-                 load_capacitance):
+                 output_vs,
+                 num_transistor=4,
+                 fd_capacitance=10e-15,
+                 num_readout=2,
+                 load_capacitance=1e-12,
+                 tech_node=130,
+                 pitch=4,
+                 array_vsize=128):
         super().__init__(pd_capacitance, pd_supply)
         self.num_transistor = num_transistor
         self.num_readout = num_readout
         self.fd_capacitance = fd_capacitance
         self.load_capacitance = load_capacitance
-        self.t_readout = t_readout
+        self.tech_node = tech_node
+        self.pitch = pitch
+        self.array_vsize = array_vsize
+        if output_vs is None:
+            self.output_vs = self.pd_supply - get_nominal_supply(self.tech_node)
+        else:
+            self.output_vs = output_vs
 
     def energy(self):
         if self.num_transistor == 4:
             energy_fd = self.fd_capacitance * (self.pd_supply ** 2)
         if self.num_transistor == 3:
             energy_fd = 0
+        else:
+            raise Exception("Defined APS is not supported.")
 
-        i_sf = gm_id(load_capacitance=self.load_capacitance,
-                     gain=1,
-                     bandwidth=1 / self.t_readout,
-                     differential=False,
-                     inversion_level='moderate')
-        energy_sf = self.pd_supply * i_sf * self.t_readout
-
+        energy_sf = (self.load_capacitance + get_pixel_parasitic(self.array_vsize, self.tech_node, self.pitch)) * \
+                    self.pd_supply * self.output_vs
         energy_pd = super(APS, self).pd_energy()
-        energy = energy_pd + self.num_readout * (energy_fd + energy_sf)
+        energy = energy_pd + energy_fd + self.num_readout * energy_sf
         return energy
 
 
@@ -63,9 +69,9 @@ class PWM(PinnedPD):
     def __init__(self,
                  pd_capacitance,
                  pd_supply,
-                 ramp_capacitance,
-                 gate_capacitance,
-                 num_readout):
+                 ramp_capacitance=1e-12,
+                 gate_capacitance=10e-15,
+                 num_readout=1):
         super().__init__(pd_capacitance, pd_supply)
         self.ramp_capacitance = ramp_capacitance
         self.num_readout = num_readout
