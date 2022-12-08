@@ -57,12 +57,39 @@ class APS(PinnedPD):
         return energy
 
 
-class DPS(PinnedPD):
-    def __init__(self):
-        super().__init__()
+class DPS(APS):
+    def __init__(self,
+                 pd_capacitance,
+                 pd_supply,
+                 output_vs,
+                 num_transistor=4,
+                 fd_capacitance=10e-15,
+                 num_readout=2,
+                 load_capacitance=1e-12,
+                 tech_node=130,
+                 pitch=4,
+                 array_vsize=128,
+                 ADC_FoM=100e-15,
+                 ADC_reso=8,
+                 ):
+        super().__init__(pd_capacitance,
+                         pd_supply,
+                         output_vs,
+                         num_transistor,
+                         fd_capacitance,
+                         num_readout,
+                         load_capacitance,
+                         tech_node,
+                         pitch,
+                         array_vsize)
+        self.ADC_FoM = ADC_FoM
+        self.ADC_reso = ADC_reso
 
     def energy(self):
-        pass
+        energy_aps = super(DPS, self).energy()
+        energy_adc = ADC('SS', self.ADC_FoM, self.ADC_reso).energy()
+        energy = energy_aps + energy_adc
+        return energy
 
 
 class PWM(PinnedPD):
@@ -180,6 +207,41 @@ class Comparator(object):
         return energy
 
 
+class Passive_SC(object):
+    def __init__(self,
+                 capacitance_array,
+                 vs_array):
+        self.capacitance_array = capacitance_array
+        self.vs_array = vs_array
+
+    def energy(self):
+        energy = np.sum(np.multiply(self.capacitance_array, self.vs_array ** 2))
+        return energy
+
+
+class max_v(object):
+    # source: https://www.mdpi.com/1424-8220/20/11/3101
+    def __init__(self,
+                 supply,
+                 t_frame,
+                 t_acomp,
+                 load_capacitance=1e-12,
+                 gain=10):
+        self.supply = supply
+        self.load_capacitance = load_capacitance
+        self.t_frame = t_frame
+        self.t_acomp = t_acomp
+        self.gain = gain
+
+    def energy(self):
+        i_bias = gm_id(self.load_capacitance, gain=self.gain, bandwidth=1 / self.t_acomp, differential=False,
+                       inversion_level='strong')
+        energy_bias = self.supply * (0.5 * i_bias) * self.t_frame
+        energy_amplifier = self.supply * i_bias * self.t_acomp
+        energy = energy_bias + energy_amplifier
+        return energy
+
+
 ########################################################################################################################
 class ADC(object):
     """docstring for differential-input rail-to-rail ADC"""
@@ -187,12 +249,10 @@ class ADC(object):
     def __init__(self,
                  type,
                  FOM,
-                 resolution,
-                 sampling_rate):
+                 resolution):
         self.type = type
         self.FOM = FOM
         self.resolution = resolution
-        self.sampling_rate = sampling_rate
 
     def energy(self):
         energy = self.FOM * (2 ** self.resolution)
