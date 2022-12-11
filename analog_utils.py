@@ -3,13 +3,13 @@ from analog_infra import AnalogArray, AnalogComponent
 
 
 
-def check_unit_internal_connect_consistency(analog_unit):
-	# if there is no component or one component inside the analog unit,
+def check_component_internal_connect_consistency(analog_component):
+	# if there is no component or one component inside the analog component,
 	# no need to check the consistency
-	if len(analog_unit.components) <= 1:
+	if len(analog_component.components) <= 1:
 		return True
 
-	head_list = analog_unit.source_component
+	head_list = analog_component.source_component
 	new_head_list = []
 
 	while len(head_list) > 0:
@@ -27,21 +27,21 @@ def check_unit_internal_connect_consistency(analog_unit):
 
 
 def check_array_internal_connect_consistency(analog_array):
-	# first check the correctness of every unit internal connection
-	for analog_unit in analog_array.units:
-		check_unit_internal_connect_consistency(analog_unit)
+	# first check the correctness of every component internal connection
+	for analog_component in analog_array.components:
+		check_component_internal_connect_consistency(analog_component)
 
-	# then check the correctness of inter-unit internal connection
-	head_list = analog_array.source_units
+	# then check the correctness of inter-component internal connection
+	head_list = analog_array.source_components
 	new_head_list = []
 	while len(head_list) > 0:
-		for unit in head_list:
-			for output_unit in unit.output_units:
-				if unit.output_domain not in output_unit.input_domain:
+		for component in head_list:
+			for output_component in component.output_components:
+				if component.output_domain not in output_component.input_domain:
 					raise Exception("Internal connection consistency failed. Domain mismatch.")
 
-				if output_unit not in new_head_list:
-					new_head_list.append(output_unit)
+				if output_component not in new_head_list:
+					new_head_list.append(output_component)
 
 		head_list = new_head_list
 		new_head_list = []
@@ -49,7 +49,7 @@ def check_array_internal_connect_consistency(analog_array):
 def find_head_analog_array(analog_arrays):
 	head_analog_arrays = []
 	for analog_array in analog_arrays:
-		if len(analog_array.source_units) == 0:
+		if len(analog_array.source_components) == 0:
 			head_analog_arrays.append(analog_array)
 
 	return head_analog_arrays
