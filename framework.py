@@ -313,6 +313,7 @@ def main():
 
 		if len(finished_stage.keys()) == len(sw_stage_list):
 			hw_list = hw_dict["compute"]
+			print("\n\n[Summary]")
 			print("Overall system cycle count: ", cycle)
 			print("[Cycle distribution]", reserved_cycle_cnt)
 			for hw_unit in hw_list:
