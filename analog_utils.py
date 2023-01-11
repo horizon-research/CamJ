@@ -82,4 +82,22 @@ def compute_total_energy(analog_arrays):
 
 	return total_energy
 
+def check_analog_pipeline(analog_arrays):
+
+	head_analog_arrays = find_head_analog_array(analog_arrays)
+	new_head_analog_arrays = []
+	idx = 1
+	while len(head_analog_arrays) > 0:
+		print("[Pipeline stage %d]" % idx)
+		idx += 1
+		for analog_array in head_analog_arrays:
+			print("Process", analog_array)
+			for output_array in analog_array.output_arrays:
+				print(analog_array.name, "-->", output_array.name)
+				if output_array not in new_head_analog_arrays:
+					new_head_analog_arrays.append(output_array)
+
+		head_analog_arrays = new_head_analog_arrays
+		new_head_analog_arrays = []
+
 
