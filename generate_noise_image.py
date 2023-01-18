@@ -7,7 +7,8 @@ import random
 import tensorflow as tf
 
 
-from noise_model import Photodiode, ADCQuantization, PixelwiseComponent, ColumnwiseComponent
+from noise_model import Photodiode, ADCQuantization, PixelwiseComponent,\
+					ColumnwiseComponent, FloatingDiffusion, CorrelatedDoubleSampling
 from reverse_process import unprocess
 from forward_process import process, process_only_gain, process_no_demosaic
 from isp_utils import convert_raw, convert_bayer, edge_aware_demosaic, \
@@ -23,7 +24,9 @@ def main():
 	column_amplifier_gain = 2.0
 	column_amplifier_noise_pct = 0.05
 	dc_noise = 2.5 # electrons
-	read_noise = 0.02 # V
+	fd_read_noise = 0.02 # V
+	sf_read_noise = 0.01 # V
+	cds_noise = 0.01 # V
 	adc_noise = 0.02 # V
 	pixel_offset_voltage = 0.1 # V
 	col_offset_voltage = 0.05 # V
@@ -31,29 +34,48 @@ def main():
 	adc_resolution = 8 # bits
 
 	# create noise objects
-	shot_noise = Photodiode(
+	pd_noise = Photodiode(
 		"Photodiode",
 		dark_current_noise=dc_noise,
-		enable_dcnu=True
+		max_val=pixel_full_well_capacity,
+		enable_dcnu=True,
+		dcnu_percentage=0.05,
 	)
 
-	fd_noise = PixelwiseComponent(
+	fd_noise = FloatingDiffusion(
 		name = "FloatingDiffusion",
 		gain = conversion_gain,
-		noise = read_noise,
-		enable_prnu = True
+		noise = fd_read_noise,
+		max_val = pixel_full_well_capacity*conversion_gain,
+		enable_cds = True,
+		enable_prnu = True,
+	)
+
+	sf_noise = PixelwiseComponent(
+		name = "SourceFollower",
+		gain = 1.0,
+		noise = sf_read_noise,
+		max_val = pixel_full_well_capacity*conversion_gain,
 	)
 
 	col_amplifier_noise = ColumnwiseComponent(
 		name = "ColumnAmplifier",
 		gain = column_amplifier_gain,
+		max_val = pixel_full_well_capacity*conversion_gain*column_amplifier_gain,
 		noise_percentage = column_amplifier_noise_pct,
 		enable_prnu = True
 	)
 
+	cds_noise = CorrelatedDoubleSampling(
+		name = "CorrelatedDoubleSampling",
+		noise = cds_noise,
+		max_val = pixel_full_well_capacity*conversion_gain*column_amplifier_gain,
+	)
+
 	adc_noise = ADCQuantization(
 		name = "ADCQuantization",
-		adc_noise = adc_noise
+		adc_noise = adc_noise,
+		max_val = pixel_full_well_capacity*conversion_gain*column_amplifier_gain
 	)
 
 	# file dir
@@ -78,20 +100,32 @@ def main():
 
 		# reverse process and generate raw bayer image (H//2, W//2, 4)
 		# 4 is for RGGB
+		print("org img: ", org_img.shape)
 		bayer_raw, metadata = unprocess(org_img)
-
+		print("bayer img: ", bayer_raw.shape)
 		# convert bayer image to raw image (H, W)
 		raw_img = convert_raw(bayer_raw)
-		# print(raw_img.shape)
+		print("raw_img: ", raw_img.shape)
 
 		# a simple inverse img to photon
 		photon_input = raw_img/1.0*pixel_full_well_capacity
 
-		signal_after_shot_noise = shot_noise.apply_gain_and_noise(photon_input)
-		voltage_after_fd_noise = fd_noise.apply_gain_and_noise(signal_after_shot_noise)
-		voltage_after_col_amp_noise = col_amplifier_noise.apply_gain_and_noise(voltage_after_fd_noise)
+		print(photon_input.shape)
+		# apply shot noise and dark current noise
+		signal_after_pd_noise = pd_noise.apply_gain_and_noise(photon_input)
+		# apply fd noise
+		voltage_after_fd_noise, reset_voltage = fd_noise.apply_gain_and_noise(signal_after_pd_noise)
+		# apply sf noise
+		voltage_after_sf_noise = sf_noise.apply_gain_and_noise(voltage_after_fd_noise)
+		reset_voltage = sf_noise.apply_gain_and_noise(reset_voltage)
+		# apply col ampifier noise
+		voltage_after_col_amp_noise = col_amplifier_noise.apply_gain_and_noise(voltage_after_sf_noise)
+		reset_voltage = col_amplifier_noise.apply_gain_and_noise(reset_voltage)
+		# apply cds noise
+		voltage_after_cds_noise = cds_noise.apply_gain_and_noise(voltage_after_col_amp_noise, reset_voltage)
+		# apply adc quantization
 		img_after_adc = adc_noise.apply_gain_and_noise(voltage_after_col_amp_noise)
-
+		# covert back to raw
 		noise_raw = (img_after_adc/full_scale_input_voltage*255).astype(np.uint8)
 		# cv2.imshow("noise raw", img_after_adc/np.max(img_after_adc))
 		# cv2.waitKey(0)

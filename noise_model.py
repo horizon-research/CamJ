@@ -36,12 +36,12 @@ class Photodiode(object):
 		# check if DCNU needs to be applied.
 		if self.enable_dcnu:
 			# first generate dcnu variant for each pixel
-			if self.dcnu_noise is None:
-				self.dcnu_noise = self.rs.normal(
-					loc = self.dark_current_noise,
-					scale = self.dark_current_noise*self.dcnu_percentage,
-					size = (input_height, input_width)
-				)
+			self.dcnu_noise = self.rs.normal(
+				loc = self.dark_current_noise,
+				scale = self.dark_current_noise*self.dcnu_percentage,
+				size = (input_height, input_width)
+			)
+
 			# then apply poisson distribution on dcnu
 			signal_after_dc_noise = self.rs.poisson(
 				self.dcnu_noise, 
@@ -148,12 +148,11 @@ class PixelwiseComponent(object):
 				
 		input_height, input_width = input_signal.shape
 		if self.enable_prnu:
-			if self.prnu_gain is None:
-				self.prnu_gain = self.rs.normal(
-					loc = self.gain,
-					scale = self.gain*self.prnu_percentage,
-					size = (input_height, input_width)
-				)
+			self.prnu_gain = self.rs.normal(
+				loc = self.gain,
+				scale = self.gain*self.prnu_percentage,
+				size = (input_height, input_width)
+			)
 			# generate random gain values
 			input_after_gain = self.prnu_gain * input_signal
 		else:
@@ -234,12 +233,11 @@ class FloatingDiffusion(object):
 				
 		input_height, input_width = input_signal.shape
 		if self.enable_prnu:
-			if self.prnu_gain is None:
-				self.prnu_gain = self.rs.normal(
-					loc = self.gain,
-					scale = self.gain*self.prnu_percentage,
-					size = (input_height, input_width)
-				)
+			self.prnu_gain = self.rs.normal(
+				loc = self.gain,
+				scale = self.gain*self.prnu_percentage,
+				size = (input_height, input_width)
+			)
 			# generate random gain values
 			input_after_gain = self.prnu_gain * input_signal
 		else:
@@ -367,16 +365,15 @@ class ColumnwiseComponent(object):
 		if self.enable_offset:
 			input_signal += self.pixel_offset_voltage
 		if self.enable_prnu:
-			if self.prnu_gain is None:
-				self.prnu_gain = np.repeat(
-					self.rs.normal(
-						loc = self.gain,
-						scale = self.gain*self.prnu_percentage,
-						size = (1, input_width)
-					),
-					input_height,
-					axis=0
-				)
+			self.prnu_gain = np.repeat(
+				self.rs.normal(
+					loc = self.gain,
+					scale = self.gain*self.prnu_percentage,
+					size = (1, input_width)
+				),
+				input_height,
+				axis=0
+			)
 			# generate random gain values
 			input_after_gain = self.prnu_gain * input_signal
 		else:
