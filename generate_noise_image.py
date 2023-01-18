@@ -80,7 +80,7 @@ def main():
 
 	# file dir
 	dir_path = "val2017"
-	output_dir_path = "noise_imgs"
+	output_dir_path = "noise_%s" % dir_path
 	img_files = os.listdir(dir_path)
 
 	os.makedirs(output_dir_path, exist_ok=True)
@@ -100,17 +100,14 @@ def main():
 
 		# reverse process and generate raw bayer image (H//2, W//2, 4)
 		# 4 is for RGGB
-		print("org img: ", org_img.shape)
+		# print("org img: ", org_img.shape)
 		bayer_raw, metadata = unprocess(org_img)
-		print("bayer img: ", bayer_raw.shape)
 		# convert bayer image to raw image (H, W)
 		raw_img = convert_raw(bayer_raw)
-		print("raw_img: ", raw_img.shape)
 
 		# a simple inverse img to photon
 		photon_input = raw_img/1.0*pixel_full_well_capacity
 
-		print(photon_input.shape)
 		# apply shot noise and dark current noise
 		signal_after_pd_noise = pd_noise.apply_gain_and_noise(photon_input)
 		# apply fd noise
