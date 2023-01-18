@@ -8,13 +8,16 @@ class Photodiode(object):
 	def __init__(self, 
 		name,
 		dark_current_noise,
+		max_val,
 		enable_dcnu=False,
 		dcnu_percentage=0.05,
 	):
 		super(Photodiode, self).__init__()
 		self.name = name
 		self.dark_current_noise = dark_current_noise
+		self.max_val = max_val
 		self.enable_dcnu = enable_dcnu
+		self.dcnu_noise = None
 		self.dcnu_percentage = dcnu_percentage
 
 		# initialize random number generator
@@ -32,24 +35,27 @@ class Photodiode(object):
 
 		# check if DCNU needs to be applied.
 		if self.enable_dcnu:
+			# first generate dcnu variant for each pixel
+			if self.dcnu_noise is None:
+				self.dcnu_noise = self.rs.normal(
+					loc = self.dark_current_noise,
+					scale = self.dark_current_noise*self.dcnu_percentage,
+					size = (input_height, input_width)
+				)
+			# then apply poisson distribution on dcnu
+			signal_after_dc_noise = self.rs.poisson(
+				self.dcnu_noise, 
+				size=(input_height, input_width)
+			) + signal_after_shot_noise
+		else:
+			# directly apply dc noise
 			signal_after_dc_noise = self.rs.poisson(
 				self.dark_current_noise, 
 				size=(input_height, input_width)
 			) + signal_after_shot_noise
-		else:
-			# first generate dcnu variant for each pixel
-			dcnu_noise = self.rs.normal(
-				loc = self.dark_current_noise,
-				scale = self.dark_current_noise*self.dcnu_percentage,
-				size = (input_height, input_width)
-			)
-			# then apply poisson distrobution on dcnu
-			signal_after_dc_noise = self.rs.poisson(
-				dcnu_noise, 
-				size=(input_height, input_width)
-			) + signal_after_shot_noise
+			
 
-		return np.clip(signal_after_dc_noise, a_min=0, a_max=np.max(input_signal))
+		return np.clip(signal_after_dc_noise, a_min=0, a_max=self.max_val)
 
 	def __str__(self):
 		return self.name
@@ -62,11 +68,13 @@ class ADCQuantization(object):
 	def __init__(
 		self, 
 		name,
-		adc_noise
+		adc_noise,
+		max_val
 	):
 		super(ADCQuantization, self).__init__()
 		self.name = name
 		self.adc_noise = adc_noise
+		self.max_val = max_val
 
 		# initialize random number generator
 		random_seed = int(time.time())
@@ -84,7 +92,7 @@ class ADCQuantization(object):
 				size = (input_height, input_width)
 			) + input_signal
 
-		return np.clip(signal_after_noise, a_min=0, a_max=np.max(input_signal))
+		return np.clip(signal_after_noise, a_min=0, a_max=self.max_val)
 
 	def __str__(self):
 		return self.name
@@ -112,17 +120,19 @@ class PixelwiseComponent(object):
 		name,
 		gain=1,
 		noise=None,
+		max_val=None,
 		noise_percentage=None,
 		enable_prnu=False,
 		prnu_percentage=0.02
-
 	):
 		super(PixelwiseComponent, self).__init__()
 		self.name = name
 		self.gain = gain
 		self.noise = noise
+		self.max_val = max_val
 		self.noise_percentage = noise_percentage
 		self.enable_prnu = enable_prnu
+		self.prnu_gain = None
 		self.prnu_percentage = prnu_percentage
 
 		if self.noise == None and self.noise_percentage == None:
@@ -138,12 +148,14 @@ class PixelwiseComponent(object):
 				
 		input_height, input_width = input_signal.shape
 		if self.enable_prnu:
+			if self.prnu_gain is None:
+				self.prnu_gain = self.rs.normal(
+					loc = self.gain,
+					scale = self.gain*self.prnu_percentage,
+					size = (input_height, input_width)
+				)
 			# generate random gain values
-			input_after_gain = self.rs.normal(
-				loc = self.gain,
-				scale = self.gain*self.prnu_percentage,
-				size = (input_height, input_width)
-			) * input_signal
+			input_after_gain = self.prnu_gain * input_signal
 		else:
 			input_after_gain = self.gain * input_signal
 
@@ -161,7 +173,145 @@ class PixelwiseComponent(object):
 		else:
 			raise Exception("Insufficient parameters: noise and noise_percentage both are None.")
 
-		return np.clip(input_after_noise, a_min=0, a_max=np.max(input_signal)*self.gain)
+		return np.clip(input_after_noise, a_min=0, a_max=self.max_val)
+
+	def __str__(self):
+		return self.name
+
+	def __repr__(self):
+		return self.name
+
+class FloatingDiffusion(object):
+	"""
+		Floating Diffusion class
+
+		General assumption of the noise source is that the noise 
+		follows a "zero-mean" Gaussian distribution. Users need 
+		to provide either noise error (sigma value).
+
+		Gain is generally slightly less than 1, here, the default value
+		is 1.
+
+		To enable CDS and PRNU, just set enable flag to be True.
+
+		if enable_cds is True, apply_gain_and_noise function will
+		return two values, one is the input + reset noise, 
+		and the other is the reset noise.
+
+		Order: gain will be first applied before adding noises.
+	"""
+	def __init__(
+		self,
+		name,
+		gain=1,
+		noise=None,
+		max_val=None,
+		enable_cds=False,
+		enable_prnu=False,
+		prnu_percentage=0.02
+
+	):
+		super(FloatingDiffusion, self).__init__()
+		self.name = name
+		self.gain = gain
+		self.noise = noise
+		self.max_val = max_val
+		self.enable_cds = enable_cds
+		self.enable_prnu = enable_prnu
+		self.prnu_gain = None
+		self.prnu_percentage = prnu_percentage
+
+		if self.noise == None:
+			raise Exception("Insufficient parameters: noise is None.")
+
+		# initialize random number generator
+		random_seed = int(time.time())
+		self.rs = np.random.RandomState(random_seed)
+
+	def apply_gain_and_noise(self, input_signal):
+		if len(input_signal.shape) != 2:
+			raise Exception("input signal in noise model needs to be in (height, width) 2D shape.")
+				
+		input_height, input_width = input_signal.shape
+		if self.enable_prnu:
+			if self.prnu_gain is None:
+				self.prnu_gain = self.rs.normal(
+					loc = self.gain,
+					scale = self.gain*self.prnu_percentage,
+					size = (input_height, input_width)
+				)
+			# generate random gain values
+			input_after_gain = self.prnu_gain * input_signal
+		else:
+			input_after_gain = self.gain * input_signal
+
+		if self.noise is not None:
+			reset_noise = self.rs.normal(
+				scale = self.noise,
+				size = (input_height, input_width)
+			)
+			input_after_noise = reset_noise + input_after_gain
+		else:
+			raise Exception("Insufficient parameters: noise and noise_percentage both are None.")
+
+		if self.enable_cds:
+			return np.clip(input_after_noise, a_min=0, a_max=self.max_val), np.clip(reset_noise, a_min=0, a_max=self.max_val)
+		else:
+			return np.clip(input_after_noise, a_min=0, a_max=self.max_val)
+
+	def __str__(self):
+		return self.name
+
+	def __repr__(self):
+		return self.name
+
+class CorrelatedDoubleSampling(object):
+	"""
+		Correlated Double Sampling
+
+		General assumption:
+			gain is 1,
+			noise follows zero-mean normal distribution.
+
+		Order: gain will be first applied before adding noises.
+	"""
+	def __init__(
+		self,
+		name,
+		gain=1,
+		noise=None,
+		max_val=None,
+	):
+		super(CorrelatedDoubleSampling, self).__init__()
+		self.name = name
+		self.gain = gain
+		self.noise = noise
+		self.max_val = max_val
+
+		if self.noise == None:
+			raise Exception("Insufficient parameters: noise is None.")
+
+		# initialize random number generator
+		random_seed = int(time.time())
+		self.rs = np.random.RandomState(random_seed)
+
+	def apply_gain_and_noise(self, input_signal, reset_noise):
+		if len(input_signal.shape) != 2:
+			raise Exception("input signal in noise model needs to be in (height, width) 2D shape.")
+				
+		input_height, input_width = input_signal.shape
+
+		input_diff = input_signal - reset_noise
+
+		if self.noise is not None:
+			input_after_noise = self.rs.normal(
+				scale = self.noise,
+				size = (input_height, input_width)
+			) + input_diff
+		else:
+			raise Exception("Insufficient parameters: noise and noise_percentage both are None.")
+
+		return np.clip(input_after_noise, a_min=0, a_max=self.max_val)
 
 	def __str__(self):
 		return self.name
@@ -182,6 +332,7 @@ class ColumnwiseComponent(object):
 		gain=1,
 		noise=None,
 		noise_percentage=None,
+		max_val=None,
 		enable_prnu=False,
 		prnu_percentage=0.01,
 		enable_offset=False,
@@ -192,8 +343,10 @@ class ColumnwiseComponent(object):
 		self.name = name
 		self.gain = gain
 		self.noise = noise
+		self.max_val = max_val
 		self.noise_percentage = noise_percentage
 		self.enable_prnu = enable_prnu
+		self.prnu_gain = None
 		self.prnu_percentage = prnu_percentage
 		self.enable_offset = enable_offset
 		self.pixel_offset_voltage = pixel_offset_voltage
@@ -214,16 +367,18 @@ class ColumnwiseComponent(object):
 		if self.enable_offset:
 			input_signal += self.pixel_offset_voltage
 		if self.enable_prnu:
+			if self.prnu_gain is None:
+				self.prnu_gain = np.repeat(
+					self.rs.normal(
+						loc = self.gain,
+						scale = self.gain*self.prnu_percentage,
+						size = (1, input_width)
+					),
+					input_height,
+					axis=0
+				)
 			# generate random gain values
-			input_after_gain = np.repeat(
-				self.rs.normal(
-					loc = self.gain,
-					scale = self.gain*self.prnu_percentage,
-					size = (1, input_width)
-				),
-				input_height,
-				axis=0
-			) * input_signal
+			input_after_gain = self.prnu_gain * input_signal
 		else:
 			input_after_gain = self.gain * input_signal
 
@@ -244,7 +399,7 @@ class ColumnwiseComponent(object):
 		if self.enable_offset:
 			input_after_gain += self.col_offset_voltage
 
-		return np.clip(input_after_noise, a_min=0, a_max=np.max(input_signal)*self.gain)
+		return np.clip(input_after_noise, a_min=0, a_max=self.max_val)
 
 	def __str__(self):
 		return self.name
