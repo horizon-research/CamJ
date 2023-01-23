@@ -16,21 +16,31 @@ from isp_utils import convert_raw, convert_bayer, edge_aware_demosaic, \
 def main():
 
 	# sensor specs
-	full_scale_input_voltage = 2.7 # V
+	full_scale_input_voltage = 1.2 # V
 	pixel_full_well_capacity = 10000 # e
 
-	# noise specs
-	conversion_gain = 2.7/10000./2.
-	column_amplifier_gain = 2.0
-	column_amplifier_noise_pct = 0.05
+	# PD parameters
 	dc_noise = 2.5 # electrons
-	fd_read_noise = 0.02 # V
-	sf_read_noise = 0.01 # V
-	cds_noise = 0.01 # V
-	adc_noise = 0.02 # V
+	dcnu_percentage = 0.001
+
+	# noise specs
+	column_amplifier_gain = 2.0
+	# FD parameters
+	conversion_gain = full_scale_input_voltage/10000./column_amplifier_gain
+	fd_read_noise = 0.002 # V
+	fd_prnu_percentage = 0.001
+	# SF parameters
+	sf_read_noise = 0.0007 # V
+	sf_gain = 1.0
+	sf_prnu_percentage = 0.001 
+	# column ampilifer
+	col_amp_prnu_percentage = 0.001
+	col_amp_read_noise = 0.002 # V
+	cds_noise = 0.001 # V
+
 	pixel_offset_voltage = 0.1 # V
 	col_offset_voltage = 0.05 # V
-	
+	adc_noise = 0.001 # V
 	adc_resolution = 8 # bits
 
 	# create noise objects
@@ -39,7 +49,7 @@ def main():
 		dark_current_noise=dc_noise,
 		max_val=pixel_full_well_capacity,
 		enable_dcnu=True,
-		dcnu_percentage=0.05,
+		dcnu_percentage=dcnu_percentage,
 	)
 
 	fd_noise = FloatingDiffusion(
@@ -53,17 +63,20 @@ def main():
 
 	sf_noise = PixelwiseComponent(
 		name = "SourceFollower",
-		gain = 1.0,
+		gain = sf_gain,
 		noise = sf_read_noise,
 		max_val = pixel_full_well_capacity*conversion_gain,
+		enable_prnu = True,
+		prnu_percentage = sf_prnu_percentage
 	)
 
 	col_amplifier_noise = ColumnwiseComponent(
 		name = "ColumnAmplifier",
 		gain = column_amplifier_gain,
 		max_val = pixel_full_well_capacity*conversion_gain*column_amplifier_gain,
-		noise_percentage = column_amplifier_noise_pct,
-		enable_prnu = True
+		noise = col_amp_read_noise,
+		enable_prnu = True,
+		prnu_percentage = col_amp_prnu_percentage
 	)
 
 	cds_noise = CorrelatedDoubleSampling(
