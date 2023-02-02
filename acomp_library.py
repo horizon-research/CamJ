@@ -226,21 +226,6 @@ class current_mirror(object):
         energy = self.supply * self.i_dc * self.t_readout
 
 
-class Comparator(object):
-    def __init__(self,
-                 supply=1.8,  # [V]
-                 i_bias=10e-6,  # [A]
-                 t_readout=1e-9  # [s]
-                 ):
-        self.supply = supply
-        self.i_bias = i_bias
-        self.t_readout = t_readout
-
-    def energy(self):
-        energy = self.supply * self.i_bias * self.t_readout
-        return energy
-
-
 class Passive_SC(object):
     def __init__(self,
                  capacitance_array,
@@ -279,6 +264,21 @@ class max_v(object):
 
 
 ########################################################################################################################
+class Comparator(object):
+    def __init__(self,
+                 supply=1.8,  # [V]
+                 i_bias=10e-6,  # [A]
+                 t_readout=1e-9  # [s]
+                 ):
+        self.supply = supply
+        self.i_bias = i_bias
+        self.t_readout = t_readout
+
+    def energy(self):
+        energy = self.supply * self.i_bias * self.t_readout
+        return energy
+
+
 class ADC(object):
     """docstring for differential-input rail-to-rail ADC"""
 
