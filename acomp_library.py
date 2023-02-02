@@ -161,20 +161,22 @@ class AnalogMemory(object):
 ########################################################################################################################
 class dac_d_to_c(object):
     def __init__(self,
-                 supply,
-                 load_capacitance,
-                 t_readout,
-                 resolution,
-                 num_current_path):
+                 supply=1.8,
+                 load_capacitance=2e-12,
+                 t_readout=16e-6,
+                 resolution=4,
+                 i_dc):
         self.supply = supply
         self.load_capacitance = load_capacitance
         self.t_readout = t_readout
-        self.resolution = resolution
-        self.num_current_path = num_current_path
+        self.resolution = resolution  # aka num_current_path
+        if i_dc is None:
+            self.i_dc = self.load_capacitance * self.supply / self.t_readout
+        else:
+            self.i_dc = i_dc
 
     def energy(self):
-        i_max = self.load_capacitance * self.supply / self.t_readout
-        energy = self.supply * i_max * self.t_readout * self.num_current_path
+        energy = self.supply * self.i_dc * self.t_readout * (2 ** self.resolution)
         return energy
 
 
@@ -183,14 +185,17 @@ class current_mirror(object):
                  supply,
                  load_capacitance,
                  t_readout,
-                 resolution):
+                 i_dc):
         self.supply = supply
         self.load_capacitance = load_capacitance
         self.t_readout = t_readout
-        self.resolution = resolution
+        if i_dc is None:
+            self.i_dc = self.load_capacitance * self.supply / self.t_readout
+        else:
+            self.i_dc = i_dc
 
     def energy(self):
-        pass
+        energy = self.supply * self.i_dc * self.t_readout
 
 
 class Comparator(object):
