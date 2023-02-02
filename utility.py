@@ -6,11 +6,11 @@ def gm_id(load_capacitance,
           bandwidth,
           differential=True,
           inversion_level='moderate'):
-    if inversion_level == 'weak':
+    if inversion_level == 'strong':
         gm_id_ratio = 10
     elif inversion_level == 'moderate':
         gm_id_ratio = 15
-    elif inversion_level == 'strong':
+    elif inversion_level == 'weak':
         gm_id_ratio = 20
     num_branch = np.where(differential, 2, 1)
     gm = 2 * np.pi * load_capacitance * gain * bandwidth
