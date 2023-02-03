@@ -56,8 +56,7 @@ Weight_interface.add_node('weighted current biasing',
                           intrinsic_delay=1,
                           domain_input='digit',
                           domain_output='current',
-                          energy=dac_d_to_c(supply=0.8, load_capacitance=2e-12, t_readout=7.9e-6, resolution=3,
-                                            num_current_path=1).energy()
+                          energy=dac_d_to_c(supply=0.8, load_capacitance=2e-12, t_readout=7.9e-6, resolution=3).energy()
                           # value_input=w,
                           # value_output=np.random.normal(w, w * w_mismatch),
                           # ideal_output=w
@@ -87,8 +86,7 @@ PE.add_node('SCI',
             intrinsic_delay=1,
             domain_input=['current', 'time'],
             domain_output='charge',
-            energy=dac_d_to_c(supply=0.8, load_capacitance=2e-12, t_readout=7.9e-6, resolution=3,
-                              num_current_path=1).energy()
+            energy=dac_d_to_c(supply=0.8, load_capacitance=2e-12, t_readout=7.9e-6, resolution=3).energy()
             # value_input=[Weight_interface.nodes['weighted current biasing']['value_output'],
             #             Pixel_array.nodes['pixel']['value_output']],
             # value_output=Weight_interface.nodes['weighted current biasing']['value_output'] *
@@ -105,8 +103,7 @@ PE.add_node('capacitor',
             intrinsic_delay=1,
             domain_input='charge',
             domain_output='voltage',
-            energy=AnalogMemory(type='passive', capacitance=2e-12, supply=0.8, droop_rate=0, t_sample=0, t_hold=0,
-                                resolution=0, gain_opamp=0).energy()
+            energy=AMem_passive(capacitance=2e-12, supply=0.8).energy()
             # value_input=PE.nodes['SCI']['value_output'],
             # value_output=PE.nodes['SCI']['value_output'] / np.random.normal(C, C * C_mismatch),
             # ideal_output=PE.nodes['SCI']['value_output'] / C
@@ -146,7 +143,7 @@ ADC_array.add_node('ADC',
                    domain_input='voltage',
                    domain_output='digit',
                    resolution=3,
-                   energy=ADC(type='SS', FOM=100e-15, resolution=3, sampling_rate=4e5).energy()
+                   energy=ADC(supply=0.8, type='SS', fom=100e-15, resolution=3).energy()
                    )
 
 # Define digital processor
