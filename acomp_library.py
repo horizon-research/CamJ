@@ -12,7 +12,7 @@ class PinnedPD(object):
         self.pd_capacitance = pd_capacitance
         self.pd_supply = pd_supply
 
-    def pd_energy(self):
+    def energy(self):
         energy = self.pd_capacitance * (self.pd_supply ** 2)
         return energy
 
@@ -52,7 +52,7 @@ class APS(PinnedPD):
 
         energy_sf = (self.load_capacitance + get_pixel_parasitic(self.array_vsize, self.tech_node, self.pitch)) * \
                     self.pd_supply * self.output_vs
-        energy_pd = super(APS, self).pd_energy()
+        energy_pd = super(APS, self).energy()
         energy = energy_pd + energy_fd + self.num_readout * energy_sf
         return energy
 
@@ -110,7 +110,7 @@ class PWM(PinnedPD):
     def energy(self):
         energy_ramp = self.ramp_capacitance * (self.pd_supply ** 2)
         energy_comparator = self.gate_capacitance * (self.pd_supply ** 2)
-        energy_pd = super(PWM, self).pd_energy()
+        energy_pd = super(PWM, self).energy()
         energy = energy_pd + self.num_readout * (energy_ramp + energy_comparator)
         return energy
 
@@ -119,7 +119,6 @@ class PWM(PinnedPD):
 class AMem_active(object):
     def __init__(self,
                  capacitance=1e-12,  # [F]
-                 droop_rate,
                  t_sample=1e-6,  # [s]
                  t_hold=10e-3,  # [s],
                  supply=1.8,  # [V]
@@ -127,7 +126,6 @@ class AMem_active(object):
                  # opamp_dcgain
                  ):
         self.capacitance = capacitance
-        self.droop_rate = droop_rate
         self.t_sample = t_sample
         self.t_hold = t_hold
         self.supply = supply
@@ -147,24 +145,16 @@ class AMem_active(object):
     def delay(self):
         pass
 
-    def stored_value(self,
-                     input
-                     ):
-        output = input * (1 - self.t_hold * self.droop_rate)
-        return output
-
 
 class AMem_passive(object):
     def __init__(self,
                  capacitance=1e-12,  # [F]
-                 droop_rate,
                  t_sample=1e-6,  # [s]
                  t_hold=10e-3,  # [s],
                  supply=1.8,  # [V]
                  # eqv_reso  # equivalent resolution
                  ):
         self.capacitance = capacitance
-        self.droop_rate = droop_rate
         self.t_sample = t_sample
         self.t_hold = t_hold
         self.supply = supply
@@ -176,12 +166,6 @@ class AMem_passive(object):
 
     def delay(self):
         pass
-
-    def stored_value(self,
-                     input
-                     ):
-        output = input * (1 - self.t_hold * self.droop_rate)
-        return output
 
 
 ########################################################################################################################
@@ -242,10 +226,10 @@ class Passive_SC(object):
 class max_v(object):
     # source: https://www.mdpi.com/1424-8220/20/11/3101
     def __init__(self,
-                 supply,
-                 t_frame,
-                 t_acomp,
-                 load_capacitance=1e-12,
+                 supply=1.8,  # [V]
+                 t_frame=30e-3,  # [s]
+                 t_acomp=1e-6,  # [s]
+                 load_capacitance=1e-12,  # [F]
                  gain=10
                  ):
         self.supply = supply
