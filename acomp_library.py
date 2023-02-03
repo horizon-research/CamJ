@@ -116,11 +116,40 @@ class PWM(PinnedPD):
 
 
 ########################################################################################################################
+class ColumnAmplifier(object):
+    def __init__(self,
+                 capacitance_load=1e-12,  # [F]
+                 capacitance_input=1e-12,  # [F]
+                 t_sample=2e-6,  # [s]
+                 t_frame=10e-3,  # [s]
+                 supply=1.8,  # [V]
+                 gain=2
+                 ):
+        self.capacitance_load = capacitance_load
+        self.capacitance_input = capacitance_input
+        self.t_sample = t_sample
+        self.t_frame = t_frame
+        self.supply = supply
+        self.gain = gain
+        self.capacitance_feedback = self.capacitance_input / self.gain
+
+    def energy(self):
+        i_opamp = gm_id(load_capacitance=self.capacitance_feedback + self.capacitance_load,
+                        gain=self.gain,
+                        bandwidth=1 / self.t_sample,
+                        differential=False,
+                        inversion_level='moderate')
+        energy_opamp = self.supply * i_opamp * self.t_frame
+        energy = energy_opamp + (self.capacitance_input + self.capacitance_feedback + self.capacitance_load) \
+                 * (self.supply ** 2)
+        return energy
+
+
 class AMem_active(object):
     def __init__(self,
                  capacitance=1e-12,  # [F]
                  t_sample=1e-6,  # [s]
-                 t_hold=10e-3,  # [s],
+                 t_hold=10e-3,  # [s]
                  supply=1.8,  # [V]
                  # eqv_reso,# equivalent resolution
                  # opamp_dcgain
@@ -210,7 +239,7 @@ class current_mirror(object):
         energy = self.supply * self.i_dc * self.t_readout
 
 
-class Passive_SC(object):
+class passive_SC(object):
     def __init__(self,
                  capacitance_array,
                  vs_array
