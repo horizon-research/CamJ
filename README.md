@@ -70,7 +70,8 @@ imaging pipeline inside the sensor, and it calls our default simulation launch f
 `eventification_noise_simulation_example` is a more complex example, the computation has a complex 
 data dependency graph, which needs users to define a cunstomized simulation function. 
 
-
-
-
-
+after those functions are defined, just run `example_run.py`
+```
+ $ python3 example_run.py 
+```
+You will see the simulation is running!
