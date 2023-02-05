@@ -29,7 +29,7 @@ image processing pipeline or some operations like MaxPool or ReLU operations.
 - *DNNProcessStage*: this class can describe major computation in DNN-based algorithms, such as
 convolution, depthwise-convolution and fully-connected layer.
 
-The following code describes an input with a shape of (640, 400, 1). There is another attribute,
+The following code describes an input with a shape of (640, 400, 1). In `PixelInput`, there is another attribute,
 `functional_pipeline`, which is used for functional simulation. In this case, it is used to simulate
 how to generate pixels. If you don't want to perform functional simulation, no need to specify this
 attribute. To understand how to specify `functional_pipeline` attribute, please check out `functional_core` 
@@ -85,6 +85,16 @@ The above code just finishes describing a simple software pipeline using CamJ AP
 TODO
 
 ## Digital Configuration
+
+`digital_compute.py` and `digital_memory.py` implements the building blocks for digital hardware 
+simulation. In CamJ, we provide three compute building blocks:
+
+- `ComputeUnit`: this is an interface for some basic compute hardware units, like some compute unit 
+inside ISP.
+- `SystolicArray`: this class simulates the behavior of a classic hardware design, systolic array.
+- `NeuralProcessor`: this class is anothe example of DNN accelerator, it is a SIMD processor.
+
+
 
 
 
