@@ -27,7 +27,9 @@ so that you can direcly plog in your design.
 - software-to-hardware mapping function: this part describes how to map software computation stages
 to hardware components.
 
-For more details, please refer our paper.
+Here shows the overview of our system. For more details, please refer our paper.
+[camj.pdf](https://github.com/horizon-research/in-sensor-simulator/files/10611857/camj.pdf)
+
 
 ## How to Use
 
