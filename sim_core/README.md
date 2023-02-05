@@ -40,7 +40,33 @@ input_data = PixelInput(
 	name="Input",
 )
 ```
+To define a resize function, you can use `ProcessStage` class.
+```
+resize_stage = ProcessStage(
+	name = "Resize",
+	input_size = [(640, 400, 1)],
+	kernel_size = [(2, 2, 1)],
+	stride = [(2, 2, 1)],
+	output_size = (320, 200, 1),
+	padding =[Padding.NONE]
+)
+```
+This instance describes a resize operation. The input size is (640, 400, 1). The kernel size is (2, 2, 1)
+and stride size is (2, 2, 1). The computation order is a raster-scanning fashion. The reason that 
+`input_size`, `kernel_size` and `stride` are lists of tuples is that CamJ allows one `ProcessStage` 
+has multiple inputs. However, CamJ only allows one output per `ProcessStage`. In this example,
+the output size is (320, 200, 1).
 
+The following shows a convolution operation.
+```
+conv2d_stage = DNNProcessStage(
+		name = "Conv2D",
+		op_type = "Conv2D",
+		ifmap_size = [320, 200, 1],
+		kernel_size = [3, 3, 1, 32],
+		stride = 2
+	)
+```
 ## Analog Configuration
 
 TODO
