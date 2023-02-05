@@ -86,13 +86,56 @@ TODO
 
 ## Digital Configuration
 
-`digital_compute.py` and `digital_memory.py` implements the building blocks for digital hardware 
-simulation. In CamJ, we provide three compute building blocks:
+Two files, `digital_compute.py` and `digital_memory.py`, implement the building blocks for 
+digital hardware simulation. In CamJ, we provide three compute building blocks:
 
 - `ComputeUnit`: this is an interface for some basic compute hardware units, like some compute unit 
 inside ISP.
 - `SystolicArray`: this class simulates the behavior of a classic hardware design, systolic array.
 - `NeuralProcessor`: this class is anothe example of DNN accelerator, it is a SIMD processor.
+
+Next, we show how to use these classes.
+
+```
+resize_unit = ComputeUnit(
+ 	name="ResizeUnit",
+	domain=ProcessDomain.DIGITAL,
+	location=ProcessorLocation.SENSOR_LAYER,
+	input_throughput = [(32, 2, 1)],
+	output_throughput = (16, 1, 1), 
+	clock = XX, # MHz
+	energy = XX,
+	area = XX,
+	initial_delay = 0,
+	delay = 3,
+)
+```
+This example shows how to define a hardware unit that performs 2x2 resize. `domain` attribute defines
+which domain this operation performs in. `location` defines the location that this hardware unit resides.
+Two important parameters, `input_throughput` and `output_throughput`, define that to output a size of 
+(16, 1, 1) output, this resize unit takes (32, 2, 1) of data from input. The parameter `initial_delay`
+describes the initial number of cycle that this resize unit takes to let resize unit fully pipelined.
+`delay` parameter shows after `initial_delay` cycles, the number of cycles takes to output 
+the next batch (16, 1, 1) output. These parameters is useful that allows CamJ simulator to understand 
+the actual hardware behavior.
+
+```
+dnn_acc = SystolicArray(
+	name="InSensorSystolicArray",
+	domain=ProcessDomain.DIGITAL,
+	location=ProcessorLocation.COMPUTE_LAYER,
+	size_dimension=(16, 16),
+	clock=XX,
+	energy=XX,
+	area=XX
+)
+```
+The code above shows an example of how to use `SystolicArray` class. Here, we define a systolic array 
+of size 16x16. Because the computation pattern of a systolic array is well defined, no extra parameter 
+is needed to define the computation pattern.
+
+
+
 
 
 
