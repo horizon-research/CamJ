@@ -60,13 +60,26 @@ the output size is (320, 200, 1).
 The following shows a convolution operation.
 ```
 conv2d_stage = DNNProcessStage(
-		name = "Conv2D",
-		op_type = "Conv2D",
-		ifmap_size = [320, 200, 1],
-		kernel_size = [3, 3, 1, 32],
-		stride = 2
-	)
+	name = "Conv2D",
+	op_type = "Conv2D",
+	ifmap_size = [320, 200, 1],
+	kernel_size = [3, 3, 1, 32],
+	stride = 2
+)
 ```
+This example shows a convolution layer with input size of (320, 200, 1), the kernel size is (3, 3, 1, 32) 
+and stride size is 2. Operation types can be others such as `FC` and `DWConv2D`. 
+
+After defining those classes, users also need to define the data dependency in the software pipeline.
+For instance, the following code describes the `input_data` is the input of `resize_stage` and `resize_stage` 
+is the input of `conv2d_stage`.
+```
+resize_stage.set_input_stage(input_data)
+conv2d_stage.set_input_stage(resize_stage)
+
+```
+The above code just finishes describing a simple software pipeline using CamJ API.
+
 ## Analog Configuration
 
 TODO
