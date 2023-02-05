@@ -86,6 +86,8 @@ TODO
 
 ## Digital Configuration
 
+### Computation Building Blocks
+
 Two files, `digital_compute.py` and `digital_memory.py`, implement the building blocks for 
 digital hardware simulation. In CamJ, we provide three compute building blocks:
 
@@ -134,6 +136,7 @@ The code above shows an example of how to use `SystolicArray` class. Here, we de
 of size 16x16. Because the computation pattern of a systolic array is well defined, no extra parameter 
 is needed to define the computation pattern.
 
+### Memory Building Blocks
 
 
 
