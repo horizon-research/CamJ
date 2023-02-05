@@ -28,10 +28,11 @@ so that you can direcly plog in your design.
 to hardware components.
 
 Here shows the overview of our system. For more details, please refer our paper.
-![image](https://github.com/horizon-research/in-sensor-simulator/files/10611857/camj.pdf)
 
+![camj](https://user-images.githubusercontent.com/21286132/216838473-c1477396-f1f6-4b04-a14b-7292c32948ad.png)
 
 ## How to Use
+
 
 Folder `ieee_vr22` contains an example about how to describe a sensor design and a software pipeline
 using CamJ API. In `ieee_vr22` folder, `sw_pipeline.py` describes the software dataflow, `hw_config`
