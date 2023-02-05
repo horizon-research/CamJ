@@ -138,6 +138,34 @@ is needed to define the computation pattern.
 
 ### Memory Building Blocks
 
+CamJ provides three main memory building blocks:
+- `DoubleBuffer`: a generic double buffer structure. It uses to hide the memory latency, while the 
+loading buffer is fetching data, the working buffer is used for computation.
+- `LineBuffer`: it allows multiple reads per cycle and only one write to its buffer.
+- `FIFO`: this is a special example of `LineBuffer`, it only allows one read to the next stage and 
+one writes from the previous stage.
+
+```
+fifo_buffer = FIFO(
+	name="FIFO",
+	hw_impl = "sram",
+	count = 1280,
+	clock = XX, 	   # MHz
+	write_energy = XX, #pJ
+	read_energy = XX,  #pJ
+	location = ProcessorLocation.COMPUTE_LAYER,
+	duplication = 100,
+	write_unit = "ADC",
+	read_unit = "ResizeUnit"
+)
+
+```
+This code shows how to define a FIFO using CamJ API. `hw_impl` shows the actual implementation of FIFO.
+`count` and `duplication` shows the size of FIFO and the word size of each word. `write_unit` and `read_unit` 
+show which  hardware unit can access this FIFO.
+
+For other memory instance examples, please check `simple_example` and `ieee_vr22` directory for more 
+details.
 
 
 
