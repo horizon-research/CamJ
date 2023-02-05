@@ -28,7 +28,7 @@ so that you can direcly plog in your design.
 to hardware components.
 
 Here shows the overview of our system. For more details, please refer our paper.
-[camj.pdf](https://github.com/horizon-research/in-sensor-simulator/files/10611857/camj.pdf)
+![image](https://github.com/horizon-research/in-sensor-simulator/files/10611857/camj.pdf)
 
 
 ## How to Use
