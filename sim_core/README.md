@@ -22,11 +22,11 @@ processing algorithms, including conventional algorithms in image processing pip
 algorithms that are running on GPU or customized hardware. 
 
 These three classes are:
-- *PixelInput*: this describes the input of the software algorithm. this class should be always at
+- `PixelInput`: this describes the input of the software algorithm. this class should be always at
 the beginning at the software pipelines.
-- *ProcessStage*: this class is used to describe the processing stensil operations in conventional
+- `ProcessStage`: this class is used to describe the processing stensil operations in conventional
 image processing pipeline or some operations like MaxPool or ReLU operations.
-- *DNNProcessStage*: this class can describe major computation in DNN-based algorithms, such as
+- `DNNProcessStage`: this class can describe major computation in DNN-based algorithms, such as
 convolution, depthwise-convolution and fully-connected layer.
 
 The following code describes an input with a shape of (640, 400, 1). In `PixelInput`, there is another attribute,
@@ -123,7 +123,7 @@ multiple analog components inside one analog array.
 Two files, `digital_compute.py` and `digital_memory.py`, implement the building blocks for 
 digital hardware simulation. In CamJ, we provide four compute building blocks:
 
-- `ADC`: 
+- `ADC`: the interface between analog and digital simulation.
 - `ComputeUnit`: this is an interface for some basic compute hardware units, like some compute unit 
 inside ISP.
 - `SystolicArray`: this class simulates the behavior of a classic hardware design, systolic array.
