@@ -8,8 +8,8 @@ their sensor designs using high-level API and evaluates the energy and accuracy 
 CamJ has two main functionalities, power/energy estimation and functional simulation (noise modeling).
 We put the core functions of these two parts into two directories:
 
-- sim_core: contains the power simulation API and core implementations.
-- functional_core: contains noising modeling API and core implementations.
+- [sim_core](https://github.com/horizon-research/in-sensor-simulator/tree/main/sim_core): contains the power simulation API and core implementations.
+- [functional_core](https://github.com/horizon-research/in-sensor-simulator/tree/main/functional_core): contains noising modeling API and core implementations.
 
 For more details about these two parts, Go and check these two subdirectories.
 
@@ -33,7 +33,6 @@ Here shows the overview of our system. For more details, please refer our paper.
 
 ## How to Use
 
-
 Folder `ieee_vr22` contains an example about how to describe a sensor design and a software pipeline
 using CamJ API. In `ieee_vr22` folder, `sw_pipeline.py` describes the software dataflow, `hw_config`
 describes hardware configuration and `mapping_file.py` describes the mapping mechanism between
@@ -56,6 +55,8 @@ Next, get the major data structures for sensor simulation, as `main()` function 
 	mapping_dict = mapping_function()
 	sw_stage_list = sw_pipeline()
 ```
+
+To understand how to configure hardware and software pipeline please refer [sim_core](https://github.com/horizon-research/in-sensor-simulator/tree/main/sim_core) directory. If you want to understand more about noise modeling in CamJ, please refer to [functional_core](https://github.com/horizon-research/in-sensor-simulator/tree/main/functional_core).
 
 Then, based on what we want to simulate, this example shows three different simulations. Call:
 ```
