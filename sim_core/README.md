@@ -82,7 +82,39 @@ The above code just finishes describing a simple software pipeline using CamJ AP
 
 ## Analog Configuration
 
-TODO
+Analog configuration starts from describing a set of analog arrays. In each analog array, users also
+need to define what analog components are inside. Here, we show an example of defining an analog array:
+
+```
+pixel_array = AnalogArray(
+	name = "PixelArray",
+	layer = ProcessorLocation.SENSOR_LAYER,
+	num_input = [(640, 1, 1)],
+	num_output = (640, 1, 1)
+)
+pixel = AnalogComponent(
+	name = "Pixel",
+	input_domain =[ProcessDomain.OPTICAL],
+	output_domain = ProcessDomain.TIME,
+	energy = dummy_energy_func
+)
+```
+Here, we define an analog array called `PixelArray`, the input/output of this pixel array is (640, 1, 1).
+This shows each cycle, it can produce a row of 640 pixels. This `PixelArray` resides in `SENSOR_LAYER`. 
+We also define an analog component called `Pixel`. The `Pixel` component has input domain and output
+domain which allow CamJ framework to verify the correctness of the analog implementation. The `energy` 
+attribute allows CamJ to compute the overall energy/power consumption.
+
+```
+pixel_array.add_component(pixel, (640, 400, 1))
+pixel_array.set_source_component([pixel])
+pixel_array.set_destination_component([pixel])
+```
+In addition to these two definations, we also need to define the structure and the connection of these 
+analog array. Here, `add_component` function shows the pixel array has (640, 400, 1) of pixels. 
+`set_source_component` and `set_destination_component` show the internal connections of pixel array. 
+These two functions are used to determine the connection inside the analog array, in case there are 
+multiple analog components inside one analog array.
 
 ## Digital Configuration
 
