@@ -50,6 +50,6 @@ def get_delay(current_stage_output_impedance,
               next_stage_input_capacitance
               ):
     # 5*Tau represents charging to 99% of the full voltage from 0
-    delay = 5 * (current_stage_output_impedance + next_stage_input_impedance) * \
+    delay = 5 * (parallel_impedance([current_stage_output_impedance, next_stage_input_impedance])) * \
             (current_stage_output_capacitance + next_stage_input_capacitance)
     return delay
