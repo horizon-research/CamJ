@@ -1,8 +1,8 @@
 
 # import local modules
-from enum_const import ProcessorLocation, ProcessDomain
-from memory import FIFO, DoubleBuffer
-from hw_compute import ADC, ComputeUnit, SystolicArray
+from sim_core.enum_const import ProcessorLocation, ProcessDomain
+from sim_core.digital_memory import FIFO, DoubleBuffer
+from sim_core.digital_compute import ADC, ComputeUnit, SystolicArray
 
 
 # an example of user defined hw configuration setup 
@@ -28,7 +28,7 @@ def hw_config():
 		read_unit = "ResizeUnit"
 	)
 	hw_dict["memory"].append(fifo_buffer2)
-
+ 
 	fifo_buffer = FIFO(
 		name="FIFO",
 		hw_impl = "sram",
@@ -59,9 +59,7 @@ def hw_config():
 
 	adc = ADC(
 		name = "ADC",
-		type = 1, # this needs to be fixed, use some enum.
-		pixel_adc_ratio = (1, 400, 1),
-		output_throughput = (640, 1, 1), # redundent
+		output_throughput = (640, 1, 1),
 		location = ProcessorLocation.SENSOR_LAYER,
 	)
 	adc.set_output_buffer(fifo_buffer2)

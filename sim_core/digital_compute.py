@@ -13,16 +13,12 @@ class ADC(object):
 	def __init__(
 		self,
 		name: str, 
-		type: int,
-		pixel_adc_ratio: tuple,
 		output_throughput: tuple,
 		location,
 		power = 600
 	):
 		super(ADC, self).__init__()
 		self.name = "ADC"
-		self.type = type
-		self.pixel_adc_ratio = pixel_adc_ratio
 		self.input_throughput = None
 		self.output_throughput = output_throughput
 		self.location = location

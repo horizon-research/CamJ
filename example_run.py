@@ -107,7 +107,7 @@ def main():
 		sw_stage_list = sw_stage_list
 	)
 
-	exit()
+	# exit()
 	
 	launch_simulation(
 		hw_dict = hw_dict,
