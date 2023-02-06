@@ -89,14 +89,26 @@ TODO
 ### Computation Building Blocks
 
 Two files, `digital_compute.py` and `digital_memory.py`, implement the building blocks for 
-digital hardware simulation. In CamJ, we provide three compute building blocks:
+digital hardware simulation. In CamJ, we provide four compute building blocks:
 
+- `ADC`: 
 - `ComputeUnit`: this is an interface for some basic compute hardware units, like some compute unit 
 inside ISP.
 - `SystolicArray`: this class simulates the behavior of a classic hardware design, systolic array.
 - `NeuralProcessor`: this class is anothe example of DNN accelerator, it is a SIMD processor.
 
 Next, we show how to use these classes.
+```
+adc = ADC(
+	name = "ADC",
+	output_throughput = (640, 1, 1),
+	location = ProcessorLocation.SENSOR_LAYER,
+)
+```
+Analog-to-digital convertor (ADC) is the interface between analog and digital world. In CamJ, to
+bridge these two parts, users need to define a ADC instance. Here, ADC has two attributes. 
+`output_throughput` shows in which order ADC outputs pixels. In this case, the order is (640, 1, 1),
+this is a typical order as a rolling shutter. `location` shows where ADC resides.
 
 ```
 resize_unit = ComputeUnit(
