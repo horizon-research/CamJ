@@ -2,7 +2,7 @@ import numpy as np
 from utility import *
 
 
-class PinnedPD(object):
+class PinnedPhotodiode(object):
     """docstring for pixel"""
 
     def __init__(self,
@@ -17,11 +17,11 @@ class PinnedPD(object):
         return energy
 
 
-class APS(PinnedPD):
+class ActivePixelSensor(PinnedPhotodiode):
     def __init__(self,
                  pd_capacitance,
                  pd_supply,
-                 output_vs,  # output voltage swing [V]
+                 output_vs=1,  # output voltage swing [V]
                  num_transistor=4,
                  fd_capacitance=10e-15,  # [F]
                  num_readout=2,
@@ -52,12 +52,27 @@ class APS(PinnedPD):
 
         energy_sf = (self.load_capacitance + get_pixel_parasitic(self.array_vsize, self.tech_node, self.pitch)) * \
                     self.pd_supply * self.output_vs
-        energy_pd = super(APS, self).energy()
+        energy_pd = super(ActivePixelSensor, self).energy()
         energy = energy_pd + energy_fd + self.num_readout * energy_sf
         return energy
 
+    def impedance(self,
+                  sf_bias_current=2e-6  # [A]
+                  ):
+        input_impedance = None
 
-class DPS(APS):
+        gm_id_ratio = 16
+        gm_n = gm_id_ratio * sf_bias_current
+        output_impedance = 1 / gm_n
+        return [input_impedance, output_impedance]
+
+    def capacitance(self):
+        input_capacitance = None
+        output_capacitance = self.load_capacitance
+        return [input_capacitance, output_capacitance]
+
+
+class DigitalPixelSensor(ActivePixelSensor):
     def __init__(self,
                  pd_capacitance,
                  pd_supply,
@@ -88,13 +103,26 @@ class DPS(APS):
         self.adc_reso = adc_reso
 
     def energy(self):
-        energy_aps = super(DPS, self).energy()
-        energy_adc = ADC(self.pd_supply, self.adc_type, self.adc_fom, self.adc_reso).energy()
+        energy_aps = super(DigitalPixelSensor, self).energy()
+        energy_adc = AnalogToDigitalConverter(self.pd_supply, self.adc_type, self.adc_fom, self.adc_reso).energy()
         energy = energy_aps + energy_adc
         return energy
 
 
-class PWM(PinnedPD):
+class PulseWidthModulationPixel(PinnedPhotodiode):
+    """
+    @article{hsu20200,
+    title={A 0.5-V real-time computational CMOS image sensor with programmable kernel for feature extraction},
+    author={Hsu, Tzu-Hsiang and Chen, Yi-Ren and Liu, Ren-Shuo and Lo, Chung-Chuan and Tang, Kea-Tiong and Chang, Meng-Fan and Hsieh, Chih-Cheng},
+    journal={IEEE Journal of Solid-State Circuits},
+    volume={56},
+    number={5},
+    pages={1588--1596},
+    year={2020},
+    publisher={IEEE}
+    }
+    """
+
     def __init__(self,
                  pd_capacitance,
                  pd_supply,
@@ -110,82 +138,169 @@ class PWM(PinnedPD):
     def energy(self):
         energy_ramp = self.ramp_capacitance * (self.pd_supply ** 2)
         energy_comparator = self.gate_capacitance * (self.pd_supply ** 2)
-        energy_pd = super(PWM, self).energy()
+        energy_pd = super(PulseWidthModulationPixel, self).energy()
         energy = energy_pd + self.num_readout * (energy_ramp + energy_comparator)
         return energy
 
 
 ########################################################################################################################
 class ColumnAmplifier(object):
+    """
+    NMOS-based single-input-single-output cascode amplifier.
+
+    @article{capoccia2019experimental,
+      title={Experimental verification of the impact of analog CMS on CIS readout noise},
+      author={Capoccia, Raffaele and Boukhayma, Assim and Enz, Christian},
+      journal={IEEE Transactions on Circuits and Systems I: Regular Papers},
+      volume={67},
+      number={3},
+      pages={774--784},
+      year={2019},
+      publisher={IEEE}
+    }
+    """
+
     def __init__(self,
-                 capacitance_load=1e-12,  # [F]
-                 capacitance_input=1e-12,  # [F]
+                 load_capacitance=1e-12,  # [F]
+                 input_capacitance=1e-12,  # [F]
                  t_sample=2e-6,  # [s]
                  t_frame=10e-3,  # [s]
                  supply=1.8,  # [V]
                  gain=2
                  ):
-        self.capacitance_load = capacitance_load
-        self.capacitance_input = capacitance_input
+        self.load_capacitance = load_capacitance
+        self.input_capacitance = input_capacitance
         self.t_sample = t_sample
         self.t_frame = t_frame
         self.supply = supply
         self.gain = gain
-        self.capacitance_feedback = self.capacitance_input / self.gain
+        self.fb_capacitance = self.input_capacitance / self.gain
+        [self.i_opamp, self.gm] = gm_id(load_capacitance=self.load_capacitance,
+                                        gain=self.gain,
+                                        bandwidth=1 / self.t_sample,
+                                        differential=False,
+                                        inversion_level='moderate')
+        self.gd = self.gm / 100  # gd<<gm
 
     def energy(self):
-        i_opamp = gm_id(load_capacitance=self.capacitance_feedback + self.capacitance_load,
-                        gain=self.gain,
-                        bandwidth=1 / self.t_sample,
-                        differential=False,
-                        inversion_level='moderate')
-        energy_opamp = self.supply * i_opamp * self.t_frame
-        energy = energy_opamp + (self.capacitance_input + self.capacitance_feedback + self.capacitance_load) \
+        energy_opamp = self.supply * self.i_opamp * self.t_frame
+        energy = energy_opamp + (self.input_capacitance + self.fb_capacitance + self.load_capacitance) \
                  * (self.supply ** 2)
         return energy
 
+    def impedance(self):
+        input_impedance = float('inf')
 
-class AMem_active(object):
+        gm_n = gm_p = self.gm
+        gd_n = gd_p = self.gd
+        output_impedance = parallel_impedance([gm_n * (1 / gd_n) ** 2, gm_p * (1 / gd_p) ** 2])
+        return [input_impedance, output_impedance]
+
+    def capacitance(self):
+        input_capacitance = self.input_capacitance
+        output_capacitance = self.load_capacitance
+        return [input_capacitance, output_capacitance]
+
+
+class SourceFollower(object):
+    """
+    NMOS-based constant current-biased source follower.
+    """
+
     def __init__(self,
-                 capacitance=1e-12,  # [F]
+                 load_capacitance=1e-12,  # [F]
+                 supply=1.8,  # [V]
+                 output_vs=1,  # [V]
+                 bias_current=5e-6  # [A]
+                 ):
+        self.load_capacitance = load_capacitance
+        self.supply = supply
+        self.output_vs = output_vs
+        self.bias_current = bias_current
+
+    def energy(self):
+        energy = self.load_capacitance * self.supply * self.output_vs
+        return energy
+
+    def impedance(self):
+        input_impedance = float('inf')
+
+        gm_id_ratio = 16
+        gm_n = gm_id_ratio * self.bias_current
+        output_impedance = 1 / gm_n
+        return [input_impedance, output_impedance]
+
+    def capacitance(self):
+        input_capacitance = 0
+        output_capacitance = self.load_capacitance
+        return [input_capacitance, output_capacitance]
+
+
+class ActiveAnalogMemory(object):
+    """
+    PMOS-based differential-input-single-output amplifier.
+
+    @article{o200410,
+    title={A 10-nW 12-bit accurate analog storage cell with 10-aA leakage},
+    author={O'Halloran, Micah and Sarpeshkar, Rahul},
+    journal={IEEE journal of solid-state circuits},
+    volume={39},
+    number={11},
+    pages={1985--1996},
+    year={2004},
+    publisher={IEEE}
+    }
+    """
+
+    def __init__(self,
+                 sample_capacitance=2e-12,  # [F]
+                 comp_capacitance=2.5e-12,  # [F]
                  t_sample=1e-6,  # [s]
                  t_hold=10e-3,  # [s]
                  supply=1.8,  # [V]
                  # eqv_reso,# equivalent resolution
                  # opamp_dcgain
                  ):
-        self.capacitance = capacitance
+        self.sample_capacitance = sample_capacitance
+        self.comp_capacitance = comp_capacitance
         self.t_sample = t_sample
         self.t_hold = t_hold
         self.supply = supply
         # self.eqv_reso = eqv_reso
         # self.opamp_dcgain = opamp_dcgain
+        [self.i_opamp, self.gm] = gm_id(load_capacitance=self.comp_capacitance,
+                                        gain=1,
+                                        bandwidth=1 / self.t_sample,
+                                        differential=True,
+                                        inversion_level='moderate')
+        self.gd = self.gm / 100
 
     def energy(self):
-        i_opamp = gm_id(load_capacitance=self.capacitance,
-                        gain=1,
-                        bandwidth=1 / self.t_sample,
-                        differential=True,
-                        inversion_level='moderate')
-        energy_opamp = self.supply * i_opamp * self.t_hold
-        energy = energy_opamp + self.capacitance * (self.supply ** 2)
+        energy_opamp = self.supply * self.i_opamp * self.t_hold
+        energy = energy_opamp + (self.sample_capacitance + self.comp_capacitance) * (self.supply ** 2)
         return energy
 
-    def delay(self):
-        pass
+    def impedance(self):
+        input_impedance = float('inf')
+
+        gm_n = gm_p = self.gm
+        gd_n = gd_p = self.gd
+        output_impedance = parallel_impedance([gm_n * (1 / gd_n) ** 2, gm_p * (1 / gd_p) ** 2])
+        return [input_impedance, output_impedance]
+
+    def capacitance(self):
+        input_capacitance = self.sample_capacitance
+        output_capacitance = self.comp_capacitance
+        return [input_capacitance, output_capacitance]
 
 
-class AMem_passive(object):
+class PassiveAnalogMemory(object):
     def __init__(self,
                  capacitance=1e-12,  # [F]
-                 t_sample=1e-6,  # [s]
-                 t_hold=10e-3,  # [s],
                  supply=1.8,  # [V]
                  # eqv_reso  # equivalent resolution
                  ):
         self.capacitance = capacitance
-        self.t_sample = t_sample
-        self.t_hold = t_hold
         self.supply = supply
         # self.eqv_reso = eqv_reso
 
@@ -193,12 +308,19 @@ class AMem_passive(object):
         energy = self.capacitance * (self.supply ** 2)
         return energy
 
-    def delay(self):
-        pass
+    def impedance(self):
+        input_impedance = float('inf')
+        output_impedance = float('inf')
+        return [input_impedance, output_impedance]
+
+    def capacitance(self):
+        input_capacitance = self.capacitance
+        output_capacitance = 0
+        return [input_capacitance, output_capacitance]
 
 
 ########################################################################################################################
-class dac_d_to_c(object):
+class DigitalToCurrentConverter(object):
     def __init__(self,
                  supply=1.8,  # [V]
                  load_capacitance=2e-12,  # [F]
@@ -220,7 +342,7 @@ class dac_d_to_c(object):
         return energy
 
 
-class current_mirror(object):
+class CurrentMirror(object):
     def __init__(self,
                  supply=1.8,
                  load_capacitance=2e-12,  # [F]
@@ -239,7 +361,7 @@ class current_mirror(object):
         energy = self.supply * self.i_dc * self.t_readout
 
 
-class passive_SC(object):
+class PassiveSwitchedCapacitorArray(object):
     def __init__(self,
                  capacitance_array,
                  vs_array
@@ -252,7 +374,7 @@ class passive_SC(object):
         return energy
 
 
-class max_v(object):
+class MaximumVoltage(object):
     # source: https://www.mdpi.com/1424-8220/20/11/3101
     def __init__(self,
                  supply=1.8,  # [V]
@@ -292,13 +414,13 @@ class Comparator(object):
         return energy
 
 
-class ADC(object):
+class AnalogToDigitalConverter(object):
     """docstring for differential-input rail-to-rail ADC"""
 
     def __init__(self,
                  supply=1.8,  # [V]
                  type='SS',
-                 fom=100e-15,  # [J/conversioin]
+                 fom=100e-15,  # [J/conversion]
                  resolution=8,
                  ):
         self.supply = supply
