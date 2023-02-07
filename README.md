@@ -51,20 +51,20 @@ from ieee_vr22.hw_config import hw_config
 
 Next, get the major data structures for sensor simulation, as `main()` function shows.
 ```
-	hw_dict = hw_config()
-	mapping_dict = mapping_function()
-	sw_stage_list = sw_pipeline()
+hw_dict = hw_config()
+mapping_dict = mapping_function()
+sw_stage_list = sw_pipeline()
 ```
 
 To understand how to configure hardware and software pipeline please refer [sim_core](https://github.com/horizon-research/in-sensor-simulator/tree/main/sim_core) directory. If you want to understand more about noise modeling in CamJ, please refer to [functional_core](https://github.com/horizon-research/in-sensor-simulator/tree/main/functional_core).
 
 Then, based on what we want to simulate, this example shows three different simulations. Call:
 ```
-	launch_simulation(
-		hw_dict = hw_dict,
-		mapping_dict = mapping_dict,
-		sw_stage_list = sw_stage_list
-	)
+launch_simulation(
+	hw_dict = hw_dict,
+	mapping_dict = mapping_dict,
+	sw_stage_list = sw_stage_list
+)
 ```
 This performs power estimation.
 
