@@ -15,6 +15,8 @@ from sim_core.sw_interface import PixelInput
 from sim_core.sw_utils import build_sw_graph
 from sim_core.flags import *
 
+
+# The overall harness function to simulate analog and digital computation.
 def launch_simulation(hw_dict, mapping_dict, sw_stage_list):
 	
 	total_analog_energy = launch_analog_simulation(hw_dict["analog"], sw_stage_list, mapping_dict)
@@ -76,28 +78,28 @@ def find_analog_interface_stages(sw_stage_list, org_sw_stage_list, org_mapping_d
 
 
 def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
+	# some infras for digital simulation
 	reservation_board = ReservationBoard(hw_dict["compute"])
 	buffer_monitor = BufferMonitor(hw_dict["memory"])
-
+	# find software stages that are only in digital simulation
 	sw_stage_list = find_digital_sw_stages(org_sw_stage_list, hw_dict["compute"], org_mapping_dict)
-	print(sw_stage_list)
-
+	# find interface stages 
 	sw_stage_list, mapping_dict = find_analog_interface_stages(
 		sw_stage_list, 
 		org_sw_stage_list, 
 		org_mapping_dict
 	)
 
+	# this function will build the connection between input stage and output stage.
 	build_sw_graph(sw_stage_list)
 
 	sw2hw, hw2sw = map_sw_hw(mapping_dict, sw_stage_list, hw_dict)
 
-	print("## [sw2hw] ##")
-	pprint(sw2hw)
+	# print("## [sw2hw] ##")
+	# pprint(sw2hw)
 
-	print("## [hw2sw] ##")
-	pprint(hw2sw)
-
+	# print("## [hw2sw] ##")
+	# pprint(hw2sw)
 
 	buffer_edge_dict = build_buffer_edges(sw_stage_list, hw_dict, sw2hw)
 
@@ -116,8 +118,6 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
 	finished_stage = {}
 	reserved_cycle_cnt = {}
 
-
-	
 	# initialize every stage to idle stage
 	for sw_stage in sw_stage_list:
 		idle_stage[sw_stage] = True
