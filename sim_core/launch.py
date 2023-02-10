@@ -7,14 +7,86 @@ from sim_core.digital_compute import SystolicArray, NeuralProcessor
 from sim_core.sim_utils import map_sw_hw, check_buffer_consistency, build_buffer_edges, allocate_output_buffer, \
 					  increment_buffer_index, check_stage_finish, write_output_throughput, \
 					  check_input_buffer_data_ready, increment_input_buffer_index, check_input_buffer, \
-					  check_finish_data_dependency, check_fc_input_ready, check_input_stage_finish
+					  check_finish_data_dependency, check_fc_input_ready, check_input_stage_finish, \
+					  find_digital_sw_stages
 from sim_core.sim_infra import ReservationBoard, BufferMonitor
-from sim_core.sw_interface import build_sw_graph
+from sim_core.analog_utils import launch_analog_simulation
+from sim_core.sw_interface import PixelInput
+from sim_core.sw_utils import build_sw_graph
 from sim_core.flags import *
 
 def launch_simulation(hw_dict, mapping_dict, sw_stage_list):
+	
+	total_analog_energy = launch_analog_simulation(hw_dict["analog"], sw_stage_list, mapping_dict)
+
+	total_digital_energy = launch_digital_simulation(hw_dict, mapping_dict, sw_stage_list)
+
+	return total_analog_energy + total_digital_energy
+
+# This function finds those functions that are at the interface between analog and digital
+# and creates the input object for digital domain if necessary. 
+# If there is analog component, it will create artificial digital input for digital simulation.
+# If there is no analog component, it won't create that input since user already created one.
+def find_analog_interface_stages(sw_stage_list, org_sw_stage_list, org_mapping_dict):
+	# if equals, it means that there is no analog component in this pipeline.
+	# no need to create digital input.
+	if len(sw_stage_list) == len(org_sw_stage_list):
+		return sw_stage_list, org_mapping_dict
+
+	# First find which stages are at the interface and their direct output stages.
+	init_stages = [] # interface stages
+	mapping_dict = {}
+	init_output_stages = {} # direct output stages
+	for sw_stage in sw_stage_list:
+		for in_stage in sw_stage.input_stages:
+			if in_stage not in sw_stage_list:
+				if in_stage not in init_stages:
+					init_stages.append(in_stage)
+
+				# map interface stages to ADC.
+				mapping_dict[in_stage.name] = "ADC"
+				# find its direct output stages
+				if in_stage not in init_output_stages:
+					init_output_stages[in_stage] = [sw_stage]
+				else:
+					init_output_stages[in_stage].append(sw_stage)
+
+	# remove original interface stages from input_stages 
+	for sw_stage in sw_stage_list:
+		for in_stage in init_stages:
+			if in_stage in sw_stage.input_stages:
+				sw_stage.input_stages.remove(in_stage)
+
+	for sw_stage in sw_stage_list:
+		mapping_dict[sw_stage.name] = org_mapping_dict[sw_stage.name]
+
+	# add back those interface stages using artificial input for digital simulation.
+	for sw_stage in init_stages:
+		input_data = PixelInput(
+			sw_stage.output_size, 
+			name=sw_stage.name,
+		)
+
+		for output_stage in init_output_stages[sw_stage]:
+			output_stage.set_input_stage(input_data)
+
+		sw_stage_list.append(input_data)
+
+	return sw_stage_list, mapping_dict
+
+
+def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
 	reservation_board = ReservationBoard(hw_dict["compute"])
 	buffer_monitor = BufferMonitor(hw_dict["memory"])
+
+	sw_stage_list = find_digital_sw_stages(org_sw_stage_list, hw_dict["compute"], org_mapping_dict)
+	print(sw_stage_list)
+
+	sw_stage_list, mapping_dict = find_analog_interface_stages(
+		sw_stage_list, 
+		org_sw_stage_list, 
+		org_mapping_dict
+	)
 
 	build_sw_graph(sw_stage_list)
 
@@ -26,9 +98,8 @@ def launch_simulation(hw_dict, mapping_dict, sw_stage_list):
 	print("## [hw2sw] ##")
 	pprint(hw2sw)
 
-	buffer_edge_dict = build_buffer_edges(sw_stage_list, hw_dict, sw2hw)
 
-	# print(buffer_edge_dict)
+	buffer_edge_dict = build_buffer_edges(sw_stage_list, hw_dict, sw2hw)
 
 	allocate_output_buffer(
 		sw_stages = sw_stage_list,
@@ -44,6 +115,8 @@ def launch_simulation(hw_dict, mapping_dict, sw_stage_list):
 	processing_stage = {}
 	finished_stage = {}
 	reserved_cycle_cnt = {}
+
+
 	
 	# initialize every stage to idle stage
 	for sw_stage in sw_stage_list:

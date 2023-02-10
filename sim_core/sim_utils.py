@@ -38,6 +38,19 @@ def map_sw_hw(mapping_dict, sw_stage_list, hw_dict):
 
 	return sw2hw, hw2sw
 
+def find_digital_sw_stages(sw_stages, compute_units, mapping_dict):
+	digital_sw_stages = []
+
+	for sw_stage in sw_stages:
+		hw_stage_name = mapping_dict[sw_stage.name]
+
+		for compute_unit in compute_units:
+			if compute_unit.name == hw_stage_name:
+				digital_sw_stages.append(sw_stage)
+				break
+
+	return digital_sw_stages
+
 '''
 	This function is used to double check if the producer's output buffer is the same as 
 	the cosumer's input buffer.
@@ -64,7 +77,6 @@ def build_buffer_edges(sw_stage_list, hw_dict, sw2hw):
 			dst_unit = sw2hw[output_stage]
 			# print(src_unit, dst_unit)
 			if check_buffer_consistency(src_unit, dst_unit):
-				# print("[edge]", src_unit, dst_unit, sw_stage, output_stage)
 				buffer_edge_dict[src_unit, dst_unit] = src_unit.output_buffer
 				dst_unit.set_input_hw_unit(sw_stage, src_unit)
 

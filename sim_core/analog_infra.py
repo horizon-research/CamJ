@@ -25,13 +25,6 @@ class AnalogComponent(object):
 	"""
 		Key function to add component attributes to array
 	"""
-	def add_input_component(self, analog_component):
-		self.input_components.append(analog_component)
-		self.num_component[analog_component] = num_component
-
-	def add_output_component(self, analog_component):
-		self.output_components.append(analog_component)
-
 	def __str__(self):
 		return self.name
 
@@ -73,9 +66,9 @@ class AnalogArray(object):
 		Also, source components can allow us to know the input domain
 		or analog array.
 	"""
-	def set_source_component(self, source_component: list):
-		self.source_component = source_component
-		for component in source_component:
+	def set_source_component(self, source_components: list):
+		self.source_components = source_components
+		for component in source_components:
 			for domain in component.input_domain:
 				self.input_domain.append(domain)
 
@@ -84,9 +77,9 @@ class AnalogArray(object):
 		we can know the computation ends at the destination component.
 		Also, we can know the output domain of this analog array.
 	"""
-	def set_destination_component(self, destination_component: list):
-		self.destination_component = destination_component
-		for component in destination_component:
+	def set_destination_component(self, destination_components: list):
+		self.destination_components = destination_components
+		for component in destination_components:
 			print(self.name, component.output_domain)
 			self.output_domain = component.output_domain
 
@@ -108,7 +101,7 @@ class AnalogArray(object):
 		for i in range(len(self.components)):
 			component = self.components[i]
 			num_component = self.calc_num(self.num_component[component])
-			print(component, num_component)
+			# print(component, num_component)
 			total_compute_energy += num_component * component.energy()
 
 		return total_compute_energy
