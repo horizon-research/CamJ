@@ -11,9 +11,10 @@ from functional_core.launch import launch_functional_simulation, customized_even
 # from isscc_22_08v.sw_pipeline import sw_pipeline
 # from isscc_22_08v.hw_config import hw_config
 
-from ieee_vr22.mapping_file import mapping_function
-from ieee_vr22.sw_pipeline import sw_pipeline
-from ieee_vr22.hw_config import hw_config
+from ieee_vr22.mapping_file import mapping_function, mapping_function_w_analog
+from ieee_vr22.sw_pipeline import sw_pipeline, sw_pipeline_w_analog
+from ieee_vr22.hw_config import hw_config, hw_config_w_analog
+
 
 # from isscc_16_1_42.mapping_file import mapping_function
 # from isscc_16_1_42.sw_pipeline import sw_pipeline
@@ -87,27 +88,31 @@ def eventification_noise_simulation_example(
 
 def main():
 
-	hw_dict = hw_config()
-	mapping_dict = mapping_function()
-	sw_stage_list = sw_pipeline()
+	hw_dict = hw_config_w_analog()
+	mapping_dict = mapping_function_w_analog()
+	sw_stage_list = sw_pipeline_w_analog()
 
-	image_pipeline_noise_simulation_example(
-		img_name = "test_imgs/test_img.jpeg",
-		hw_dict = hw_dict,
-		mapping_dict = mapping_dict,
-		sw_stage_list = sw_stage_list
-	)
+	# hw_dict = hw_config()
+	# mapping_dict = mapping_function()
+	# sw_stage_list = sw_pipeline()
 
-	# eventification simulation
-	eventification_noise_simulation_example(
-		prev_img_name = "test_imgs/test_eye1.png",
-		curr_img_name = "test_imgs/test_eye2.png",
-		hw_dict = hw_dict,
-		mapping_dict = mapping_dict,
-		sw_stage_list = sw_stage_list
-	)
+	# image_pipeline_noise_simulation_example(
+	# 	img_name = "test_imgs/test_img.jpeg",
+	# 	hw_dict = hw_dict,
+	# 	mapping_dict = mapping_dict,
+	# 	sw_stage_list = sw_stage_list
+	# )
 
-	# exit()
+	# # eventification simulation
+	# eventification_noise_simulation_example(
+	# 	prev_img_name = "test_imgs/test_eye1.png",
+	# 	curr_img_name = "test_imgs/test_eye2.png",
+	# 	hw_dict = hw_dict,
+	# 	mapping_dict = mapping_dict,
+	# 	sw_stage_list = sw_stage_list
+	# )
+
+	# # exit()
 	
 	launch_simulation(
 		hw_dict = hw_dict,
