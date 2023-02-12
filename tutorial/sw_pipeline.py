@@ -10,48 +10,40 @@ parent_directory = os.path.dirname(directory)
 sys.path.append(os.path.dirname(directory))
 sys.path.append(os.path.dirname(parent_directory))
 
-from enum_const import Padding
-from sw_framework_interface import ProcessStage, DNNProcessStage, PixelInput, build_sw_graph
+from sim_core.enum_const import Padding
+from sim_core.sw_interface import ProcessStage, PixelInput
+from sim_core.sw_utils import build_sw_graph
 
 def sw_pipeline():
 
 	sw_stage_list = []
-	conv1_stage = ProcessStage(
-		name = "Conv1",
+	# define input data
+	input_data = PixelInput((32, 32, 1), name="Input")
+	sw_stage_list.append(input_data)
+	# define a 3x3 convolution stage
+	conv_stage = ProcessStage(
+		name = "Conv",
 		input_size = [(32, 32, 1)],
 		kernel_size = [(3, 3, 1)],
 		stride = [(1, 1, 1)],
 		output_size = (32, 32, 1),
 		padding = [Padding.ZEROS]
 	)
-	sw_stage_list.append(conv1_stage)
-
-	conv2_stage = ProcessStage(
-		name = "Conv2",
-		input_size = [(32, 32, 1)],
-		kernel_size = [(2, 2, 1)],
-		stride = [(2, 2, 1)],
-		output_size = (16, 16, 1),
-		padding = [Padding.NONE]
-	)
-	sw_stage_list.append(conv2_stage)
-
+	sw_stage_list.append(conv_stage)
+	# define a 1x1 absolution stage
 	abs_stage = ProcessStage(
 		name = "Abs",
-		input_size = [(16, 16, 1)],
+		input_size = [(32, 32, 1)],
 		kernel_size = [(1, 1, 1)],
 		stride = [(1, 1, 1)],
-		output_size = (16, 16, 1),
+		output_size = (32, 32, 1),
 		padding = [Padding.NONE]
 	)
 	sw_stage_list.append(abs_stage)
 
-	input_data = PixelInput((32, 32, 1), name="Input")
-	sw_stage_list.append(input_data)
-
-	conv1_stage.set_input_stage(input_data)
-	conv2_stage.set_input_stage(conv1_stage)
-	abs_stage.set_input_stage(conv2_stage)
+	# set data dependency
+	conv_stage.set_input_stage(input_data)
+	abs_stage.set_input_stage(conv_stage)
 
 	return sw_stage_list
 
