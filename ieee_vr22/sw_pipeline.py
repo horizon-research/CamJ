@@ -13,8 +13,6 @@ from sim_core.enum_const import Padding
 from sim_core.sw_interface import ProcessStage, DNNProcessStage, PixelInput
 from sim_core.sw_utils import build_sw_graph
 
-from ieee_vr22.functional_pipeline import sensor_functional_pipeline, eventification_functional_pipeline
-
 def sw_pipeline():
 
 	sw_stage_list = []
