@@ -48,26 +48,6 @@ from ieee_vr22.hw_config import hw_config, hw_config_w_analog
 # from simple_systolic_array.sw_pipeline import sw_pipeline
 # from simple_systolic_array.hw_config import hw_config
 
-def image_pipeline_noise_simulation_example(
-	img_name,
-	hw_dict,
-	mapping_dict,
-	sw_stage_list
-):
-	# sensor specs
-	full_scale_input_voltage = 1.2 # V
-	pixel_full_well_capacity = 10000 # e
-	# load test image
-	org_img = np.array(cv2.imread(img_name, cv2.IMREAD_GRAYSCALE))
-	# a simple inverse img to photon
-	photon_input = org_img/255*pixel_full_well_capacity
-
-	img_after_adc = launch_functional_simulation(sw_stage_list[0].functional_pipeline, [photon_input])[0]
-
-	cv2.imshow("image after adc", img_after_adc/np.max(img_after_adc))
-	cv2.waitKey(0)
-	cv2.destroyAllWindows()
-
 def eventification_noise_simulation_example(
 	prev_img_name,
 	curr_img_name,
@@ -75,16 +55,32 @@ def eventification_noise_simulation_example(
 	mapping_dict,
 	sw_stage_list
 ):
+
 	# sensor specs
 	full_scale_input_voltage = 1.2 # V
+	pixel_full_well_capacity = 10000 # e
+
+	# load test image
+	curr_img = np.array(cv2.imread(curr_img_name, cv2.IMREAD_GRAYSCALE))
+	# a simple inverse img to photon
+	photon_input = curr_img/255*pixel_full_well_capacity
 
 	prev_img = np.array(cv2.imread(prev_img_name, cv2.IMREAD_GRAYSCALE))/255*full_scale_input_voltage
-	curr_img = np.array(cv2.imread(curr_img_name, cv2.IMREAD_GRAYSCALE))/255*full_scale_input_voltage
-	
-	event_map = customized_eventification_simulation(sw_stage_list[4].functional_pipeline, [prev_img, curr_img])
-	cv2.imshow("event", event_map)
+
+	input_mapping = {
+		"CurrInput" : photon_input,
+		"PrevResizedInput" : prev_img
+	}
+
+	simulation_res = launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_mapping)
+	pprint(simulation_res)
+
+	img_after_adc = simulation_res['CurrInput'][0]
+
+	cv2.imshow("image after adc", img_after_adc/np.max(img_after_adc))
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
+
 
 def main():
 
@@ -103,16 +99,16 @@ def main():
 	# 	sw_stage_list = sw_stage_list
 	# )
 
-	# # eventification simulation
-	# eventification_noise_simulation_example(
-	# 	prev_img_name = "test_imgs/test_eye1.png",
-	# 	curr_img_name = "test_imgs/test_eye2.png",
-	# 	hw_dict = hw_dict,
-	# 	mapping_dict = mapping_dict,
-	# 	sw_stage_list = sw_stage_list
-	# )
+	# eventification simulation
+	eventification_noise_simulation_example(
+		prev_img_name = "test_imgs/test_eye1.png",
+		curr_img_name = "test_imgs/test_eye2.png",
+		hw_dict = hw_dict,
+		mapping_dict = mapping_dict,
+		sw_stage_list = sw_stage_list
+	)
 
-	# # exit()
+	exit()
 	
 	launch_simulation(
 		hw_dict = hw_dict,
