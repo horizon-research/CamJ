@@ -61,3 +61,48 @@ In this example, we model a source follower (SF) which has gain of 1.0 and read 
 In addition, we also model the pixel response non-uniformity (PRNU) of SF. PRNU is specified by 
 `enable_prnu` flag and `prnu_std` which is the standard deviation of SF gain.
 
+## How to Run
+
+To run functional simulation, we need to first build a complete functional pipeline that represents
+the functionality of the analog stage. In `ieeevr_22/functional_pipeline.py`. we show two such examples.
+In these two examples, `sensor_functional_pipeline` constructs a typical sensor imaging pipeline, 
+`eventification_functional_pipeline` constructs a pipeline that can perform eventification (see 
+IEEE VR 22 [paper](https://horizon-lab.org/pubs/vr22.pdf) for more details). 
+
+After the functional pipeline is defined. We need to assign the functional pipeline to the corresponding
+analog hardware unit. here, we define assign the `sensor_functional_pipeline` to an `AnalogArray` 
+object named `PixelArray`. Later on, when CamJ performs functional simulation, CamJ will use this
+particular functional pipeline with our default functional simulation routine.
+
+```
+
+pixel_array = AnalogArray(
+	name = "PixelArray",
+	layer = ProcessorLocation.SENSOR_LAYER,
+	num_input = [(640, 2, 1)],
+	num_output = (320, 1, 1),
+	functional_pipeline = sensor_functional_pipeline()
+)
+```
+
+However, current CamJ functional simulation routine only supports the functional pipeline without 
+branches. For more complex functional simulation, users need to provide a customized functional 
+simulation routine. How to define a customized functional simulation routine. Please check out 
+function `customized_eventification_simulation` in `functional_core/launch.py` for more details.
+
+To use a customized functional simulation routine, we need to define this function in hardware analog
+configuration.
+
+```
+eventification_array = AnalogArray(
+	name = "EventificationArray",
+	layer = ProcessorLocation.SENSOR_LAYER,
+	num_input = [(320, 1), (320, 1)],
+	num_output = (320, 1),
+	functional_pipeline = eventification_functional_pipeline(),
+	functional_sumication_func = customized_eventification_simulation
+)
+```
+Here in this `EventificationArray`, we define its attribute `functional_simulation_func` to be 
+`customized_eventification_simulation`. Please see `functional_core/launch.py` to see how to define 
+a customized functional simulation function.
