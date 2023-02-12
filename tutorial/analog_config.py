@@ -15,9 +15,9 @@ from sim_core.analog_lib import ActivePixelSensor, ActiveAnalogMemory, ColumnAmp
 
 from functional_core.launch import customized_eventification_simulation
 
-from ieee_vr22.mapping_file import mapping_function_w_analog
-from ieee_vr22.sw_pipeline import sw_pipeline_w_analog
-from ieee_vr22.functional_pipeline import sensor_functional_pipeline, eventification_functional_pipeline
+from tutorial.mapping_file import mapping_function
+from tutorial.sw_pipeline import sw_pipeline
+from tutorial.functional_pipeline import sensor_functional_pipeline
 
 
 def analog_config():
@@ -63,9 +63,9 @@ def analog_config():
 if __name__ == '__main__':
 	analog_arrays = analog_config()
 
-	sw_stages = sw_pipeline_w_analog()
+	sw_stages = sw_pipeline()
 
-	mapping_dict = mapping_function_w_analog()
+	mapping_dict = mapping_function()
 
 	total_energy = launch_analog_simulation(analog_arrays, sw_stages, mapping_dict)
 	print("total energy:", total_energy)

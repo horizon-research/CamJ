@@ -1,40 +1,22 @@
-import os
-import sys
-# directory reach
-directory = os.getcwd()
-parent_directory = os.path.dirname(directory)
-# setting path
-sys.path.append(os.path.dirname(directory))
-sys.path.append(os.path.dirname(parent_directory))
 
 # import local modules
-from enum_const import ProcessorLocation, ProcessDomain
-from memory import FIFO, LineBuffer
-from hw_compute import ADC, ComputeUnit
+from sim_core.enum_const import ProcessorLocation, ProcessDomain
+from sim_core.digital_memory import FIFO, DoubleBuffer
+from sim_core.digital_compute import ADC, ComputeUnit, SystolicArray
 
+from ieee_vr22.analog_config import analog_config
 
 # an example of user defined hw configuration setup 
 def hw_config():
 
+	compute_op_power = 0.5 # pJ 65nm 
+
 	hw_dict = {
-		"memory": [],
-		"compute": [],
+		"memory" : [],
+		"compute" : [],
+		"analog" : analog_config()
 	}
-
-	line_buffer1 = LineBuffer(
-		name = "LineBuffer-1",
-		size = (3, 32), 	# assume line buffer has three rows, each row can store 64 of data
-		hw_impl = "sram",
-		clock = 500, 	# MHz
-		location = ProcessorLocation.COMPUTE_LAYER,
-		write_energy = 3,
-		read_energy = 1,
-		duplication = 1,
-		write_unit = "ADC",
-		read_unit = "Conv1Unit"
-	)
-	hw_dict["memory"].append(line_buffer1)
-
+ 
 	fifo_buffer1 = FIFO(
 		name="FIFO-1",
 		hw_impl = "sram",
@@ -43,22 +25,22 @@ def hw_config():
 		write_energy = 3,
 		read_energy = 1,
 		location = ProcessorLocation.COMPUTE_LAYER,
-		duplication = 1,
-		write_unit = "Conv1Unit",
-		read_unit = "Conv2Unit"
+		duplication = 100,
+		write_unit = "ADC",
+		read_unit = "ConvUnit"
 	)
 	hw_dict["memory"].append(fifo_buffer1)
 
 	fifo_buffer2 = FIFO(
 		name="FIFO-2",
 		hw_impl = "sram",
-		count = 16,
+		count = 32*32,
 		clock = 500, 	# MHz
 		write_energy = 3,
 		read_energy = 1,
 		location = ProcessorLocation.COMPUTE_LAYER,
-		duplication = 1,
-		write_unit = "Conv2Unit",
+		duplication = 100,
+		write_unit = "ConvUnit",
 		read_unit = "AbsUnit"
 	)
 	hw_dict["memory"].append(fifo_buffer2)
@@ -66,75 +48,58 @@ def hw_config():
 	fifo_buffer3 = FIFO(
 		name="FIFO-3",
 		hw_impl = "sram",
-		count = 16*16,
+		count = 32*32,
 		clock = 500, 	# MHz
 		write_energy = 3,
 		read_energy = 1,
 		location = ProcessorLocation.COMPUTE_LAYER,
-		duplication = 1,
+		duplication = 100,
 		write_unit = "AbsUnit",
-		read_unit = None
+		read_unit = "AbsUnit"
 	)
 	hw_dict["memory"].append(fifo_buffer3)
 
 	adc = ADC(
 		name = "ADC",
-		type = 1, # this needs to be fixed, use some enum.
-		pixel_adc_ratio = (1, 32, 1),
 		output_throughput = (32, 1, 1),
 		location = ProcessorLocation.SENSOR_LAYER,
 	)
-	adc.set_output_buffer(line_buffer1)
+	adc.set_output_buffer(fifo_buffer1)
 	hw_dict["compute"].append(adc)
 
-	conv1_unit = ComputeUnit(
-	 	name="Conv1Unit",
+	conv_unit = ComputeUnit(
+	 	name="ConvUnit",
 		domain=ProcessDomain.DIGITAL,
 		location=ProcessorLocation.SENSOR_LAYER,
-		input_throughput = [(1, 3, 1)],
-		output_throughput = (1, 1, 1), 
+		input_throughput = [(32, 3, 1)],
+		output_throughput = (32, 1, 1), 
 		clock = 500, # MHz
-		energy = 1,
-		area = 10,
-		initial_delay = 2,
-		delay = 1,
+		energy = 32*9*compute_op_power,
+		area = 30,
+		initial_delay = 0,
+		delay = 3,
 	)
-	hw_dict["compute"].append(conv1_unit)
+	hw_dict["compute"].append(conv_unit)
 
-	conv1_unit.set_input_buffer(line_buffer1)
-	conv1_unit.set_output_buffer(fifo_buffer1)
-
-	conv2_unit = ComputeUnit(
-	 	name="Conv2Unit",
-		domain=ProcessDomain.DIGITAL,
-		location=ProcessorLocation.SENSOR_LAYER,
-		input_throughput = [(2, 2, 1)],
-		output_throughput = (1, 1, 1), 
-		clock = 500, # MHz
-		energy = 1,
-		area = 10,
-		initial_delay = 2,
-		delay = 1,
-	)
-	hw_dict["compute"].append(conv2_unit)
-
-	conv2_unit.set_input_buffer(fifo_buffer1)
-	conv2_unit.set_output_buffer(fifo_buffer2)
+	conv_unit.set_input_buffer(fifo_buffer1)
+	conv_unit.set_output_buffer(fifo_buffer2)
 
 	abs_unit = ComputeUnit(
-		name="AbsUnit",
+	 	name="AbsUnit",
 		domain=ProcessDomain.DIGITAL,
-		location=ProcessorLocation.COMPUTE_LAYER,
-		input_throughput = [(1, 1, 1)],
-		output_throughput = (1, 1, 1),
+		location=ProcessorLocation.SENSOR_LAYER,
+		input_throughput = [(32, 1, 1)],
+		output_throughput = (32, 1, 1), 
 		clock = 500, # MHz
-		energy = 1,
+		energy = 32*1*compute_op_power,
 		area = 10,
 		initial_delay = 0,
-		delay = 1,
+		delay = 3,
 	)
-	abs_unit.set_input_buffer(fifo_buffer2)
-	abs_unit.set_output_buffer(fifo_buffer3)
 	hw_dict["compute"].append(abs_unit)
 
+	abs_unit.set_input_buffer(fifo_buffer2)
+	abs_unit.set_output_buffer(fifo_buffer3)
+
 	return hw_dict
+
