@@ -92,13 +92,6 @@ def main():
 	# mapping_dict = mapping_function()
 	# sw_stage_list = sw_pipeline()
 
-	# image_pipeline_noise_simulation_example(
-	# 	img_name = "test_imgs/test_img.jpeg",
-	# 	hw_dict = hw_dict,
-	# 	mapping_dict = mapping_dict,
-	# 	sw_stage_list = sw_stage_list
-	# )
-
 	# eventification simulation
 	eventification_noise_simulation_example(
 		prev_img_name = "test_imgs/test_eye1.png",

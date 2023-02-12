@@ -53,7 +53,7 @@ class PhotodiodeNoise(object):
 		# check if DCNU needs to be applied.
 		if self.enable_dcnu:
 			# first generate dcnu variant for each pixel
-			if self.dcnu_noise is None or self.dcnu_noise.shape != self.input_signal:  
+			if self.dcnu_noise is None or self.dcnu_noise.shape != input_signal.shape:  
 				self.dcnu_noise = self.rs.normal(
 					loc = self.dark_current_noise,
 					scale = self.dark_current_noise * self.dcnu_std,
@@ -378,7 +378,8 @@ class FloatingDiffusionNoise(object):
 		input_after_noise = reset_noise + input_after_gain
 
 		if self.enable_cds:
-			return np.clip(input_after_noise, a_min=0, a_max=self.max_val), np.clip(reset_noise, a_min=0, a_max=self.max_val)
+			return np.clip(input_after_noise, a_min=0, a_max=self.max_val), \
+				   np.clip(reset_noise, a_min=0, a_max=self.max_val)
 		else:
 			return np.clip(input_after_noise, a_min=0, a_max=self.max_val)
 

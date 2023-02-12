@@ -1,10 +1,8 @@
 import numpy as np
 from inspect import signature
 
-# from functional_core.noise_model import PhotodiodeNoise, ADCQuantization, AbsoluteDifferenceNoise,\
-# 					Pixelwisenoise, FloatingDiffusionNoise, CorrelatedDoubleSamplingNoise, \
-# 					ComparatorNoise, ColumnwiseNoise
-
+from sim_core.sw_utils import build_sw_graph
+from sim_core.analog_utils import find_analog_sw_stages, find_analog_sw_mapping
 					
 def process_signal_stage(stage, input_signals):
 
@@ -34,7 +32,7 @@ def process_signal_stage(stage, input_signals):
 
 	return output_signals
 
-def launch_functional_simulation(functional_pipeline_list, input_list):
+def default_functional_simulation(functional_pipeline_list, input_list):
 
 	curr_input = input_list
 	curr_output = []
@@ -74,7 +72,83 @@ def customized_eventification_simulation(functional_pipeline_list, input_list):
 
 	event = comparator.apply_gain_and_noise(diff, scaling_val)
 
-	return event
+	return [event]
+
+def launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_mapping):
+	# complete the software stages data dependency graph.
+	build_sw_graph(sw_stage_list)
+
+	# find software stages that are computed in analog domain
+	analog_sw_stages = find_analog_sw_stages(sw_stage_list, hw_dict["analog"], mapping_dict)
+	analog_sw_mapping = find_analog_sw_mapping(sw_stage_list, hw_dict["analog"], mapping_dict)
+
+	finished_stages = []
+	ready_input = {}
+	visited_analog_array = []
+	simulation_res = {}
+	# first process those analog stages that are initial stage in analog pipeline.
+	for k in input_mapping.keys():
+		analog_array = analog_sw_mapping[k]
+		if analog_array.functional_pipeline is None:
+			ready_input[k] = [input_mapping[k]]
+			finished_stages.append(k)
+			visited_analog_array.append(analog_array)
+		else:
+			ready_input[k] = default_functional_simulation(
+				analog_array.functional_pipeline, 
+				[input_mapping[k]]
+			)
+			finished_stages.append(k)
+			visited_analog_array.append(analog_array)
+
+	# iteratively process the remain analog stages
+	while len(finished_stages) != len(analog_sw_stages):
+		for sw_stage in analog_sw_stages:
+			if sw_stage.name in finished_stages:
+				continue
+
+			ready_flag = True
+			for in_stage in sw_stage.input_stages:
+				if in_stage.name not in finished_stages:
+					ready_flag = False
+
+			# check if all input stages are ready
+			if ready_flag:
+				analog_array = analog_sw_mapping[sw_stage.name]
+				
+				curr_input_list = []
+				for in_stage in sw_stage.input_stages:
+					for input_data in ready_input[in_stage.name]:
+						curr_input_list.append(input_data)
+
+				# if the functional pipeline is None, this means that this stage doesn't need any
+				# process, or if the analog array is already computed, we assume for one particular
+				# analog stage, one analog array will only be accessed once.
+				if analog_array.functional_pipeline is None or analog_array in visited_analog_array:
+					ready_input[sw_stage.name] = curr_input_list
+					finished_stages.append(sw_stage.name)
+				# if the functional simualtion function is None, we will use the default functional
+				# simulation routine.
+				elif analog_array.functional_sumication_func is None:
+					ready_input[sw_stage.name] = default_functional_simulation(
+						analog_array.functional_pipeline, 
+						curr_input_list
+					)
+					finished_stages.append(sw_stage.name)
+					visited_analog_array.append(analog_array)
+				# otherwise, use the customized analog simulation routine.
+				else:
+					print(sw_stage.name)
+					ready_input[sw_stage.name] = analog_array.functional_sumication_func(
+						analog_array.functional_pipeline,
+						curr_input_list
+					)
+					finished_stages.append(sw_stage.name)
+					visited_analog_array.append(analog_array)
+
+	# return a dictionaray, key is the software stage name, the value is the simulation result.
+	return ready_input
+
 
 
 
