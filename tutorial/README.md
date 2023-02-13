@@ -94,8 +94,82 @@ return sw_stage_list
 
 This will finish software definition!
 
+## Hardware configuration
 
+hardware configuration contains two parts: analog configuration and digital configuration, we will 
+introduce them one-by-one.
 
+### Analog configuration
+
+Here, we just need to define one analog strcuture which is pixel array itself.
+
+```
+pixel_array = AnalogArray(
+	name = "PixelArray",
+	layer = ProcessorLocation.SENSOR_LAYER,
+	num_input = [(32, 1, 1)],
+	num_output = (32, 1, 1),
+	functional_pipeline = sensor_functional_pipeline()
+)
+pixel = AnalogComponent(
+	name = "Pixel",
+	input_domain =[ProcessDomain.OPTICAL],
+	output_domain = ProcessDomain.VOLTAGE,
+	energy_func_list = [
+		(
+			ActivePixelSensor(
+				pd_capacitance = 1e-12,
+				pd_supply = 1.8, # V
+				output_vs = 1, #  
+				num_transistor = 3,
+				num_readout = 1
+			).energy,
+			1
+		)
+	],
+	num_input = [(1, 1)],
+	num_output = (1, 1)
+)
+```
+
+To define an analog structure in CamJ, users first need to define a `AnalogArray` which serves as a 
+template to contain smaller structures which are called `AnalogComponent`. Here, we first define 
+`PixelArray`. For this `PixelArray`, we don't need to define the input and output size but input/output
+throughput. Here, the input and the output throughput are both `32x1x1`. This mimics the rolling shutter
+effect. Also we need to define the functional pipeline if we need to perform functional simulation 
+of this analog structure. We will give more detailed explanation about the functioinal pipeline in 
+following sections.
+
+After we define the analog array template, we need to define the component inside this analog array.
+Here, this example shows the pxiel input domain is `OPTICAL` and output domain is `VOLTAGE`. To deine
+the input and output domain allows CamJ to check if the connections between different analog components
+are correct. Then, we define the energy function of this analog compoenent. Here, we use a CamJ 
+builtin template to define an 3T active pixel sensor (3T-APS). We use a list of tuple here, because 
+one analog component might includes more than one analog structures. `1` in the second element of this 
+tuple shows that only one 3T-APS inside this analog component.
+
+```
+pixel_array.add_component(pixel, (32, 32, 1))
+pixel_array.set_source_component([pixel])
+pixel_array.set_destination_component([pixel])
+
+analog_arrays.append(pixel_array)
+
+return analog_arrays
+```
+
+After we define the pxiel array and pixel component, we need to add this pixel component to the pixel
+array using `add_component` function. Next, we need to define the connection both inside the analog
+array and between different analog arrays. Here, we only have one analog array, so no need to define 
+the connection across different analog arrays. To define the connection inside this `pixel_array`. We 
+need to set the source component and destination component. Source components are the initial component 
+to start the computation inside this analog array. Destination components are the last component that 
+finish the computation inside this analog array. In this case, both the source and the destination 
+component are `pxiel`. 
+
+Last, we add every analog array to a `analog_arrays` list and return to Camj simulator
+
+### Digital Configuration
 
 
 
