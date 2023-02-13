@@ -1,9 +1,13 @@
 import numpy as np
-from utility import *
+from sim_core.analog_utils import *
 
 # basic class PinnedPhotodiode
 class PinnedPD(object):
-    """docstring for pixel"""
+    """
+        This is the basic photodiode class.
+
+        DO NOT USE THIS CLASS TO IMPLEMENT YOUR ANALOG CONFIGURATION.
+    """
 
     def __init__(
         self,
@@ -18,7 +22,28 @@ class PinnedPD(object):
         return energy
 
 # Active pxiel sensor
-class APS(PinnedPD):
+class ActivePixelSensor(PinnedPD):
+    """
+        Pixel sensor analog enery model
+
+        Our APS model includes modeling photodiode (PD), floating diffusion (FD), source follower (SF,
+        and parasitic during the readout.
+
+        Our APS model supports energy estimation for both 3T-APS and 4T-APS. Users need to define
+        `num_transistor` to get the correct energy estimation.
+
+        Input parameters:
+            pd_capacitance: the capacitance of PD.
+            pd_supply: supply voltage
+            output_vs: output voltage swing, the typical value range is [?, ?].
+            num_transistor: this parameters define 3T or 4T APS.
+            num_readout: if enable CDS, then num_readout is 2 otherwise 1
+            load_capacitance: load capacitance at the output of the pixel
+            tech_node: the technology process node.
+            pitch: pitch, pixel pitch size (width or height)
+            array_vsize: pixel array vertical size, only use for rolling shutter. 
+                         To estimate parasitic capacitance on vertical wire.
+    """
     def __init__(
         self,
         pd_capacitance,
@@ -57,13 +82,35 @@ class APS(PinnedPD):
             self.load_capacitance + 
             get_pixel_parasitic(self.array_vsize, self.tech_node, self.pitch)
         ) * self.pd_supply * self.output_vs
-        energy_pd = super(APS, self).energy()
+        energy_pd = super(ActivePixelSensor, self).energy()
         energy = energy_pd + energy_fd + self.num_readout * energy_sf
         return energy
 
 # digital pixel sensor
 # DigitalPixelSensor
-class DPS(APS):
+class DigitalPixelSensor(ActivePixelSensor):
+    """
+        Digital Pixel Sensor
+
+        This class models the energy consumption of digital pixel sensor (DPS).
+
+        It is basically a wrapper function to include one APS and one ADC. That is the actual
+        implementation of DPS.
+
+        Input parameters:
+            pd_capacitance: the capacitance of PD.
+            pd_supply: TODO???
+            output_vs: output voltage swing, the typical value range is [?, ?].
+            num_transistor: this parameters define 3T or 4T APS.
+            num_readout: ???
+            load_capacitance: ???
+            tech_node: the technology process node.
+            pitch: pitch size??
+            array_vsize: ????,
+            adc_type: the actual ADC type. Please check ADC class for more details.
+            adc_fom: ???
+            adc_resolution: the resolution of ADC. typical value range is from XX to XX.
+    """
     def __init__(
         self,
         pd_capacitance,
@@ -97,13 +144,25 @@ class DPS(APS):
         self.adc_reso = adc_reso
 
     def energy(self):
-        energy_aps = super(DPS, self).energy()
-        energy_adc = ADC(self.pd_supply, self.adc_type, self.adc_fom, self.adc_reso).energy()
+        energy_aps = super(DigitalPixelSensor, self).energy()
+        energy_adc = ActivePixelSensor(self.pd_supply, self.adc_type, self.adc_fom, self.adc_reso).energy()
         energy = energy_aps + energy_adc
         return energy
 
-# PulseWidthModulationPixel
-class PWM(PinnedPD):
+class PulseWidthModulationPixel(PinnedPD):
+    """
+        Pulse Width Modulation Pixel
+
+        This class models pulse width modulation pixel
+
+        Input:
+            pd_capacitance: PD capacitance
+            pd_supply: PD voltage supply
+            ramp_capacitance: capacitance of ramp generator
+            gate_capacitance: the gate capacitance of readout transistor
+            num_readout: number of read from pixel, can only be 1 or 2.
+
+    """
     def __init__(
         self,
         pd_capacitance,
@@ -120,13 +179,30 @@ class PWM(PinnedPD):
     def energy(self):
         energy_ramp = self.ramp_capacitance * (self.pd_supply ** 2)
         energy_comparator = self.gate_capacitance * (self.pd_supply ** 2)
-        energy_pd = super(PWM, self).energy()
+        energy_pd = super(PulseWidthModulationPixel, self).energy()
         energy = energy_pd + self.num_readout * (energy_ramp + energy_comparator)
         return energy
 
 
-########################################################################################################################
+# column amplifier
 class ColumnAmplifier(object):
+    """
+        Column Amplifier
+
+        This class models column amplifier by assuming column amplification energy comes from two 
+        sources:
+            1. energy from actual amplifier
+            2. energy from capacitance used for negative feedback
+
+        Input:
+            capacitance_load:
+            capacitance_input:
+            t_sample: sampling time of operation amplifier (opamp)
+            t_frame: sensor frame time. we assume opamp is always turned on during the frame time.
+            supply: voltage supply
+            gain: the closed-loop gain from column amplifier
+
+    """
     def __init__(
         self,
         capacitance_load=1e-12,  # [F]
@@ -145,18 +221,28 @@ class ColumnAmplifier(object):
         self.capacitance_feedback = self.capacitance_input / self.gain
 
     def energy(self):
-        i_opamp = gm_id(load_capacitance=self.capacitance_feedback + self.capacitance_load,
+        i_opamp, _ = gm_id(load_capacitance=self.capacitance_feedback + self.capacitance_load,
                         gain=self.gain,
                         bandwidth=1 / self.t_sample,
                         differential=False,
                         inversion_level='moderate')
+        
         energy_opamp = self.supply * i_opamp * self.t_frame
         energy = energy_opamp + (self.capacitance_input + self.capacitance_feedback + self.capacitance_load) \
                  * (self.supply ** 2)
         return energy
 
 # active analog memory 
-class AMem_active(object):
+class ActiveAnalogMemory(object):
+    """
+        Active Analog Memory
+
+        Input:
+            capacitance:
+            t_sample: 
+            t_hold:
+            supply: supply voltage
+    """
     def __init__(
         self,
         capacitance=1e-12,  # [F]
@@ -174,7 +260,7 @@ class AMem_active(object):
         # self.opamp_dcgain = opamp_dcgain
 
     def energy(self):
-        i_opamp = gm_id(
+        i_opamp, _ = gm_id(
             load_capacitance=self.capacitance,
             gain=1,
             bandwidth=1 / self.t_sample,
@@ -189,7 +275,11 @@ class AMem_active(object):
         pass
 
 # passive analog memory
-class AMem_passive(object):
+class PassiveAnalogMemory(object):
+    """
+        Passive Analog Memory
+
+    """
     def __init__(
         self,
         capacitance=1e-12,  # [F]
@@ -290,7 +380,7 @@ class max_v(object):
         self.gain = gain
 
     def energy(self):
-        i_bias = gm_id(self.load_capacitance, gain=self.gain, bandwidth=1 / self.t_acomp, differential=False,
+        i_bias, _ = gm_id(self.load_capacitance, gain=self.gain, bandwidth=1 / self.t_acomp, differential=False,
                        inversion_level='strong')
         energy_bias = self.supply * (0.5 * i_bias) * self.t_frame
         energy_amplifier = self.supply * i_bias * self.t_acomp

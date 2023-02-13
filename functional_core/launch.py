@@ -11,7 +11,6 @@ def process_signal_stage(stage, input_signals):
 	
 	if len(sig.parameters) == 1:
 		for input_signal in input_signals:
-			print(input_signal.shape)
 			output_signal = stage.apply_gain_and_noise(input_signal)
 			if isinstance(output_signal, tuple):
 				for item in output_signal:
@@ -138,7 +137,6 @@ def launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_map
 					visited_analog_array.append(analog_array)
 				# otherwise, use the customized analog simulation routine.
 				else:
-					print(sw_stage.name)
 					ready_input[sw_stage.name] = analog_array.functional_sumication_func(
 						analog_array.functional_pipeline,
 						curr_input_list

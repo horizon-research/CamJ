@@ -4,7 +4,7 @@ from sim_core.enum_const import ProcessorLocation, ProcessDomain
 from sim_core.digital_memory import FIFO, DoubleBuffer
 from sim_core.digital_compute import ADC, ComputeUnit, SystolicArray
 
-from ieee_vr22.analog_config import analog_config
+from tutorial.analog_config import analog_config
 
 # an example of user defined hw configuration setup 
 def hw_config():

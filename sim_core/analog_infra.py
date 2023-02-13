@@ -8,7 +8,7 @@ class AnalogComponent(object):
 		name : str,
 		input_domain: list,
 		output_domain: int,
-		energy = None,
+		energy_func_list = None,
 		num_input: list = [(1, 1)], 
 		num_output: tuple = (1, 1)
 	):
@@ -18,13 +18,21 @@ class AnalogComponent(object):
 		self.num_output = num_output
 		self.input_domain = input_domain
 		self.output_domain = output_domain
-		self.energy = energy
+		self.energy_func_list = energy_func_list
 		self.components = []
 		self.input_components = []
 		self.output_components = []
 	"""
 		Key function to add component attributes to array
 	"""
+	def energy(self):
+		total_energy = 0
+		for i in range(len(self.energy_func_list)):
+			total_energy += self.energy_func_list[i][0]() * self.energy_func_list[i][1]
+
+		return total_energy
+
+
 	def __str__(self):
 		return self.name
 
@@ -40,11 +48,15 @@ class AnalogArray(object):
 		layer: int, 
 		num_input: list, 
 		num_output: tuple,
+		functional_pipeline = None,
+		functional_sumication_func = None
 	):
 		super(AnalogArray, self).__init__()
 		self.name = name
 		self.num_input = num_input
 		self.num_output = num_output
+		self.functional_pipeline = functional_pipeline
+		self.functional_sumication_func = functional_sumication_func
 		self.layer = layer
 		self.components = []
 		self.input_domain = []

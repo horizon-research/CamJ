@@ -32,7 +32,7 @@ def analog_config():
 		functional_pipeline = sensor_functional_pipeline()
 	)
 	pixel = AnalogComponent(
-		name = "BinningPixel",
+		name = "Pixel",
 		input_domain =[ProcessDomain.OPTICAL],
 		output_domain = ProcessDomain.VOLTAGE,
 		energy_func_list = [

@@ -6,7 +6,6 @@ class PixelInput(object):
 		self,
 		size,
 		name,
-		functional_pipeline = None,
 	):
 
 		self.size = size
@@ -14,7 +13,6 @@ class PixelInput(object):
 		self.output_size = size
 		self.input_stages = []
 		self.name = name
-		self.functional_pipeline = functional_pipeline
 		self.output_stages = []
 		self.ready_board = {}
 
@@ -41,7 +39,6 @@ class ProcessStage(object):
 		stride: list,
 		output_size: list,
 		padding: list,
-		functional_pipeline = None
 	):
 		super(ProcessStage, self).__init__()
 		self.name = name
@@ -53,7 +50,6 @@ class ProcessStage(object):
 		self.output_stages = []
 		self.ready_board = {}
 		self.padding = padding
-		self.functional_pipeline = functional_pipeline
 		self.check_consistency()
 
 	def check_consistency(self):
@@ -137,7 +133,6 @@ class DNNProcessStage(object):
 		ifmap_size: list,
 		kernel_size: list,
 		stride: int,
-		functional_pipeline = None
 	):
 		super(DNNProcessStage, self).__init__()
 		self.name = name
@@ -150,7 +145,6 @@ class DNNProcessStage(object):
 		self.input_reuse = [(1, 1, 1)]
 		self.output_stages = []
 		self.ready_board = {}
-		self.functional_pipeline = None
 		self.needs_flatten = False
 
 		if op_type == "Conv2D":
