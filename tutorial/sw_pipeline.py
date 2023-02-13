@@ -19,7 +19,7 @@ def sw_pipeline():
 	sw_stage_list = []
 	# define input data
 	input_data = PixelInput((32, 32, 1), name="Input")
-	sw_stage_list.append(input_data)
+	
 	# define a 3x3 convolution stage
 	conv_stage = ProcessStage(
 		name = "Conv",
@@ -29,7 +29,7 @@ def sw_pipeline():
 		output_size = (32, 32, 1),
 		padding = [Padding.ZEROS]
 	)
-	sw_stage_list.append(conv_stage)
+	
 	# define a 1x1 absolution stage
 	abs_stage = ProcessStage(
 		name = "Abs",
@@ -39,11 +39,15 @@ def sw_pipeline():
 		output_size = (32, 32, 1),
 		padding = [Padding.NONE]
 	)
-	sw_stage_list.append(abs_stage)
+	
 
 	# set data dependency
 	conv_stage.set_input_stage(input_data)
 	abs_stage.set_input_stage(conv_stage)
+
+	sw_stage_list.append(input_data)
+	sw_stage_list.append(conv_stage)
+	sw_stage_list.append(abs_stage)
 
 	return sw_stage_list
 
