@@ -171,6 +171,129 @@ Last, we add every analog array to a `analog_arrays` list and return to Camj sim
 
 ### Digital Configuration
 
+Here, we define two digital components that supports both convolution and absolute operations in 
+software pipeline.
+
+```
+conv_unit = ComputeUnit(
+ 	name="ConvUnit",
+	domain=ProcessDomain.DIGITAL,
+	location=ProcessorLocation.SENSOR_LAYER,
+	input_throughput = [(32, 3, 1)],
+	output_throughput = (32, 1, 1), 
+	clock = 500, # MHz
+	energy = 32*9*compute_op_power,
+	area = 30,
+	initial_delay = 0,
+	delay = 3,
+)
+
+abs_unit = ComputeUnit(
+ 	name="AbsUnit",
+	domain=ProcessDomain.DIGITAL,
+	location=ProcessorLocation.SENSOR_LAYER,
+	input_throughput = [(32, 1, 1)],
+	output_throughput = (32, 1, 1), 
+	clock = 500, # MHz
+	energy = 32*1*compute_op_power,
+	area = 10,
+	initial_delay = 0,
+	delay = 3,
+)
+
+```
+
+Here, we define two compute units using CamJ API, `ComputeUnit`. In `ComputeUnit`, we need to define 
+input and output throughput and number of delay to finish compute such number of elements. Here, we 
+show that `ConvUnit` input throughput is `32x3x1` and its output throughput is `32x1x1`. The time to
+compute those elements is 3 cycles. Also, we show the corresponding energy consumption to output those 
+element. `location` attribute is used to define where this compute unit is.
+
+After we define the compute components in digital domain, we also need to define the memory buffer 
+between two compute units. Here, we define three line buffers. The first line buffer is used between 
+pixel sensor readout and `ConvUnit`. The second line buffer is used to save the result from `ConvUnit` 
+and read by `AbsUnit`. The last line buffer is used to save the result from `Absunit`. Here is the 
+definition of these three memory structures:
+```
+
+fifo_buffer1 = FIFO(
+	name="FIFO-1",
+	hw_impl = "sram",
+	count = 32*32,
+	clock = 500, 	# MHz
+	write_energy = 3,
+	read_energy = 1,
+	location = ProcessorLocation.COMPUTE_LAYER,
+	duplication = 100,
+	write_unit = "ADC",
+	read_unit = "ConvUnit"
+)
+
+fifo_buffer2 = FIFO(
+	name="FIFO-2",
+	hw_impl = "sram",
+	count = 32*32,
+	clock = 500, 	# MHz
+	write_energy = 3,
+	read_energy = 1,
+	location = ProcessorLocation.COMPUTE_LAYER,
+	duplication = 100,
+	write_unit = "ConvUnit",
+	read_unit = "AbsUnit"
+)
+
+fifo_buffer3 = FIFO(
+	name="FIFO-3",
+	hw_impl = "sram",
+	count = 32*32,
+	clock = 500, 	# MHz
+	write_energy = 3,
+	read_energy = 1,
+	location = ProcessorLocation.COMPUTE_LAYER,
+	duplication = 100,
+	write_unit = "AbsUnit",
+	read_unit = "AbsUnit"
+)
+```
+
+All three line buffers have the size of `32x32`. Their read and write energy are 1 and 3 pJ, respectively.
+Also, we need to define the access unit for each line buffer. The compute unit that does not have the 
+permission to access the memory structure is not able to access the memory structure.
+
+Last, we define the connection between memory structures and compute units by using `set_input_buffer`
+and `set_output_buffer`:
+
+```
+adc.set_output_buffer(fifo_buffer1)
+
+conv_unit.set_input_buffer(fifo_buffer1)
+conv_unit.set_output_buffer(fifo_buffer2)
+
+abs_unit.set_input_buffer(fifo_buffer2)
+abs_unit.set_output_buffer(fifo_buffer3)
+
+```
+
+This will finish defining the hardware configuration!
+
+## Mapping between Software and Hardware
+
+To define the mapping between hardware and software is quite simple. We just need to define a dictionary
+and each key is the software stage names and values are the hardware component names.
+
+```
+mapping = {
+	"Input" : "PixelArray",
+	"Conv" : "ConvUnit",
+	"Abs" : "AbsUnit",
+}
+```
+
+---
+
+### * To this point, if you just want to perform energy simulation, you can stop here. If you want know more about the functional simulation of CamJ, please continue.
+
+---
 
 
 
