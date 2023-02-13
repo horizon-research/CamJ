@@ -291,7 +291,7 @@ mapping = {
 
 ---
 
-### * To this point, if you just want to perform energy simulation, you can stop here. If you want know more about the functional simulation of CamJ, please continue.
+### To this point, if you just want to perform energy simulation, you can stop here. If you want know more about the functional simulation of CamJ, please continue.
 
 ---
 
