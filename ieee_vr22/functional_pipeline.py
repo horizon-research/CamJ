@@ -44,7 +44,6 @@ def sensor_functional_pipeline():
 	pd_noise = PhotodiodeNoise(
 		"Photodiode",
 		dark_current_noise=dc_noise,
-		max_val=pixel_full_well_capacity,
 		enable_dcnu=True,
 		dcnu_std=dcnu_std,
 	)
@@ -54,7 +53,6 @@ def sensor_functional_pipeline():
 		name = "FloatingDiffusion",
 		gain = conversion_gain,
 		noise = fd_read_noise,
-		max_val = pixel_full_well_capacity*conversion_gain,
 		enable_cds = True,
 		enable_prnu = True,
 		prnu_std = fd_prnu_std
@@ -65,7 +63,6 @@ def sensor_functional_pipeline():
 		name = "SourceFollower",
 		gain = sf_gain,
 		noise = sf_read_noise,
-		max_val = pixel_full_well_capacity*conversion_gain,
 		enable_prnu = True,
 		prnu_std = sf_prnu_std
 	)
@@ -75,7 +72,6 @@ def sensor_functional_pipeline():
 		name = "ColumnAmplifier",
 		gain = column_amplifier_gain,
 		noise = col_amp_read_noise,
-		max_val = pixel_full_well_capacity*conversion_gain*column_amplifier_gain,
 		enable_prnu = True,
 		prnu_std = col_amp_prnu_std
 	)
@@ -85,7 +81,6 @@ def sensor_functional_pipeline():
 		name = "CorrelatedDoubleSampling",
 		gain = cds_gain,
 		noise = cds_noise,
-		max_val = pixel_full_well_capacity*conversion_gain*column_amplifier_gain,
 		enable_prnu = True,
 		prnu_std = 0.001
 	)
@@ -130,7 +125,6 @@ def eventification_functional_pipeline():
 		name = "PrevAnalogMemory",
 		gain = analog_memory_gain,
 		noise = analog_memory_noise,
-		max_val = full_scale_input_voltage,
 		enable_prnu = True,
 		prnu_std = analog_memory_prnu
 	)
@@ -140,7 +134,6 @@ def eventification_functional_pipeline():
 		name = "CurrAnalogMemory",
 		gain = analog_memory_gain,
 		noise = analog_memory_noise,
-		max_val = full_scale_input_voltage,
 		enable_prnu = True,
 		prnu_std = analog_memory_prnu
 	)
@@ -151,8 +144,7 @@ def eventification_functional_pipeline():
 		gain = abs_gain,
 		noise = abs_noise,
 		enable_prnu = True,
-		prnu_std = abs_prnu,
-		max_val = full_scale_input_voltage
+		prnu_std = abs_prnu
 	)
 	functional_pipeline_list.append(absolute_difference)
 
@@ -160,7 +152,6 @@ def eventification_functional_pipeline():
 		name = "ScalingComponent",
 		gain = scaling_gain,
 		noise = scaling_noise,
-		max_val = full_scale_input_voltage,
 		enable_prnu = True,
 		prnu_std = scaling_prnu
 	)
