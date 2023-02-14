@@ -55,8 +55,6 @@ def analog_config():
 	)
 
 	pixel_array.add_component(pixel, (320, 200, 1))
-	pixel_array.set_source_component([pixel])
-	pixel_array.set_destination_component([pixel])
 
 	analog_memory_array = AnalogArray(
 		name = "AnalogMemoryArray",
@@ -86,8 +84,6 @@ def analog_config():
 	)
 
 	analog_memory_array.add_component(analog_memory_unit, (320, 201))
-	analog_memory_array.set_source_component([analog_memory_unit])
-	analog_memory_array.set_destination_component([analog_memory_unit])
 
 	eventification_array = AnalogArray(
 		name = "EventificationArray",
@@ -114,8 +110,6 @@ def analog_config():
 	)
 	
 	eventification_array.add_component(eventification_pe, (320, 1))
-	eventification_array.set_source_component([eventification_pe])
-	eventification_array.set_destination_component([eventification_pe])
 
 	pixel_array.add_output_array(eventification_array)
 	eventification_array.add_input_array(pixel_array)

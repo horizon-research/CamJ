@@ -389,7 +389,7 @@ class CorrelatedDoubleSamplingNoise(object):
 
 		Input parameters:
 			gain: the average gain value.
-			noise: the average noise value.
+			noise: the average noise value.ß
 			enable_prnu: flag to enable PRNU.
 			prnu_std: the relative prnu standard deviation respect to gain.
 					  prnu gain standard deviation = prnu_std * gain.

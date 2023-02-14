@@ -3,7 +3,7 @@ from functional_core.noise_model import PhotodiodeNoise, ADCQuantization, Absolu
 					ComparatorNoise, ColumnwiseNoise
 
 
-def sensor_functional_pipeline():
+def sensor_noise_model():
 	# sensor specs
 	full_scale_input_voltage = 1.2 # V
 	
@@ -43,7 +43,6 @@ def sensor_functional_pipeline():
 	pd_noise = PhotodiodeNoise(
 		"Photodiode",
 		dark_current_noise=dc_noise,
-		max_val=pixel_full_well_capacity,
 		enable_dcnu=True,
 		dcnu_std=dcnu_std,
 	)

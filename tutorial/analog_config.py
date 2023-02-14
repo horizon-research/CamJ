@@ -17,7 +17,7 @@ from functional_core.launch import customized_eventification_simulation
 
 from tutorial.mapping_file import mapping_function
 from tutorial.sw_pipeline import sw_pipeline
-from tutorial.functional_pipeline import sensor_functional_pipeline
+from tutorial.noise_config import sensor_noise_model
 
 
 def analog_config():
@@ -29,7 +29,7 @@ def analog_config():
 		layer = ProcessorLocation.SENSOR_LAYER,
 		num_input = [(32, 1, 1)],
 		num_output = (32, 1, 1),
-		functional_pipeline = sensor_functional_pipeline()
+		functional_pipeline = sensor_noise_model()
 	)
 	pixel = AnalogComponent(
 		name = "Pixel",
@@ -52,8 +52,6 @@ def analog_config():
 	)
 
 	pixel_array.add_component(pixel, (32, 32, 1))
-	pixel_array.set_source_component([pixel])
-	pixel_array.set_destination_component([pixel])
 
 	analog_arrays.append(pixel_array)
 
