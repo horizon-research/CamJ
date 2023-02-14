@@ -295,12 +295,78 @@ mapping = {
 
 ---
 
+## Functional Simulation
 
+CamJ supports analog functional simulation. The purpose of functional simulation is to mimic the noise
+generated during analog computing process. Since digital computing is always precise if we assume no hardware error happens.
 
+In `functional_pipeline.py`, we define a noise model for sensor imaging pipeline. In this pipeline, 
+we assume following pipeline: photodiode (PD) -> floating diffusion (FD) -> source follower (SF) -> 
+column amplifier (CA) -> correlated double sampling (CDS) -> analog-to-digital convertor (ADC).
 
+For some analog components, we have specific templates to describe the hardware, for instance, PD, 
+FD and ADC. Here is an example of defining PD:
+```
+pd_noise = PhotodiodeNoise(
+	"Photodiode",
+	dark_current_noise=dc_noise,
+	max_val=pixel_full_well_capacity,
+	enable_dcnu=True,
+	dcnu_std=dcnu_std,
+)
+```
 
+Here, we define a PD noise model with dark current and dark current non-uniformity (DCNU). You can 
+check `functional_pipeline.py` for FD and ADC definition.
 
+In addition to specific templates, we also provide some general templates that can fit a broad range
+of analog components. Here is an example to use CamJ `PixelwiseNoise` template to define a SF:
+```
+sf_noise = PixelwiseNoise(
+	name = "SourceFollower",
+	gain = sf_gain,
+	noise = sf_read_noise,
+	max_val = pixel_full_well_capacity*conversion_gain,
+	enable_prnu = True,
+	prnu_std = sf_prnu_std
+)
+```
+Because SF noise applies to individual pxiels and each pixel can potential have different pixel
+responses, which we call it pixel response non-uniformity (PRNU). Here, we also define to enable PRNU
+during the simulation.
 
+In comparison, CA is shared for the entire column of pixels, CamJ provides another template called 
+`ColumnwiseNoise` to define CA:
+```
+col_amplifier_noise = ColumnwiseNoise(
+	name = "ColumnAmplifier",
+	gain = column_amplifier_gain,
+	noise = col_amp_read_noise,
+	max_val = pixel_full_well_capacity*conversion_gain*column_amplifier_gain,
+	enable_prnu = True,
+	prnu_std = col_amp_prnu_std
+)
+```
+
+After we define each analog component in the imaging pipeline, we add every component into a list 
+*IN ORDER* and return to CamJ simulator.
+
+```
+...
+functional_pipeline_list.append(adc_noise)
+
+return functional_pipeline_list
+```
+
+## How to Run
+
+How to run CamJ simulation for this example is quite simple. In the root directory, we have a running
+script called `tutorial_run.py`. Run this script:
+```
+ $ python3 tutorial_run.py
+```
+
+You will be able to run both functional simulation and power simulation!
 
 
 
