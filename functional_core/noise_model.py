@@ -12,7 +12,6 @@ class PhotodiodeNoise(object):
 
 		Input parameters:
 			dark_current_noise: unit (e).
-			max_val: the maximum value in photodiode, in this case, it is full-well capacity
 			enable_dcnu: flag to enable dark current non-uniformity
 			dcnu_std: dcnu standard deviation percentage. it is relative number respect
 					  to dark_current_noise, the dcnu standard deviation is,
@@ -21,14 +20,12 @@ class PhotodiodeNoise(object):
 	def __init__(self, 
 		name,
 		dark_current_noise,
-		max_val,
 		enable_dcnu = False,
 		dcnu_std = 0.001,
 	):
 		super(PhotodiodeNoise, self).__init__()
 		self.name = name
 		self.dark_current_noise = dark_current_noise
-		self.max_val = max_val
 		self.enable_dcnu = enable_dcnu
 		self.dcnu_noise = None
 		self.dcnu_std = dcnu_std
@@ -72,8 +69,7 @@ class PhotodiodeNoise(object):
 				size = (input_height, input_width)
 			) + signal_after_shot_noise
 			
-
-		return np.clip(signal_after_dc_noise, a_min = 0, a_max = self.max_val)
+		return np.clip(signal_after_dc_noise, a_min = 0, a_max = None)
 
 	def __str__(self):
 		return self.name
@@ -144,7 +140,6 @@ class AbsoluteDifferenceNoise(object):
 		Input parameters:
 			gain: the gain applied in absolute difference, the default value is 1.
 			noise: the read noise happened during readout absolute result. unit: V.
-			max_val: the maximum value of the output value range.
 			enable_prnu: flag to enable PRNU.
 			prnu_std: the relative prnu standard deviation respect to gain.
 					  prnu gain standard deviation = prnu_std * gain.
@@ -156,7 +151,6 @@ class AbsoluteDifferenceNoise(object):
 		name,
 		gain = 1,
 		noise = None,
-		max_val = None,
 		enable_prnu = False,
 		prnu_std = 0.001
 	):
@@ -164,7 +158,6 @@ class AbsoluteDifferenceNoise(object):
 		self.name = name
 		self.gain = gain
 		self.noise = noise
-		self.max_val = max_val
 		self.enable_prnu = enable_prnu
 		self.prnu_std = prnu_std
 		self.prnu_gain = None
@@ -207,7 +200,7 @@ class AbsoluteDifferenceNoise(object):
 			size = (input_height, input_width)
 		) + diff_after_gain
 
-		return np.clip(diff_after_noise, a_min = 0, a_max = self.max_val)
+		return np.clip(diff_after_noise, a_min = 0, a_max = None)
 
 	def __str__(self):
 		return self.name
@@ -228,7 +221,6 @@ class PixelwiseNoise(object):
 		Input parameters:
 			gain: the average gain.
 			noise: average noise value.
-			max_val: the maximum value of the input range.
 			enable_prnu: flag to enable PRNU.
 			prnu_std: the relative prnu standard deviation respect to gain.
 					  prnu gain standard deviation = prnu_std * gain.
@@ -239,7 +231,6 @@ class PixelwiseNoise(object):
 		name,
 		gain = 1,
 		noise = None,
-		max_val = None,
 		enable_prnu = False,
 		prnu_std = 0.001
 	):
@@ -247,7 +238,6 @@ class PixelwiseNoise(object):
 		self.name = name
 		self.gain = gain
 		self.noise = noise
-		self.max_val = max_val
 		self.enable_prnu = enable_prnu
 		self.prnu_gain = None
 		self.prnu_std = prnu_std
@@ -285,7 +275,7 @@ class PixelwiseNoise(object):
 			size = (input_height, input_width)
 		) + input_after_gain
 
-		return np.clip(input_after_noise, a_min = 0, a_max = self.max_val)
+		return np.clip(input_after_noise, a_min = 0, a_max = None)
 
 	def __str__(self):
 		return self.name
@@ -315,7 +305,6 @@ class FloatingDiffusionNoise(object):
 		Input parameters:
 			gain: the average gain value.
 			noise: the average noise value.
-			max_val: the maximum value of the input range.
 			enable_cds: flag to enable CDS (correlated double sampling).
 			enable_prnu: flag to enable PRNU.
 			prnu_std: the relative prnu standard deviation respect to gain.
@@ -327,7 +316,6 @@ class FloatingDiffusionNoise(object):
 		name,
 		gain = 1,
 		noise = None,
-		max_val = None,
 		enable_cds = False,
 		enable_prnu = False,
 		prnu_std = 0.001
@@ -337,7 +325,6 @@ class FloatingDiffusionNoise(object):
 		self.name = name
 		self.gain = gain
 		self.noise = noise
-		self.max_val = max_val
 		self.enable_cds = enable_cds
 		self.enable_prnu = enable_prnu
 		self.prnu_gain = None
@@ -378,10 +365,10 @@ class FloatingDiffusionNoise(object):
 		input_after_noise = reset_noise + input_after_gain
 
 		if self.enable_cds:
-			return np.clip(input_after_noise, a_min=0, a_max=self.max_val), \
-				   np.clip(reset_noise, a_min=0, a_max=self.max_val)
+			return np.clip(input_after_noise, a_min=0, a_max=None), \
+				   np.clip(reset_noise, a_min=0, a_max=None)
 		else:
-			return np.clip(input_after_noise, a_min=0, a_max=self.max_val)
+			return np.clip(input_after_noise, a_min=0, a_max=None)
 
 	def __str__(self):
 		return self.name
@@ -403,7 +390,6 @@ class CorrelatedDoubleSamplingNoise(object):
 		Input parameters:
 			gain: the average gain value.
 			noise: the average noise value.
-			max_val: the maximum value of the input range.
 			enable_prnu: flag to enable PRNU.
 			prnu_std: the relative prnu standard deviation respect to gain.
 					  prnu gain standard deviation = prnu_std * gain.
@@ -415,7 +401,6 @@ class CorrelatedDoubleSamplingNoise(object):
 		name,
 		gain = 1,
 		noise = None,
-		max_val = None,
 		enable_prnu = False,
 		prnu_std = 0.001
 	):
@@ -423,7 +408,6 @@ class CorrelatedDoubleSamplingNoise(object):
 		self.name = name
 		self.gain = gain
 		self.noise = noise
-		self.max_val = max_val
 		self.enable_prnu = enable_prnu
 		self.prnu_std = prnu_std
 		self.prnu_gain = None
@@ -465,7 +449,7 @@ class CorrelatedDoubleSamplingNoise(object):
 			size = (input_height, input_width)
 		) + input_after_gain
 
-		return np.clip(input_after_noise, a_min=0, a_max=self.max_val)
+		return np.clip(input_after_noise, a_min=0, a_max=None)
 
 	def __str__(self):
 		return self.name
@@ -583,7 +567,6 @@ class ColumnwiseNoise(object):
 		name,
 		gain=1,
 		noise=None,
-		max_val=None,
 		enable_prnu=False,
 		prnu_std=0.001,
 		enable_offset=False,
@@ -594,7 +577,6 @@ class ColumnwiseNoise(object):
 		self.name = name
 		self.gain = gain
 		self.noise = noise
-		self.max_val = max_val
 		self.enable_prnu = enable_prnu
 		self.prnu_gain = None
 		self.prnu_std = prnu_std
@@ -645,7 +627,7 @@ class ColumnwiseNoise(object):
 		if self.enable_offset:
 			input_after_gain += self.col_offset_voltage
 
-		return np.clip(input_after_noise, a_min=0, a_max=self.max_val)
+		return np.clip(input_after_noise, a_min=0, a_max=None)
 
 	def __str__(self):
 		return self.name
