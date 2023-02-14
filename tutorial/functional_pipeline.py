@@ -53,7 +53,6 @@ def sensor_functional_pipeline():
 		name = "FloatingDiffusion",
 		gain = conversion_gain,
 		noise = fd_read_noise,
-		max_val = pixel_full_well_capacity*conversion_gain,
 		enable_cds = True,
 		enable_prnu = True,
 		prnu_std = fd_prnu_std
@@ -64,7 +63,6 @@ def sensor_functional_pipeline():
 		name = "SourceFollower",
 		gain = sf_gain,
 		noise = sf_read_noise,
-		max_val = pixel_full_well_capacity*conversion_gain,
 		enable_prnu = True,
 		prnu_std = sf_prnu_std
 	)
@@ -74,7 +72,6 @@ def sensor_functional_pipeline():
 		name = "ColumnAmplifier",
 		gain = column_amplifier_gain,
 		noise = col_amp_read_noise,
-		max_val = pixel_full_well_capacity*conversion_gain*column_amplifier_gain,
 		enable_prnu = True,
 		prnu_std = col_amp_prnu_std
 	)
@@ -84,7 +81,6 @@ def sensor_functional_pipeline():
 		name = "CorrelatedDoubleSampling",
 		gain = cds_gain,
 		noise = cds_noise,
-		max_val = pixel_full_well_capacity*conversion_gain*column_amplifier_gain,
 		enable_prnu = True,
 		prnu_std = 0.001
 	)
