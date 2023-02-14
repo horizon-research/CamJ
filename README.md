@@ -79,3 +79,8 @@ after those functions are defined, just run `example_run.py`
  $ python3 example_run.py 
 ```
 You will see the simulation is running!
+
+## Tutorial
+
+In `tutorial` subdirectory, we have a simple example and a step-by-step explanation of implementing 
+a simple imaging pipeline using CamJ API. Please check out `tutorial` directory for more details.
