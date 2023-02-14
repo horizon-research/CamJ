@@ -3,7 +3,7 @@ from functional_core.noise_model import PhotodiodeNoise, ADCQuantization, Absolu
 					ComparatorNoise, ColumnwiseNoise
 
 
-def sensor_functional_pipeline():
+def sensor_noise_model():
 	# sensor specs
 	full_scale_input_voltage = 1.2 # V
 	
@@ -95,7 +95,7 @@ def sensor_functional_pipeline():
 
 	return functional_pipeline_list
 
-def eventification_functional_pipeline():
+def eventification_noise_model():
 	# sensor specs
 	full_scale_input_voltage = 1.2 # V
 

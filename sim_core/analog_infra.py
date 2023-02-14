@@ -70,8 +70,15 @@ class AnalogArray(object):
 		Key function to add components attributes to array
 	"""
 	def add_component(self, component: AnalogComponent, component_size: tuple):
+		if len(self.components) > 0:
+			raise Exception("There are more than one component in analog array: '%s'." % self.name)
+
 		self.components.append(component)
 		self.num_component[component] = component_size
+
+		self.set_source_component([component])
+		self.set_destination_component([component])
+
 	"""
 		for each analog array, we need to set source component so that
 		we know which component is the header to start simulation.
@@ -92,7 +99,6 @@ class AnalogArray(object):
 	def set_destination_component(self, destination_components: list):
 		self.destination_components = destination_components
 		for component in destination_components:
-			print(self.name, component.output_domain)
 			self.output_domain = component.output_domain
 
 	def add_input_array(self, analog_array):

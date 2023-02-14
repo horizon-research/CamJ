@@ -17,7 +17,7 @@ from functional_core.launch import customized_eventification_simulation
 
 from ieee_vr22.mapping_file import mapping_function_w_analog
 from ieee_vr22.sw_pipeline import sw_pipeline_w_analog
-from ieee_vr22.functional_pipeline import sensor_functional_pipeline, eventification_functional_pipeline
+from ieee_vr22.noise_config import sensor_noise_model, eventification_noise_model
 
 
 def dummy_energy_func():
@@ -32,7 +32,7 @@ def analog_config():
 		layer = ProcessorLocation.SENSOR_LAYER,
 		num_input = [(640, 2, 1)],
 		num_output = (320, 1, 1),
-		functional_pipeline = sensor_functional_pipeline()
+		functional_pipeline = sensor_noise_model()
 	)
 	pixel = AnalogComponent(
 		name = "BinningPixel",
@@ -90,7 +90,7 @@ def analog_config():
 		layer = ProcessorLocation.SENSOR_LAYER,
 		num_input = [(320, 1), (320, 1)],
 		num_output = (320, 1),
-		functional_pipeline = eventification_functional_pipeline(),
+		functional_pipeline = eventification_noise_model(),
 		functional_sumication_func = customized_eventification_simulation
 	)
 	eventification_pe = AnalogComponent(
