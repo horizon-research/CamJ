@@ -82,5 +82,6 @@ You will see the simulation is running!
 
 ## Tutorial
 
-In `tutorial` subdirectory, we have a simple example and a step-by-step explanation of implementing 
-a simple imaging pipeline using CamJ API. Please check out `tutorial` directory for more details.
+In [`tutorial`](https://github.com/horizon-research/in-sensor-simulator/tree/main/tutorial) subdirectory,
+we have a simple example and a step-by-step explanation of implementing 
+a simple imaging pipeline using CamJ API. Please check out [`tutorial`](https://github.com/horizon-research/in-sensor-simulator/tree/main/tutorial) directory for more details.
