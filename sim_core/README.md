@@ -36,19 +36,19 @@ attribute. To understand how to specify `functional_pipeline` attribute, please 
 directory.
 ```
 input_data = PixelInput(
-	(640, 400, 1), 
-	name="Input",
+    (640, 400, 1), 
+    name="Input",
 )
 ```
 To define a resize function, you can use `ProcessStage` class.
 ```
 resize_stage = ProcessStage(
-	name = "Resize",
-	input_size = [(640, 400, 1)],
-	kernel_size = [(2, 2, 1)],
-	stride = [(2, 2, 1)],
-	output_size = (320, 200, 1),
-	padding =[Padding.NONE]
+    name = "Resize",
+    input_size = [(640, 400, 1)],
+    kernel_size = [(2, 2, 1)],
+    stride = [(2, 2, 1)],
+    output_size = (320, 200, 1),
+    padding =[Padding.NONE]
 )
 ```
 This instance describes a resize operation. The input size is (640, 400, 1). The kernel size is (2, 2, 1)
@@ -60,11 +60,11 @@ the output size is (320, 200, 1).
 The following shows a convolution operation.
 ```
 conv2d_stage = DNNProcessStage(
-	name = "Conv2D",
-	op_type = "Conv2D",
-	ifmap_size = [320, 200, 1],
-	kernel_size = [3, 3, 1, 32],
-	stride = 2
+    name = "Conv2D",
+    op_type = "Conv2D",
+    ifmap_size = [320, 200, 1],
+    kernel_size = [3, 3, 1, 32],
+    stride = 2
 )
 ```
 This example shows a convolution layer with input size of (320, 200, 1), the kernel size is (3, 3, 1, 32) 
@@ -87,16 +87,16 @@ need to define what analog components are inside. Here, we show an example of de
 
 ```
 pixel_array = AnalogArray(
-	name = "PixelArray",
-	layer = ProcessorLocation.SENSOR_LAYER,
-	num_input = [(640, 1, 1)],
-	num_output = (640, 1, 1)
+    name = "PixelArray",
+    layer = ProcessorLocation.SENSOR_LAYER,
+    num_input = [(640, 1, 1)],
+    num_output = (640, 1, 1)
 )
 pixel = AnalogComponent(
-	name = "Pixel",
-	input_domain =[ProcessDomain.OPTICAL],
-	output_domain = ProcessDomain.TIME,
-	energy = dummy_energy_func
+    name = "Pixel",
+    input_domain =[ProcessDomain.OPTICAL],
+    output_domain = ProcessDomain.TIME,
+    energy = dummy_energy_func
 )
 ```
 Here, we define an analog array called `PixelArray`, the input/output of this pixel array is (640, 1, 1).
@@ -132,9 +132,9 @@ inside ISP.
 Next, we show how to use these classes.
 ```
 adc = ADC(
-	name = "ADC",
-	output_throughput = (640, 1, 1),
-	location = ProcessorLocation.SENSOR_LAYER,
+    name = "ADC",
+    output_throughput = (640, 1, 1),
+    location = ProcessorLocation.SENSOR_LAYER,
 )
 ```
 Analog-to-digital convertor (ADC) is the interface between analog and digital world. In CamJ, to
@@ -144,16 +144,16 @@ this is a typical order as a rolling shutter. `location` shows where ADC resides
 
 ```
 resize_unit = ComputeUnit(
- 	name="ResizeUnit",
-	domain=ProcessDomain.DIGITAL,
-	location=ProcessorLocation.SENSOR_LAYER,
-	input_throughput = [(32, 2, 1)],
-	output_throughput = (16, 1, 1), 
-	clock = XX, # MHz
-	energy = XX,
-	area = XX,
-	initial_delay = 0,
-	delay = 3,
+    name="ResizeUnit",
+    domain=ProcessDomain.DIGITAL,
+    location=ProcessorLocation.SENSOR_LAYER,
+    input_throughput = [(32, 2, 1)],
+    output_throughput = (16, 1, 1), 
+    clock = XX, # MHz
+    energy = XX,
+    area = XX,
+    initial_delay = 0,
+    delay = 3,
 )
 ```
 This example shows how to define a hardware unit that performs 2x2 resize. `domain` attribute defines
@@ -167,13 +167,13 @@ the actual hardware behavior.
 
 ```
 dnn_acc = SystolicArray(
-	name="InSensorSystolicArray",
-	domain=ProcessDomain.DIGITAL,
-	location=ProcessorLocation.COMPUTE_LAYER,
-	size_dimension=(16, 16),
-	clock=XX,
-	energy=XX,
-	area=XX
+    name="InSensorSystolicArray",
+    domain=ProcessDomain.DIGITAL,
+    location=ProcessorLocation.COMPUTE_LAYER,
+    size_dimension=(16, 16),
+    clock=XX,
+    energy=XX,
+    area=XX
 )
 ```
 The code above shows an example of how to use `SystolicArray` class. Here, we define a systolic array 
@@ -191,16 +191,16 @@ one writes from the previous stage.
 
 ```
 fifo_buffer = FIFO(
-	name="FIFO",
-	hw_impl = "sram",
-	count = 1280,
-	clock = XX, 	   # MHz
-	write_energy = XX, #pJ
-	read_energy = XX,  #pJ
-	location = ProcessorLocation.COMPUTE_LAYER,
-	duplication = 100,
-	write_unit = "ADC",
-	read_unit = "ResizeUnit"
+    name="FIFO",
+    hw_impl = "sram",
+    count = 1280,
+    clock = XX,        # MHz
+    write_energy = XX, #pJ
+    read_energy = XX,  #pJ
+    location = ProcessorLocation.COMPUTE_LAYER,
+    duplication = 100,
+    write_unit = "ADC",
+    read_unit = "ResizeUnit"
 )
 
 ```
