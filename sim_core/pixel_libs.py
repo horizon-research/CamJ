@@ -2,8 +2,10 @@ import numpy as np
 
 from sim_core.analog_perf_libs import ActivePixelSensorPerf, DigitalPixelSensorPerf,\
                                       PulseWidthModulationPixelPerf
+from functional_core.launch import default_functional_simulation
+
 from functional_core.noise_model import PhotodiodeNoise, PixelwiseNoise, FloatingDiffusionNoise,\
-                                        CorrelatedDoubleSamplingNoise
+                                        CorrelatedDoubleSamplingNoise, AnalogToDigitalConverterNoise
 
 # Active pxiel sensor
 class ActivePixelSensor(object):
@@ -31,9 +33,9 @@ class ActivePixelSensor(object):
     def __init__(
         self,
         # performance parameters
-        pd_capacitance,
-        pd_supply,
-        output_vs,  # output voltage swing [V]
+        pd_capacitance = 100e-15, # [F]
+        pd_supply = 1.8, # [V]
+        output_vs = 1,  # output voltage swing [V]
         num_transistor = 3,
         enable_cds = False,
         fd_capacitance = 10e-15,  # [F]
@@ -99,11 +101,13 @@ class ActivePixelSensor(object):
     def energy(self):
         return self.perf_model.energy()
 
-    def noise(self, input_signal):
-        pass
+    def noise(self, input_signal_list):
+        if not isinstance(input_signal_list, list):
+            raise Exception("Input signal to APS needs to be a list of numpy array!")
+
+        return default_functional_simulation(self.noise_components, input_signal_list)
 
 # digital pixel sensor
-# DigitalPixelSensor
 class DigitalPixelSensor(object):
     """
         Digital Pixel Sensor
@@ -130,9 +134,9 @@ class DigitalPixelSensor(object):
     def __init__(
         self,
         # performance parameters
-        pd_capacitance,
-        pd_supply,
-        output_vs,
+        pd_capacitance = 100e-15, # [F]
+        pd_supply = 1.8, # [V]
+        output_vs = 1,  # output voltage swing [V]
         num_transistor = 3,
         enable_cds = False,
         fd_capacitance = 10e-15,  # [F]
@@ -177,6 +181,7 @@ class DigitalPixelSensor(object):
             num_transistor = num_transistor,
             fd_capacitance = fd_capacitance,
             load_capacitance = load_capacitance,
+            num_readout = self.num_readout,
             tech_node = tech_node,
             pitch = pitch,
             array_vsize = array_vsize,
@@ -219,7 +224,7 @@ class DigitalPixelSensor(object):
                 )
             )
         self.noise_components.append(
-            ADCQuantization(
+            AnalogToDigitalConverterNoise(
                 name = "ADCNoise",
                 adc_noise = adc_noise,
                 max_val = pd_supply
@@ -229,8 +234,11 @@ class DigitalPixelSensor(object):
     def energy(self):
         return self.perf_model.energy()
 
-    def noise(self):
-        pass
+    def noise(self, input_signal_list):
+        if not isinstance(input_signal_list, list):
+            raise Exception("Input signal to DPS needs to be a list of numpy array!")
+
+        return default_functional_simulation(self.noise_components, input_signal_list)
 
 class PulseWidthModulationPixel(object):
     """
@@ -248,8 +256,8 @@ class PulseWidthModulationPixel(object):
     """
     def __init__(
         self,
-        pd_capacitance,
-        pd_supply,
+        pd_capacitance = 100e-15, # [F]
+        pd_supply = 1.8, # [V]
         ramp_capacitance=1e-12,  # [F]
         gate_capacitance=10e-15,  # [F]
         num_readout=1
@@ -264,3 +272,8 @@ class PulseWidthModulationPixel(object):
 
     def energy(self):
         return self.perf_model.energy()
+
+    def noise(self, input_signal_list):
+        raise Exception("Noise simulation for PWM pixel is not implemented yet!")
+
+
