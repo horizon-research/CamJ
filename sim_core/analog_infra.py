@@ -1,5 +1,6 @@
 
 import numpy as np
+import copy
 
 class AnalogComponent(object):
     """docstring for AnalogComponent"""
@@ -8,7 +9,7 @@ class AnalogComponent(object):
         name : str,
         input_domain: list,
         output_domain: int,
-        energy_func_list = None,
+        component_list = None,
         num_input: list = [(1, 1)], 
         num_output: tuple = (1, 1)
     ):
@@ -18,7 +19,7 @@ class AnalogComponent(object):
         self.num_output = num_output
         self.input_domain = input_domain
         self.output_domain = output_domain
-        self.energy_func_list = energy_func_list
+        self.component_list = component_list
         self.components = []
         self.input_components = []
         self.output_components = []
@@ -27,11 +28,18 @@ class AnalogComponent(object):
     """
     def energy(self):
         total_energy = 0
-        for i in range(len(self.energy_func_list)):
-            total_energy += self.energy_func_list[i][0]() * self.energy_func_list[i][1]
+        for i in range(len(self.component_list)):
+            total_energy += self.component_list[i][0].energy() * self.component_list[i][1]
 
         return total_energy
 
+    def noise(self, input_signal_list):
+        output_signal_list = copy.deepcopy(input_signal_list)
+
+        for component in self.component_list:
+            output_signal_list = component.noise(output_signal_list)
+
+        return output_signal_list
 
     def __str__(self):
         return self.name

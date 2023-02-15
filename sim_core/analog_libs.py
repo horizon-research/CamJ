@@ -28,12 +28,12 @@ class ColumnAmplifierPerf(object):
     def __init__(
         self,
         # performance parameters
-        load_capacitance=1e-12,  # [F]
-        input_capacitance=1e-12,  # [F]
-        t_sample=2e-6,  # [s]
-        t_frame=10e-3,  # [s]
-        supply=1.8,  # [V]
-        gain=2,
+        load_capacitance = 1e-12,  # [F]
+        input_capacitance = 1e-12,  # [F]
+        t_sample = 2e-6,  # [s]
+        t_frame = 10e-3,  # [s]
+        supply = 1.8,  # [V]
+        gain = 2,
         # noise parameters
         noise = 0.,
         enable_prnu = False,
@@ -80,10 +80,10 @@ class SourceFollower(object):
     def __init__(
         self,
         # performance parameters
-        load_capacitance=1e-12,  # [F]
-        supply=1.8,  # [V]
-        output_vs=1,  # [V]
-        bias_current=5e-6,  # [A]
+        load_capacitance = 1e-12,  # [F]
+        supply = 1.8,  # [V]
+        output_vs = 1,  # [V]
+        bias_current = 5e-6,  # [A]
         # noise parameters
         gain = 1.0,
         noise = 0.,
@@ -137,11 +137,11 @@ class ActiveAnalogMemory(object):
     def __init__(
         self,
         # performance parameters
-        sample_capacitance=2e-12,  # [F]
-        comp_capacitance=2.5e-12,  # [F]
-        t_sample=1e-6,  # [s]
-        t_hold=10e-3,  # [s]
-        supply=1.8,  # [V]
+        sample_capacitance = 2e-12,  # [F]
+        comp_capacitance = 2.5e-12,  # [F]
+        t_sample = 1e-6,  # [s]
+        t_hold = 10e-3,  # [s]
+        supply = 1.8,  # [V]
         # eqv_reso,# equivalent resolution
         # opamp_dcgain
         # noise parameters
@@ -184,8 +184,8 @@ class PassiveAnalogMemory(object):
     def __init__(
         self,
         # performance parameters
-        capacitance=1e-12,  # [F]
-        supply=1.8,  # [V]
+        capacitance = 1e-12,  # [F]
+        supply = 1.8,  # [V]
         # eqv_reso  # equivalent resolution
         # noise parameters
         gain = 1.0,
@@ -223,10 +223,10 @@ class CurrentMirror(object):
     def __init__(
         self,
         # performance parameters
-        supply=1.8,
-        load_capacitance=2e-12,  # [F]
-        t_readout=1e-6,  # [s]
-        i_dc=1e-6,  # [A]
+        supply = 1.8,
+        load_capacitance = 2e-12,  # [F]
+        t_readout = 1e-6,  # [s]
+        i_dc = 1e-6,  # [A]
         # noise parameters
         gain = 1.0,
         noise = 0.,
@@ -293,9 +293,9 @@ class Comparator(object):
     def __init__(
         self,
         # performance parameters
-        supply=1.8,  # [V]
-        i_bias=10e-6,  # [A]
-        t_readout=1e-9,  # [s]
+        supply = 1.8,  # [V]
+        i_bias = 10e-6,  # [A]
+        t_readout = 1e-9,  # [s]
         # noise parameters
         gain = 1.0,
         noise = 0.,
