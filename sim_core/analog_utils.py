@@ -213,11 +213,13 @@ def launch_analog_simulation(analog_arrays, sw_stages, mapping_dict):
 	return total_energy
 
 
-def gm_id(load_capacitance,
-          gain,
-          bandwidth,
-          differential=True,
-          inversion_level='moderate'):
+def gm_id(
+		load_capacitance,
+		gain,
+		bandwidth,
+		differential=True,
+		inversion_level='moderate'
+    ):
     if inversion_level == 'strong':
         gm_id_ratio = 10
     elif inversion_level == 'moderate':
@@ -231,10 +233,11 @@ def gm_id(load_capacitance,
     return [id, gm]
 
 
-def get_pixel_parasitic(array_v,
-                        tech_node,  # [nm]
-                        pitch  # [um]
-                        ):
+def get_pixel_parasitic(
+		array_v,
+		tech_node,  # [nm]
+		pitch  # [um]
+	):
     C_p = 9e-15 / 130 / 5 * tech_node * pitch * array_v
     return C_p
 
@@ -256,11 +259,12 @@ def parallel_impedance(impedance_array):
     return impedance
 
 
-def get_delay(current_stage_output_impedance,
-              next_stage_input_impedance,
-              current_stage_output_capacitance,
-              next_stage_input_capacitance
-              ):
+def get_delay(
+		current_stage_output_impedance,
+		next_stage_input_impedance,
+		current_stage_output_capacitance,
+		next_stage_input_capacitance
+	):
     # 5*Tau represents charging to 99% of the full voltage from 0
     delay = 5 * (parallel_impedance([current_stage_output_impedance, next_stage_input_impedance])) * \
             (current_stage_output_capacitance + next_stage_input_capacitance)

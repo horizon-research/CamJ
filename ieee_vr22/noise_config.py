@@ -7,7 +7,6 @@ def sensor_noise_model():
 	# sensor specs
 	full_scale_input_voltage = 1.2 # V
 	
-
 	# PD parameters
 	dc_noise = 2.5 # electrons
 	pixel_full_well_capacity = 10000 # e

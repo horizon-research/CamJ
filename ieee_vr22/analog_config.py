@@ -82,7 +82,6 @@ def analog_config():
 		num_input = [],
 		num_output = [(1, 1)]
 	)
-
 	analog_memory_array.add_component(analog_memory_unit, (320, 201))
 
 	eventification_array = AnalogArray(
@@ -108,7 +107,6 @@ def analog_config():
 		num_input = [(1, 1), (1, 1)],
 		num_output = (1, 1)
 	)
-	
 	eventification_array.add_component(eventification_pe, (320, 1))
 
 	pixel_array.add_output_array(eventification_array)
