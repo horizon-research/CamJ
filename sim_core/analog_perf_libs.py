@@ -45,10 +45,11 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
             self.output_vs = output_vs
 
     def energy(self):
-        if self.num_transistor == 4:
-            energy_fd = self.fd_capacitance * (self.pd_supply ** 2)
+        
         if self.num_transistor == 3:
             energy_fd = 0
+        elif self.num_transistor == 4:
+            energy_fd = self.fd_capacitance * (self.pd_supply ** 2)
         else:
             raise Exception("Defined APS is not supported.")
 
@@ -113,8 +114,8 @@ class DigitalPixelSensorPerf(ActivePixelSensorPerf):
         self.adc_reso = adc_reso
 
     def energy(self):
-        energy_aps = super(DigitalPixelSensor, self).energy()
-        energy_adc = AnalogToDigitalConverter(self.pd_supply, self.adc_type, self.adc_fom, self.adc_reso).energy()
+        energy_aps = super(DigitalPixelSensorPerf, self).energy()
+        energy_adc = AnalogToDigitalConverterPerf(self.pd_supply, self.adc_type, self.adc_fom, self.adc_reso).energy()
         energy = energy_aps + energy_adc
         return energy
 

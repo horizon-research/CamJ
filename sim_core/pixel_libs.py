@@ -3,7 +3,6 @@ import numpy as np
 from sim_core.analog_perf_libs import ActivePixelSensorPerf, DigitalPixelSensorPerf,\
                                       PulseWidthModulationPixelPerf
 from functional_core.launch import default_functional_simulation
-
 from functional_core.noise_model import PhotodiodeNoise, PixelwiseNoise, FloatingDiffusionNoise,\
                                         CorrelatedDoubleSamplingNoise, AnalogToDigitalConverterNoise
 
@@ -258,9 +257,9 @@ class PulseWidthModulationPixel(object):
         self,
         pd_capacitance = 100e-15, # [F]
         pd_supply = 1.8, # [V]
-        ramp_capacitance=1e-12,  # [F]
-        gate_capacitance=10e-15,  # [F]
-        num_readout=1
+        ramp_capacitance = 1e-12,  # [F]
+        gate_capacitance = 10e-15,  # [F]
+        num_readout = 1
     ):
         self.perf_model = PulseWidthModulationPixelPerf(
             pd_capacitance = pd_capacitance,

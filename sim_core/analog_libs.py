@@ -3,11 +3,11 @@ import numpy as np
 from sim_core.analog_perf_libs import ColumnAmplifierPerf, SourceFollowerPerf, SourceFollowerPerf,\
                                       ActiveAnalogMemoryPerf, PassiveAnalogMemoryPerf,\
                                       DigitalToCurrentConverterPerf, CurrentMirrorPerf,\
-                                      ComparatorPerf
+                                      ComparatorPerf, PassiveSwitchedCapacitorArrayPerf,\
+                                      AnalogToDigitalConverterPerf
 from functional_core.noise_model import ColumnwiseNoise, PixelwiseNoise, FloatingDiffusionNoise,\
-                                        CurrentMirrorNoise, ComparatorNoise
-                                        
-
+                                        CurrentMirrorNoise, ComparatorNoise,\
+                                        PassiveSwitchedCapacitorArrayNoise, AnalogToDigitalConverterNoise
 
 class ColumnAmplifierPerf(object):
     """
@@ -62,8 +62,15 @@ class ColumnAmplifierPerf(object):
     def energy(self):
         return self.perf_model.energy()
 
-    def noise(self):
-        pass
+    def noise(self, input_signal_list):
+        output_signal_list = []
+        for input_signal in input_signal_list:
+            output_signal_list.append(
+                self.noise_model.apply_gain_and_noise(
+                    input_signal
+                )
+            )
+        return output_signal_list
 
 class SourceFollower(object):
     """
@@ -101,8 +108,15 @@ class SourceFollower(object):
     def energy(self):
         return self.perf_model.energy()
 
-    def noise(self):
-        pass
+    def noise(self, input_signal_list):
+        output_signal_list = []
+        for input_signal in input_signal_list:
+            output_signal_list.append(
+                self.noise_model.apply_gain_and_noise(
+                    input_signal
+                )
+            )
+        return output_signal_list
 
 class ActiveAnalogMemory(object):
     """
@@ -155,8 +169,15 @@ class ActiveAnalogMemory(object):
     def energy(self):
         return self.perf_model.energy()
 
-    def noise(self):
-        pass
+    def noise(self, input_signal_list):
+        output_signal_list = []
+        for input_signal in input_signal_list:
+            output_signal_list.append(
+                self.noise_model.apply_gain_and_noise(
+                    input_signal
+                )
+            )
+        return output_signal_list
 
 
 class PassiveAnalogMemory(object):
@@ -188,8 +209,15 @@ class PassiveAnalogMemory(object):
     def energy(self):
         return self.perf_model.energy()
 
-    def noise(self):
-        pass
+    def noise(self, input_signal_list):
+        output_signal_list = []
+        for input_signal in input_signal_list:
+            output_signal_list.append(
+                self.noise_model.apply_gain_and_noise(
+                    input_signal
+                )
+            )
+        return output_signal_list
 
 class CurrentMirror(object):
     def __init__(
@@ -226,22 +254,40 @@ class CurrentMirror(object):
     def energy(self):
         return self.perf_model.energy()
 
-    def noise(self):
-        pass
+    def noise(self, input_signal_list):
+        if len(input_signal_list) == 2:
+            return [self.noise_model.apply_gain_and_noise(input_signal_list[0], input_signal_list[1])]
+        elif len(input_signal_list) == 1:
+            return [self.noise_model.apply_gain_and_noise(input_signal_list[0])]
+        else:
+            raise Exception("Input signal list to CurrentMirror can only be length of 1 or 2!")
 
-class PassiveSwitchedCapacitorArrayPerf(object):
+
+class PassiveSwitchedCapacitorArray(object):
     def __init__(
         self,
+        # peformance parameters
         capacitance_array,
         vs_array
+        # noise parameters
+        noise = 0.
     ):
-        self.capacitance_array = capacitance_array
-        self.vs_array = vs_array
+        self.perf_model = PassiveSwitchedCapacitorArrayPerf(
+            capacitance_array = capacitance_array,
+            vs_array = vs_array
+        )
+
+        self.noise_model = PassiveSwitchedCapacitorArrayNoise(
+            name = "PassiveSCNoise",
+            num_capacitor = len(capacitance_array),
+            noise = noise
+        )
 
     def energy(self):
-        energy = np.sum(np.multiply(self.capacitance_array, self.vs_array ** 2))
-        return energy
+        return self.perf_model.energy()
 
+    def noise(self):
+        return [self.noise_model.apply_gain_and_noise(input_signal_list)]
 
 class Comparator(object):
     def __init__(
@@ -273,12 +319,51 @@ class Comparator(object):
     def energy(self):
         return self.perf_model.energy()
 
-    def noise(self):
-        pass
+    def noise(self, input_signal_list):
+        if len(input_signal_list) == 2:
+            return [self.noise_model.apply_gain_and_noise(input_signal_list[0], input_signal_list[1])]
+        else:
+            raise Exception("Input signal list to Comparator can only be length of 2!")
 
 
+class AnalogToDigitalConverter(object):
+    """docstring for differential-input rail-to-rail ADC"""
 
+    def __init__(
+        self,
+        # performance parameters
+        supply=1.8,  # [V]
+        type='SS',
+        fom=100e-15,  # [J/conversion]
+        resolution=8,
+        # noise parameters
+        adc_noise = 0.,
+    ):
+        self.perf_model = AnalogToDigitalConverterPerf(
+            supply = supply,
+            type = type,
+            fom = fom,
+            resolution = resolution,
+        )
 
+        self.noise_model = AnalogToDigitalConverterNoise(
+            name = "ADCnoise",
+            adc_noise = adc_noise,
+            max_val = supply
+        )
+
+    def energy(self):
+        return self.perf_model.energy()
+
+    def noise(self, input_signal_list):
+        output_signal_list = []
+        for input_signal in input_signal_list:
+            output_signal_list.append(
+                self.noise_model.apply_gain_and_noise(
+                    input_signal
+                )
+            )
+        return output_signal_list
 
 
 
