@@ -208,19 +208,19 @@ class AbsoluteDifferenceNoise(object):
 	def __repr__(self):
 		return self.name
 
-class PixelwiseNoise(object):
+class CurrentMirrorNoise(object):
 	"""
-		A general interface for any noise source resided inside each pixel,
-		including floating diffusion, source follower, etc.
+		Noise model for current mirror
 
-		General assumption of the noise source is that the noise follows 
-		a "zero-mean" Gaussian distribution. Users need to provide mean noise (sigma value).
-
-		The computation follows first applying gain to the input and then sampling noise.
+        Current mirror has two possible outputs:
+        1. output charge: in this case, the input current will multiply with integrated time and 
+        output the charge which is (current*time).
+        2. output current: in this case, there is no computation, just perform gain amplification.
 
 		Input parameters:
 			gain: the average gain.
 			noise: average noise value.
+            enable_compute flag to enable compute and output charges.
 			enable_prnu: flag to enable PRNU.
 			prnu_std: the relative prnu standard deviation respect to gain.
 					  prnu gain standard deviation = prnu_std * gain.
@@ -231,6 +231,7 @@ class PixelwiseNoise(object):
 		name,
 		gain = 1,
 		noise = None,
+        enable_compute = False,
 		enable_prnu = False,
 		prnu_std = 0.001
 	):
@@ -238,6 +239,7 @@ class PixelwiseNoise(object):
 		self.name = name
 		self.gain = gain
 		self.noise = noise
+        self.enable_compute = enable_compute
 		self.enable_prnu = enable_prnu
 		self.prnu_gain = None
 		self.prnu_std = prnu_std
@@ -253,10 +255,13 @@ class PixelwiseNoise(object):
 	def add_dependency(self, dependency):
 		self.dependency.append(dependency)
 
-	def apply_gain_and_noise(self, input_signal):
+	def apply_gain_and_noise(self, input_signal, weight_signal=None):
 		if len(input_signal.shape) != 2:
 			raise Exception("input signal in noise model needs to be in (height, width) 2D shape.")
 				
+        if self.enable_compute and weight_signal is not None:
+            input_signal = input_signal * weight_signal
+
 		input_height, input_width = input_signal.shape
 		if self.enable_prnu:
 			if self.prnu_gain is None or self.prnu_gain.shape != input_signal.shape:
@@ -282,6 +287,82 @@ class PixelwiseNoise(object):
 
 	def __repr__(self):
 		return self.name
+
+
+class PixelwiseNoise(object):
+    """
+        A general interface for any noise source resided inside each pixel,
+        including floating diffusion, source follower, etc.
+
+        General assumption of the noise source is that the noise follows 
+        a "zero-mean" Gaussian distribution. Users need to provide mean noise (sigma value).
+
+        The computation follows first applying gain to the input and then sampling noise.
+
+        Input parameters:
+            gain: the average gain.
+            noise: average noise value.
+            enable_prnu: flag to enable PRNU.
+            prnu_std: the relative prnu standard deviation respect to gain.
+                      prnu gain standard deviation = prnu_std * gain.
+                      the default value is 0.001
+    """
+    def __init__(
+        self,
+        name,
+        gain = 1,
+        noise = None,
+        enable_prnu = False,
+        prnu_std = 0.001
+    ):
+        super(PixelwiseNoise, self).__init__()
+        self.name = name
+        self.gain = gain
+        self.noise = noise
+        self.enable_prnu = enable_prnu
+        self.prnu_gain = None
+        self.prnu_std = prnu_std
+        self.dependency = []
+
+        if self.noise == None:
+            raise Exception("Insufficient parameters: noise is None.")
+
+        # initialize random number generator
+        random_seed = int(time.time())
+        self.rs = np.random.RandomState(random_seed)
+
+    def add_dependency(self, dependency):
+        self.dependency.append(dependency)
+
+    def apply_gain_and_noise(self, input_signal):
+        if len(input_signal.shape) != 2:
+            raise Exception("input signal in noise model needs to be in (height, width) 2D shape.")
+                
+        input_height, input_width = input_signal.shape
+        if self.enable_prnu:
+            if self.prnu_gain is None or self.prnu_gain.shape != input_signal.shape:
+                self.prnu_gain = self.rs.normal(
+                    loc = self.gain,
+                    scale = self.gain * self.prnu_std,
+                    size = (input_height, input_width)
+                )
+            # generate random gain values
+            input_after_gain = self.prnu_gain * input_signal
+        else:
+            input_after_gain = self.gain * input_signal
+
+        input_after_noise = self.rs.normal(
+            scale = self.noise,
+            size = (input_height, input_width)
+        ) + input_after_gain
+
+        return np.clip(input_after_noise, a_min = 0, a_max = None)
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return self.name
 
 class FloatingDiffusionNoise(object):
 	"""
