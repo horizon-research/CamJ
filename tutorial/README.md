@@ -14,7 +14,6 @@ To configure a complete sensor system, users need to define following configurat
 | analog_config.py      | the hardware configuration in analog domain   |
 | hw_config.py          | the hardware configuration in digital domain  |
 | mapping_file.py       | the mapping between hardware and software     |
-| functional_pipeline.py| the functional simulation configuration       | 
 
 Next, we introduce each configuration file piece by piece,
 
@@ -60,7 +59,7 @@ the output size to be `32x32x1`. This would complete the definition of `Conv` st
 
 Similarly, we define a `Abs` operation. This `Abs` operation compute the element-wise absolution. The
 definition is similar to `Conv` operation. Here, the input and output size are both `32x32x1`. The 
-stride is `1x1x1` and the padding is `NONE` to make sure the output size still `32x32x1`.
+stride is `1x1x1` and the padding is `NONE` to make sure that the output size is still `32x32x1`.
 
 ```
 abs_stage = ProcessStage(
@@ -109,26 +108,21 @@ pixel_array = AnalogArray(
 	layer = ProcessorLocation.SENSOR_LAYER,
 	num_input = [(32, 1, 1)],
 	num_output = (32, 1, 1),
-	functional_pipeline = sensor_functional_pipeline()
 )
 pixel = AnalogComponent(
-	name = "Pixel",
-	input_domain =[ProcessDomain.OPTICAL],
-	output_domain = ProcessDomain.VOLTAGE,
-	energy_func_list = [
-		(
-			ActivePixelSensor(
-				pd_capacitance = 1e-12,
-				pd_supply = 1.8, # V
-				output_vs = 1, #  
-				num_transistor = 3,
-				num_readout = 1
-			).energy,
-			1
-		)
-	],
-	num_input = [(1, 1)],
-	num_output = (1, 1)
+    name = "Pixel",
+    input_domain =[ProcessDomain.OPTICAL],
+    output_domain = ProcessDomain.VOLTAGE,
+    component_list = [
+        (
+            ActivePixelSensor(
+                ...
+            ),
+            1
+        )
+    ],
+    num_input = [(1, 1)],
+    num_output = (1, 1)
 )
 ```
 
@@ -136,9 +130,7 @@ To define an analog structure in CamJ, users first need to define a `AnalogArray
 template to contain smaller structures which are called `AnalogComponent`. Here, we first define 
 `PixelArray`. For this `PixelArray`, we don't need to define the input and output size but input/output
 throughput. Here, the input and the output throughput are both `32x1x1`. This mimics the rolling shutter
-effect. Also we need to define the functional pipeline if we need to perform functional simulation 
-of this analog structure. We will give more detailed explanation about the functioinal pipeline in 
-following sections.
+effect.
 
 After we define the analog array template, we need to define the component inside this analog array.
 Here, this example shows the pxiel input domain is `OPTICAL` and output domain is `VOLTAGE`. To deine
@@ -150,8 +142,6 @@ tuple shows that only one 3T-APS inside this analog component.
 
 ```
 pixel_array.add_component(pixel, (32, 32, 1))
-pixel_array.set_source_component([pixel])
-pixel_array.set_destination_component([pixel])
 
 analog_arrays.append(pixel_array)
 
@@ -161,13 +151,9 @@ return analog_arrays
 After we define the pxiel array and pixel component, we need to add this pixel component to the pixel
 array using `add_component` function. Next, we need to define the connection both inside the analog
 array and between different analog arrays. Here, we only have one analog array, so no need to define 
-the connection across different analog arrays. To define the connection inside this `pixel_array`. We 
-need to set the source component and destination component. Source components are the initial component 
-to start the computation inside this analog array. Destination components are the last component that 
-finish the computation inside this analog array. In this case, both the source and the destination 
-component are `pxiel`. 
+the connection across different analog arrays. 
 
-Last, we add every analog array to a `analog_arrays` list and return to Camj simulator
+Last, we add every analog array to a `analog_arrays` list and return to Camj simulator.
 
 ### Digital Configuration
 
@@ -182,8 +168,8 @@ conv_unit = ComputeUnit(
 	input_throughput = [(32, 3, 1)],
 	output_throughput = (32, 1, 1), 
 	clock = 500, # MHz
-	energy = 32*9*compute_op_power,
-	area = 30,
+	energy = XX,
+	area = XX,
 	initial_delay = 0,
 	delay = 3,
 )
@@ -195,8 +181,8 @@ abs_unit = ComputeUnit(
 	input_throughput = [(32, 1, 1)],
 	output_throughput = (32, 1, 1), 
 	clock = 500, # MHz
-	energy = 32*1*compute_op_power,
-	area = 10,
+	energy = XX,
+	area = XX,
 	initial_delay = 0,
 	delay = 3,
 )
