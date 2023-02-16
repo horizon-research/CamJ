@@ -53,27 +53,6 @@ def default_functional_simulation(functional_pipeline_list, input_list):
 
     return curr_input
 
-def customized_eventification_simulation(functional_pipeline_list, input_list):
-
-    prev_input_analog_memory = functional_pipeline_list[0]
-    curr_input_analog_memory = functional_pipeline_list[1]
-    absolute_difference = functional_pipeline_list[2]
-    scaling_comp = functional_pipeline_list[3]
-    comparator = functional_pipeline_list[4]
-
-    prev_input = input_list[0]
-    curr_input = input_list[1]
-
-    prev_input_from_mem = prev_input_analog_memory.apply_gain_and_noise(prev_input)
-    curr_input_from_mem = curr_input_analog_memory.apply_gain_and_noise(curr_input)
-
-    diff = absolute_difference.apply_gain_and_noise(prev_input_from_mem, curr_input_from_mem)
-    scaling_val = scaling_comp.apply_gain_and_noise(curr_input_from_mem)
-
-    event = comparator.apply_gain_and_noise(diff, scaling_val)
-
-    return [event]
-
 def launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_mapping):
     # deep copy in case the function modify the orginal data
     hw_dict = copy.deepcopy(hw_dict)

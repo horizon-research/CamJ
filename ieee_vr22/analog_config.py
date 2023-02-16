@@ -15,8 +15,6 @@ from sim_core.pixel_libs import ActivePixelSensor
 from sim_core.analog_libs import ActiveAnalogMemory, ColumnAmplifier, \
                                  Comparator, SourceFollower
 
-from functional_core.launch import customized_eventification_simulation
-
 from ieee_vr22.mapping_file import mapping_function_w_analog
 from ieee_vr22.sw_pipeline import sw_pipeline_w_analog
 from ieee_vr22.customized_analog_component import EventificationUnit
@@ -24,6 +22,9 @@ from ieee_vr22.customized_analog_component import EventificationUnit
 
 def analog_config():
 
+    full_scale_input_voltage = 1.8 # V
+    pixel_full_well_capacity = 10000 # e
+    conversion_gain = full_scale_input_voltage/pixel_full_well_capacity
     analog_arrays = []
 
     pixel_array = AnalogArray(
@@ -43,14 +44,14 @@ def analog_config():
                     pd_capacitance = 1e-12,
                     pd_supply = 1.8, # V
                     output_vs = 1, #  
-                    enable_cds = True,
+                    enable_cds = False,
                     num_transistor = 4,
                     # noise model parameters
                     dark_current_noise = 0.005,
                     enable_dcnu = True,
                     enable_prnu = True,
                     dcnu_std = 0.001,
-                    fd_gain = 1.0,
+                    fd_gain = conversion_gain,
                     fd_noise = 0.005,
                     fd_prnu_std = 0.001,
                     sf_gain = 1.0,
@@ -80,7 +81,7 @@ def analog_config():
         component_list = [
             (
                 ColumnAmplifier(
-                    gain = 2.0,
+                    gain = 1.0,
                     noise = 0.005,
                     enable_prnu = True,
                     prnu_std = 0.001,

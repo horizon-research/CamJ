@@ -5,7 +5,7 @@ import copy
 
 # import local modules
 from sim_core.launch import launch_simulation
-from functional_core.launch import launch_functional_simulation, customized_eventification_simulation
+from functional_core.launch import launch_functional_simulation
 
 # from isscc_22_08v.mapping_file import mapping_function
 # from isscc_22_08v.sw_pipeline import sw_pipeline
@@ -49,7 +49,7 @@ def eventification_noise_simulation_example(
 ):
 
 	# sensor specs
-	full_scale_input_voltage = 1.2 # V
+	full_scale_input_voltage = 1.8 # V
 	pixel_full_well_capacity = 10000 # e
 
 	# load test image
@@ -67,7 +67,7 @@ def eventification_noise_simulation_example(
 	simulation_res = launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_mapping)
 	pprint(simulation_res)
 
-	img_after_adc = simulation_res['CurrInput'][0]
+	img_after_adc = simulation_res['Eventification'][0]
 
 	cv2.imshow("image after adc", img_after_adc/np.max(img_after_adc))
 	cv2.waitKey(0)

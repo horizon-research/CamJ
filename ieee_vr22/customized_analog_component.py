@@ -60,10 +60,12 @@ class EventificationUnit(object):
         return self.colamp_model1.energy() + self.colamp_model2.energy()
 
     def noise(self,  input_signal_list):
+        print(len(input_signal_list))
         if len(input_signal_list) != 2:
             raise Exception("Input signal list to 'EventificationUnit' need to a length of 2.")
 
-        abs_val = np.abs(input_signal_list[0] + input_signal_list[1])
+        # compute the absolute difference
+        abs_val = np.abs(input_signal_list[0] - input_signal_list[1])
         output_signal_list = self.colamp_model1.noise([abs_val]) \
                            + self.colamp_model2.noise([input_signal_list[1]])
 
