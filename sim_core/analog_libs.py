@@ -4,7 +4,7 @@ from sim_core.analog_perf_libs import ColumnAmplifierPerf, SourceFollowerPerf, S
                                       ActiveAnalogMemoryPerf, PassiveAnalogMemoryPerf,\
                                       DigitalToCurrentConverterPerf, CurrentMirrorPerf,\
                                       ComparatorPerf, PassiveSwitchedCapacitorArrayPerf,\
-                                      AnalogToDigitalConverterPerf
+                                      AnalogToDigitalConverterPerf, DigitalToCurrentConverterPerf
 from functional_core.noise_model import ColumnwiseNoise, PixelwiseNoise, FloatingDiffusionNoise,\
                                         CurrentMirrorNoise, ComparatorNoise,\
                                         PassiveSwitchedCapacitorArrayNoise, AnalogToDigitalConverterNoise
@@ -366,6 +366,49 @@ class AnalogToDigitalConverter(object):
         return output_signal_list
 
 
+class DigitalToCurrentConverter(object):
+    def __init__(
+        self,
+        # performance parameters
+        supply=1.8,  # [V]
+        load_capacitance=2e-12,  # [F]
+        t_readout=16e-6,  # [s]
+        resolution=4,
+        i_dc=None  # [A]
+        # noise parameters
+        gain = 1.0,
+        noise = 0.,
+        enable_prnu = False,
+        prnu_std = 0.001,
+    ):
+        self.perf_model = DigitalToCurrentConverterPerf(
+            supply = supply,
+            load_capacitance = load_capacitance,
+            t_readout = t_readout,
+            resolution = resolution,
+            i_dc = i_dc
+        )
+
+        self.noise_model = PixelwiseNoise(
+            name = "PasstiveMemNoise",
+            gain = gain,
+            noise = noise,
+            enable_prnu = enable_prnu,
+            prnu_std = prnu_std
+        )
+
+    def energy(self):
+        return self.perf_model.energy()
+
+    def noise(self, input_signal_list):
+        output_signal_list = []
+        for input_signal in input_signal_list:
+            output_signal_list.append(
+                self.noise_model.apply_gain_and_noise(
+                    input_signal
+                )
+            )
+        return output_signal_list
 
 
 
