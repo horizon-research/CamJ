@@ -374,7 +374,7 @@ class DigitalToCurrentConverter(object):
         load_capacitance=2e-12,  # [F]
         t_readout=16e-6,  # [s]
         resolution=4,
-        i_dc=None  # [A]
+        i_dc=None,  # [A]
         # noise parameters
         gain = 1.0,
         noise = 0.,
