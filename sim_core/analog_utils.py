@@ -99,32 +99,15 @@ def reverse_sw_to_analog_mapping(analog_arrays, analog_sw_stages, mapping_dict):
 
     return analog_to_sw
 
-def count_sw_mapping_dependency(sw_stages):
-    visited = []
-    cnt = 0
+def find_analog_output_stages(sw_stages):
+    output_stages = []
 
     for sw_stage in sw_stages:
-        curr_list = [sw_stage]
-        new_list = []
-        if sw_stage not in visited:
-            cnt += 1
-            while len(curr_list) > 0:
-                for input_stage in sw_stage.input_stages:
-                    if input_stage not in visited:
-                        visited.append(input_stage)
-                        if input_stage not in new_list:
-                            new_list.append(input_stage)
+        for output_stage in sw_stage.output_stages:
+            if output_stage is not in sw_stages:
+                output_stages.append(sw_stage)
 
-                for output_stage in sw_stage.output_stages:
-                    if output_stage not in visited:
-                        visited.append(output_stage)
-                        if output_stage not in new_list:
-                            new_list.append(output_stage)
-
-                curr_list = new_list
-                new_list = []
-
-    return cnt
+    return output_stages
 
 
 def compute_total_energy(analog_arrays, analog_sw_stages, mapping_dict):
@@ -134,8 +117,12 @@ def compute_total_energy(analog_arrays, analog_sw_stages, mapping_dict):
     total_energy = 0
     for analog_array in analog_to_sw.keys():
         # check data dependency
-        cnt = count_sw_mapping_dependency(analog_to_sw[analog_array])
-        total_energy += cnt * analog_array.energy()
+        output_stages = find_analog_output_stages(analog_to_sw[analog_array])
+        for output_stage in output_stages:
+            sw_size = output_stage.output_size
+            hw_size = analog_array.num_output
+            cnt = sw_size[0] * sw_size[1] * sw_size[2] / (hw_size[0] * hw_size[1])
+            total_energy += cnt * analog_array.energy()
 
     return total_energy
 
