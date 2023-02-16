@@ -1,151 +1,135 @@
+import copy
 import numpy as np
 from inspect import signature
 
 from sim_core.sw_utils import build_sw_graph
 from sim_core.analog_utils import find_analog_sw_stages, find_analog_sw_mapping
-					
+                    
 def process_signal_stage(stage, input_signals):
 
-	output_signals = []
-	sig = signature(stage.apply_gain_and_noise)
-	
-	if len(sig.parameters) == 1:
-		for input_signal in input_signals:
-			output_signal = stage.apply_gain_and_noise(input_signal)
-			if isinstance(output_signal, tuple):
-				for item in output_signal:
-					output_signals.append(item)
-			else:
-				output_signals.append(output_signal)
-	elif len(sig.parameters) == 2:
-		if len(input_signals) != 2:
-			raise Exception("Input for this stage needs to be 2!")
-		output_signal = stage.apply_gain_and_noise(input_signals[0], input_signals[1])
-		if isinstance(output_signal, tuple):
-				for item in output_signal:
-					output_signals.append(item)
-		else:
-			output_signals.append(output_signal)
-	else:
-		raise Exception("Incompatible input and processing stage pair!")
+    output_signals = []
+    sig = signature(stage.apply_gain_and_noise)
+    
+    if len(sig.parameters) == 1:
+        for input_signal in input_signals:
+            output_signal = stage.apply_gain_and_noise(input_signal)
+            if isinstance(output_signal, tuple):
+                for item in output_signal:
+                    output_signals.append(item)
+            else:
+                output_signals.append(output_signal)
+    elif len(sig.parameters) == 2:
+        if len(input_signals) != 2:
+            raise Exception("Input for this stage needs to be 2!")
+        output_signal = stage.apply_gain_and_noise(input_signals[0], input_signals[1])
+        if isinstance(output_signal, tuple):
+                for item in output_signal:
+                    output_signals.append(item)
+        else:
+            output_signals.append(output_signal)
+    else:
+        raise Exception("Incompatible input and processing stage pair!")
 
-	return output_signals
+    return output_signals
 
 def default_functional_simulation(functional_pipeline_list, input_list):
 
-	curr_input = input_list
-	curr_output = []
+    curr_input = input_list
+    curr_output = []
 
-	for stage in functional_pipeline_list:
-		if isinstance(stage, tuple) or isinstance(stage, list):
-			for s in stage:
-				output_signals = process_signal_stage(s, curr_input)
-				for output_signal in output_signals:
-					curr_output.append(output_signal)
-		else:
-			output_signals = process_signal_stage(stage, curr_input)
-			for output_signal in output_signals:
-				curr_output.append(output_signal)
+    for stage in functional_pipeline_list:
+        if isinstance(stage, tuple) or isinstance(stage, list):
+            for s in stage:
+                output_signals = process_signal_stage(s, curr_input)
+                for output_signal in output_signals:
+                    curr_output.append(output_signal)
+        else:
+            output_signals = process_signal_stage(stage, curr_input)
+            for output_signal in output_signals:
+                curr_output.append(output_signal)
 
-		curr_input = curr_output
-		curr_output = []
+        curr_input = curr_output
+        curr_output = []
 
-	return curr_input
+    return curr_input
 
 def customized_eventification_simulation(functional_pipeline_list, input_list):
 
-	prev_input_analog_memory = functional_pipeline_list[0]
-	curr_input_analog_memory = functional_pipeline_list[1]
-	absolute_difference = functional_pipeline_list[2]
-	scaling_comp = functional_pipeline_list[3]
-	comparator = functional_pipeline_list[4]
+    prev_input_analog_memory = functional_pipeline_list[0]
+    curr_input_analog_memory = functional_pipeline_list[1]
+    absolute_difference = functional_pipeline_list[2]
+    scaling_comp = functional_pipeline_list[3]
+    comparator = functional_pipeline_list[4]
 
-	prev_input = input_list[0]
-	curr_input = input_list[1]
+    prev_input = input_list[0]
+    curr_input = input_list[1]
 
-	prev_input_from_mem = prev_input_analog_memory.apply_gain_and_noise(prev_input)
-	curr_input_from_mem = curr_input_analog_memory.apply_gain_and_noise(curr_input)
+    prev_input_from_mem = prev_input_analog_memory.apply_gain_and_noise(prev_input)
+    curr_input_from_mem = curr_input_analog_memory.apply_gain_and_noise(curr_input)
 
-	diff = absolute_difference.apply_gain_and_noise(prev_input_from_mem, curr_input_from_mem)
-	scaling_val = scaling_comp.apply_gain_and_noise(curr_input_from_mem)
+    diff = absolute_difference.apply_gain_and_noise(prev_input_from_mem, curr_input_from_mem)
+    scaling_val = scaling_comp.apply_gain_and_noise(curr_input_from_mem)
 
-	event = comparator.apply_gain_and_noise(diff, scaling_val)
+    event = comparator.apply_gain_and_noise(diff, scaling_val)
 
-	return [event]
+    return [event]
 
 def launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_mapping):
-	# complete the software stages data dependency graph.
-	build_sw_graph(sw_stage_list)
+    # deep copy in case the function modify the orginal data
+    hw_dict = copy.deepcopy(hw_dict)
+    mapping_dict = copy.deepcopy(mapping_dict)
+    sw_stage_list = copy.deepcopy(sw_stage_list)
+    # complete the software stages data dependency graph.
+    build_sw_graph(sw_stage_list)
 
-	# find software stages that are computed in analog domain
-	analog_sw_stages = find_analog_sw_stages(sw_stage_list, hw_dict["analog"], mapping_dict)
-	analog_sw_mapping = find_analog_sw_mapping(sw_stage_list, hw_dict["analog"], mapping_dict)
+    # find software stages that are computed in analog domain
+    analog_sw_stages = find_analog_sw_stages(sw_stage_list, hw_dict["analog"], mapping_dict)
+    analog_sw_mapping = find_analog_sw_mapping(sw_stage_list, hw_dict["analog"], mapping_dict)
 
-	finished_stages = []
-	ready_input = {}
-	visited_analog_array = []
-	simulation_res = {}
-	# first process those analog stages that are initial stage in analog pipeline.
-	for k in input_mapping.keys():
-		analog_array = analog_sw_mapping[k]
-		if analog_array.functional_pipeline is None:
-			ready_input[k] = [input_mapping[k]]
-			finished_stages.append(k)
-			visited_analog_array.append(analog_array)
-		else:
-			ready_input[k] = default_functional_simulation(
-				analog_array.functional_pipeline, 
-				[input_mapping[k]]
-			)
-			finished_stages.append(k)
-			visited_analog_array.append(analog_array)
+    finished_stages = []
+    ready_input = {}
+    visited_analog_array = []
+    simulation_res = {}
+    # first process those analog stages that are initial stage in analog pipeline.
+    for k in input_mapping.keys():
+        analog_array = analog_sw_mapping[k]
+        ready_input[k] = analog_array.noise([input_mapping[k]])
+        finished_stages.append(k)
+        visited_analog_array.append(analog_array)
 
-	# iteratively process the remain analog stages
-	while len(finished_stages) != len(analog_sw_stages):
-		for sw_stage in analog_sw_stages:
-			if sw_stage.name in finished_stages:
-				continue
+    # iteratively process the remain analog stages
+    while len(finished_stages) != len(analog_sw_stages):
+        for sw_stage in analog_sw_stages:
+            if sw_stage.name in finished_stages:
+                continue
 
-			ready_flag = True
-			for in_stage in sw_stage.input_stages:
-				if in_stage.name not in finished_stages:
-					ready_flag = False
+            ready_flag = True
+            for in_stage in sw_stage.input_stages:
+                if in_stage.name not in finished_stages:
+                    ready_flag = False
 
-			# check if all input stages are ready
-			if ready_flag:
-				analog_array = analog_sw_mapping[sw_stage.name]
-				
-				curr_input_list = []
-				for in_stage in sw_stage.input_stages:
-					for input_data in ready_input[in_stage.name]:
-						curr_input_list.append(input_data)
+            # check if all input stages are ready
+            if ready_flag:
+                analog_array = analog_sw_mapping[sw_stage.name]
+                
+                curr_input_list = []
+                for in_stage in sw_stage.input_stages:
+                    for input_data in ready_input[in_stage.name]:
+                        curr_input_list.append(input_data)
 
-				# if the functional pipeline is None, this means that this stage doesn't need any
-				# process, or if the analog array is already computed, we assume for one particular
-				# analog stage, one analog array will only be accessed once.
-				if analog_array.functional_pipeline is None or analog_array in visited_analog_array:
-					ready_input[sw_stage.name] = curr_input_list
-					finished_stages.append(sw_stage.name)
-				# if the functional simualtion function is None, we will use the default functional
-				# simulation routine.
-				elif analog_array.functional_sumication_func is None:
-					ready_input[sw_stage.name] = default_functional_simulation(
-						analog_array.functional_pipeline, 
-						curr_input_list
-					)
-					finished_stages.append(sw_stage.name)
-					visited_analog_array.append(analog_array)
-				# otherwise, use the customized analog simulation routine.
-				else:
-					ready_input[sw_stage.name] = analog_array.functional_sumication_func(
-						analog_array.functional_pipeline,
-						curr_input_list
-					)
-					finished_stages.append(sw_stage.name)
-					visited_analog_array.append(analog_array)
+                # if the analog array is already computed, we assume for one particular
+                # analog stage, one analog array will only be accessed once.
+                if analog_array in visited_analog_array:
+                    ready_input[sw_stage.name] = curr_input_list
+                    finished_stages.append(sw_stage.name)
+                # else we will perform functional simulation routine.
+                else:
+                    ready_input[sw_stage.name] = analog_array.noise(curr_input_list)
+                    finished_stages.append(sw_stage.name)
+                    visited_analog_array.append(analog_array)
 
-	# return a dictionaray, key is the software stage name, the value is the simulation result.
-	return ready_input
+    # return a dictionaray, key is the software stage name, the value is the simulation result.
+    return ready_input
 
 
 

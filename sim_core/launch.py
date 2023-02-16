@@ -95,12 +95,6 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
 
     sw2hw, hw2sw = map_sw_hw(mapping_dict, sw_stage_list, hw_dict)
 
-    # print("## [sw2hw] ##")
-    # pprint(sw2hw)
-
-    # print("## [hw2sw] ##")
-    # pprint(hw2sw)
-
     buffer_edge_dict = build_buffer_edges(sw_stage_list, hw_dict, sw2hw)
 
     allocate_output_buffer(

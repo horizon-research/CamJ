@@ -23,8 +23,10 @@ class AnalogComponent(object):
         self.components = []
         self.input_components = []
         self.output_components = []
+
     """
-        Key function to add component attributes to array
+        Energy function compute the total energy of this component. 
+        The total energy equals to the sum of (energy of each component) * (the number of such component)
     """
     def energy(self):
         total_energy = 0
@@ -33,6 +35,10 @@ class AnalogComponent(object):
 
         return total_energy
 
+    """
+        The noise function performs the noise simulation based on the noise model of each component
+        one-by-one.
+    """
     def noise(self, input_signal_list):
         output_signal_list = copy.deepcopy(input_signal_list)
 
@@ -56,33 +62,29 @@ class AnalogArray(object):
         layer: int, 
         num_input: list, 
         num_output: tuple,
-        functional_pipeline = None,
-        functional_sumication_func = None
     ):
         super(AnalogArray, self).__init__()
         self.name = name
         self.num_input = num_input
         self.num_output = num_output
-        self.functional_pipeline = functional_pipeline
-        self.functional_sumication_func = functional_sumication_func
         self.layer = layer
-        self.components = []
+        self.component = None
         self.input_domain = []
         self.output_domain = None
         self.input_arrays = []
         self.output_arrays = []
-        self.source_components = []
-        self.destination_components = []
-        self.num_component = {}
+        self.source_component = []
+        self.destination_component = []
+        self.num_component = 0
     """
         Key function to add components attributes to array
     """
     def add_component(self, component: AnalogComponent, component_size: tuple):
-        if len(self.components) > 0:
+        if self.component is not None:
             raise Exception("There are more than one component in analog array: '%s'." % self.name)
 
-        self.components.append(component)
-        self.num_component[component] = component_size
+        self.component = component
+        self.num_component = component_size
 
         self.set_source_component([component])
         self.set_destination_component([component])
@@ -122,13 +124,17 @@ class AnalogArray(object):
 
         return cnt
 
+    def noise(self, input_signal_list):
+        output_signal_list = copy.deepcopy(input_signal_list)
+
+        for component, _ in self.component.component_list:
+            output_signal_list = component.noise(output_signal_list)
+
+        return output_signal_list
+
     def energy(self):
-        total_compute_energy = 0
-        for i in range(len(self.components)):
-            component = self.components[i]
-            num_component = self.calc_num(self.num_component[component])
-            # print(component, num_component)
-            total_compute_energy += num_component * component.energy()
+        num_component = self.calc_num(self.num_component)
+        total_compute_energy = num_component * self.component.energy()
 
         return total_compute_energy
 

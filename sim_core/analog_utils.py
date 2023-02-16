@@ -25,7 +25,6 @@ def check_component_internal_connect_consistency(analog_component):
         head_list = new_head_list
         new_head_list = []
 
-
 def check_array_internal_connect_consistency(analog_array):
     # first check the correctness of every component internal connection
     for analog_component in analog_array.components:
@@ -60,24 +59,23 @@ def check_input_output_requirement_consistency(analog_array):
         if domain != ProcessDomain.OPTICAL:
             refined_input_domain.append(domain)
 
-    print(refined_input_domain, analog_array.input_arrays)
     if len(refined_input_domain) != len(analog_array.input_arrays):
         raise Exception("Analog array: '%s' input domain size is not equal to its input_array size" % analog_array.name)
 
 
 def check_analog_connect_consistency(analog_arrays):
-    for analog_array in analog_arrays:
-        check_array_internal_connect_consistency(analog_array)
-
+    # find those analog stages that don't need any dependencies.
     head_analog_arrays = find_head_analog_array(analog_arrays)
     new_head_analog_arrays = []
     while len(head_analog_arrays) > 0:
         for analog_array in head_analog_arrays:
             check_input_output_requirement_consistency(analog_array)
             for output_array in analog_array.output_arrays:
-                print(analog_array.name, output_array.name)
                 if analog_array.output_domain not in output_array.input_domain:
-                    raise Exception("Internal connection consistency failed. Domain mismatch.")
+                    raise Exception(
+                        "Analog connection consistency failed. %s's output domain and %s's input domain mismatch." \
+                        % (analog_array.name, output_array.name)
+                    )
 
                 if output_array not in new_head_analog_arrays:
                     new_head_analog_arrays.append(output_array)
@@ -137,7 +135,6 @@ def compute_total_energy(analog_arrays, analog_sw_stages, mapping_dict):
     for analog_array in analog_to_sw.keys():
         # check data dependency
         cnt = count_sw_mapping_dependency(analog_to_sw[analog_array])
-        print(analog_array, cnt)
         total_energy += cnt * analog_array.energy()
 
     return total_energy
@@ -149,7 +146,6 @@ def check_analog_pipeline(analog_arrays):
     new_head_analog_arrays = []
     idx = 1
     while len(head_analog_arrays) > 0:
-        print("[Pipeline stage %d]" % idx)
         idx += 1
         readiness = True
 
@@ -164,10 +160,8 @@ def check_analog_pipeline(analog_arrays):
                 new_head_analog_arrays.append(analog_array)
                 continue
 
-            print("Process", analog_array)
             finished_analog_arrays.append(analog_array)
             for output_array in analog_array.output_arrays:
-                print(analog_array.name, "-->", output_array.name)
                 if output_array not in new_head_analog_arrays:
                     new_head_analog_arrays.append(output_array)
 

@@ -57,8 +57,9 @@ def build_sw_graph(sw_stage_list):
     set_output_stages(sw_stage_list)
     build_ready_board(sw_stage_list)
 
+    # output data dependency
     for sw_stage in sw_stage_list:
-        print(sw_stage, ": ", sw_stage.output_stages)
+        print(sw_stage, "output stages:", sw_stage.output_stages)
 
     root_src_stage = find_src_stages(sw_stage_list)
     root_dst_stage = find_dst_stages(sw_stage_list)
@@ -67,32 +68,4 @@ def build_sw_graph(sw_stage_list):
     print("Final target: ", root_dst_stage)
     
     return
-
-    graph_layers = []
-    ready_list = []
-
-    i = 0
-
-    while len(ready_list) != len(sw_stage_list):
-        i += 1
-        print("###### Pipeline %d ######" % i)
-
-        curre_stage_layer = []
-
-        for sw_stage in sw_stage_list:
-            if sw_stage not in ready_list:
-                if sw_stage.check_ready_board():
-                    ready_list.append(sw_stage)
-                    curre_stage_layer.append(sw_stage)
-                    # for out_stage in sw_stage.output_stages:
-                    # out_stage.set_ready_board(sw_stage)
-
-        for sw_stage in curre_stage_layer:
-            for out_stage in sw_stage.output_stages:
-                out_stage.set_ready_board(sw_stage)
-                print("src: ", sw_stage, "dst: ", out_stage)
-
-        print(curre_stage_layer)
-        graph_layers.append(curre_stage_layer)
-
 
