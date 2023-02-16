@@ -48,10 +48,10 @@ def main():
 	sw_stage_list = sw_pipeline()
 
 	tutorial_functional_simulation(
-		"test_imgs/test_img.jpeg",
-		copy.deepcopy(hw_dict),
-		copy.deepcopy(mapping_dict),
-		copy.deepcopy(sw_stage_list)
+		img_name = "test_imgs/test_img.jpeg",
+	    hw_dict = hw_dict,
+		mapping_dict = mapping_dict,
+		sw_stage_list = sw_stage_list
 	)
 	
 	launch_simulation(
