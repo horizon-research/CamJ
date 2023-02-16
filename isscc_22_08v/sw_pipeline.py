@@ -10,7 +10,9 @@ parent_directory = os.path.dirname(directory)
 sys.path.append(os.path.dirname(directory))
 sys.path.append(os.path.dirname(parent_directory))
 
-from sw_framework_interface import ProcessStage, DNNProcessStage, PixelInput, build_sw_graph
+from sim_core.enum_const import Padding
+from sim_core.sw_interface import ProcessStage, DNNProcessStage, PixelInput
+from sim_core.sw_utils import build_sw_graph
 
 def sw_pipeline():
 
@@ -18,16 +20,20 @@ def sw_pipeline():
 	conv_stage = ProcessStage(
 		name = "Conv",
 		input_size = [(126, 126, 1)],
-		output_size = (42, 42, 8),
-		input_reuse = [(1, 1, 1)]
+        kernel_size = [(3, 3, 1)],
+        stride = [(3, 3, 1)],
+		output_size = (42, 42, 1),
+        padding = [Padding.NONE]
 	)
 	sw_stage_list.append(conv_stage)
 
 	mp_stage = ProcessStage(
 		name = "MaxPool",
-		input_size = [(42, 42, 8)],
-		output_size = (21, 21, 8),
-		input_reuse = [(1, 1, 1)]
+		input_size = [(42, 42, 1)],
+        kernel_size = [(2, 2, 1)],
+        stride = [(2, 2, 1)],
+		output_size = (21, 21, 1),
+        padding = [Padding.NONE]
 	)
 	sw_stage_list.append(mp_stage)
 
