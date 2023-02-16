@@ -380,7 +380,8 @@ class CurrentMirrorPerf(object):
             self.i_dc = i_dc
 
     def energy(self):
-        energy = self.supply * self.i_dc * self.t_readout
+        return self.supply * self.i_dc * self.t_readout
+
 
 
 class PassiveSwitchedCapacitorArrayPerf(object):
