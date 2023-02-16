@@ -5,12 +5,13 @@ This is the core library for power/energy estimation in CamJ framework.
 ## Structure of This Library
 
 This library is organized into four major parts:
-- *analog computing simulation*: `analog_infra.py`, `analog_lib.py` and `analog_utils.py` are 
+- *analog computing simulation*: `analog_infra.py`, `analog_lib.py`, `analog_perf_lib.py` and `analog_utils.py` are 
 modules or classes that are used for analog simulation.
 - *digital computing simulation*: `digital_compute.py`, `digital_memory.py`, `sim_infra.py` 
 and `sim_utils.py` are modules for digital simulation.
 - *software interface*: `sw_interface.py` provides the software interface for users to provide
-the software algorithms that they want to perform simulation.
+the software algorithms that they want to perform simulation. `sw_utils.py` contains utility code
+for software pipeline.
 - *harness code*: `launch.py`, `enum_const.py` and `flags.py` are harness codes or configuration flags
 which can be modified if necessary.
 
@@ -82,7 +83,7 @@ The above code just finishes describing a simple software pipeline using CamJ AP
 
 ## Analog Configuration
 
-Analog configuration starts from describing a set of analog arrays. In each analog array, users also
+Analog configuration starts from describing a set of analog arrays. In each analog array, users then
 need to define what analog components are inside. Here, we show an example of defining an analog array:
 
 ```
@@ -96,25 +97,29 @@ pixel = AnalogComponent(
     name = "Pixel",
     input_domain =[ProcessDomain.OPTICAL],
     output_domain = ProcessDomain.TIME,
-    energy = dummy_energy_func
+    component_list = ...
 )
 ```
-Here, we define an analog array called `PixelArray`, the input/output of this pixel array is (640, 1, 1).
-This shows each cycle, it can produce a row of 640 pixels. This `PixelArray` resides in `SENSOR_LAYER`. 
-We also define an analog component called `Pixel`. The `Pixel` component has input domain and output
-domain which allow CamJ framework to verify the correctness of the analog implementation. The `energy` 
-attribute allows CamJ to compute the overall energy/power consumption.
+Here, we define an analog array called `PixelArray`, the input/output throughputs of this pixel array
+are both (640, 1, 1). This shows each cycle, it can generate a row of 640 pixels. `SENSOR_LAYER` 
+attribute shows that this `PixelArray` resides in sensor layer. In addition to `PixelArray`, we also
+need to define an analog component called `Pixel`. The `Pixel` component has input domain and output
+domain which allow CamJ framework to verify the correctness of the analog implementation. `component_list` 
+attribute defines the implementation of this analog component. This information allows CamJ to 
+estimate the overall energy/power consumption and perform functional simulation. `analog_libs.py` 
+contains the analog compoenents that CamJ supports for energy/functional simulation.
 
 ```
 pixel_array.add_component(pixel, (640, 400, 1))
 pixel_array.set_source_component([pixel])
 pixel_array.set_destination_component([pixel])
 ```
-In addition to these two definations, we also need to define the structure and the connection of these 
-analog array. Here, `add_component` function shows the pixel array has (640, 400, 1) of pixels. 
-`set_source_component` and `set_destination_component` show the internal connections of pixel array. 
-These two functions are used to determine the connection inside the analog array, in case there are 
-multiple analog components inside one analog array.
+
+In addition to these two definitions, we also need to define the structure and the connection of this 
+pixel array. Here, `add_component` function shows the pixel array has (640, 400, 1) of pixels. In 
+current CamJ implementation, each `AnalogArray` only allows to add one `AnalogComponent`. *However*,
+`AnalogComponent` (considered as a super-component) can add multiple analog basic components that 
+are supported by CamJ.
 
 ## Digital Configuration
 

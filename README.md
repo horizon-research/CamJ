@@ -1,7 +1,7 @@
 # CamJ: In-sensor Processing Simulator
 
-CamJ is an in-sensor processing simulator. CamJ framwork helps sensor designer to easily describe
-their sensor designs using high-level API and evaluates the energy and accuracy of their designs.
+CamJ is an in-sensor processing simulator. CamJ framwork helps sensor designers to easily describe
+their sensor designs using high-level API and evaluates the energy and accuracy of their designs in minutes.
 
 ## What's Inside
 
@@ -18,9 +18,10 @@ For more details about these two parts, go and check these two subdirectories.
 To use our framework, users need to specify the sensor configuration using CamJ API. CamJ API provides
 three major parts to allow users freely describe their designs. These three parts are:
 
-- software pipeline configuration: this file describes how computation are done in software. Most image pipeline can be described as a directed acyclic graph (DAG), we design CamJ API so that each node is a 
-processing stage and each connection is the data dependency. In each node, we constrain the computations 
-to be stencil operations, which is most commonly used operation in image/graph processing.
+- software pipeline configuration: this file describes how computations are done in software. 
+Because most image pipeline can be described as a directed acyclic graph (DAG), we design CamJ API
+so that each node is a processing stage and each connection is the data dependency. In each node, 
+we constrain computations to be stencil operations, which is most commonly used operation in image/graph processing.
 - hardware desription: this file describes the hardware configuration. It is like how you decribe
 hardware in other HDLs, but it is much simpler. CamJ also provides some built-in hardware modules 
 so that you can direcly plog in your design.
@@ -35,13 +36,12 @@ Here shows the overview of our system. For more details, please refer our [paper
 
 Directory `ieee_vr22` contains an example about how to describe a sensor design and a software pipeline
 using CamJ API. In `ieee_vr22` folder, `sw_pipeline.py` describes the software dataflow, `hw_config`
-describes hardware configuration and `mapping_file.py` describes the mapping mechanism between
-software stages and hardware units. `functional_pipeline.py` is an additional file to describe
-funtional simulation about noise modeling inside the sensor. No need to describe this file if you
-don't want to do functional simulation. Inside `hw_config.py`, CamJ provides an option to define
-which hardware unit can perform functional simulation.
+and `analog_config.py` describes hardware configuration and `mapping_file.py` describes the mapping 
+mechanism between software stages and hardware units. 
 
-In `example_run.py`, it contains how to use CamJ API to run simulation. First, we includes software/hardware configuration files which are defines using CamJ API.
+In `example_run.py`, it contains how to use CamJ API to run simulation. `run_ieee_vr22()` function shows
+an example how to include user-defined hardware configurations and feed to CamJ simulator.
+First, we includes software/hardware configuration files which are defines using CamJ API.
 
 ```
 from ieee_vr22.mapping_file import mapping_function
@@ -49,7 +49,7 @@ from ieee_vr22.sw_pipeline import sw_pipeline
 from ieee_vr22.hw_config import hw_config
 ```
 
-Next, get the major data structures for sensor simulation, as `main()` function shows.
+Next, get the major data structures for sensor simulation, as shown below.
 ```
 hw_dict = hw_config()
 mapping_dict = mapping_function()
@@ -70,9 +70,9 @@ This performs power estimation.
 
 Function `eventification_noise_simulation_example` is an example that shows how to run noise modeling 
 simulations. In this example, it first runs noise modeling for an common sensor imaging pipeline. 
-Then, the noising image will feed to a special hardware to generate events between two adjacent noising
-images. In this example, we also show how CamJ accept default noise simulation routine and also any 
-customized simulation routine. For more details, please check out `functional_core` directory.
+Then, the noising image will feed to a special hardware to generate events between two temporally-adjacent
+images. In this example, we also show how CamJ accepts default noise simulation routine and also any 
+customized simulation routine. For more details, please check out `ieee_vr22` and `functional_core` directory.
 
 After those functions are defined, just run `example_run.py`
 ```
