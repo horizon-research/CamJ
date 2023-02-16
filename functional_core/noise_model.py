@@ -223,7 +223,7 @@ class CurrentMirrorNoise(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
-        super(PixelwiseNoise, self).__init__()
+        super(CurrentMirrorNoise, self).__init__()
         self.name = name
         self.gain = gain
         self.noise = noise

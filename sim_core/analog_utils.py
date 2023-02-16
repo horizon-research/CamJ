@@ -56,7 +56,7 @@ def find_head_analog_array(analog_arrays):
 def check_input_output_requirement_consistency(analog_array):
     refined_input_domain = []
     for domain in analog_array.input_domain:
-        if domain != ProcessDomain.OPTICAL:
+        if domain != ProcessDomain.OPTICAL and domain != ProcessDomain.DIGITAL:
             refined_input_domain.append(domain)
 
     if len(refined_input_domain) != len(analog_array.input_arrays):
@@ -104,7 +104,7 @@ def find_analog_output_stages(sw_stages):
 
     for sw_stage in sw_stages:
         for output_stage in sw_stage.output_stages:
-            if output_stage is not in sw_stages:
+            if output_stage not in sw_stages:
                 output_stages.append(sw_stage)
 
     return output_stages
@@ -121,7 +121,7 @@ def compute_total_energy(analog_arrays, analog_sw_stages, mapping_dict):
         for output_stage in output_stages:
             sw_size = output_stage.output_size
             hw_size = analog_array.num_output
-            cnt = sw_size[0] * sw_size[1] * sw_size[2] / (hw_size[0] * hw_size[1])
+            cnt = (sw_size[0] * sw_size[1] * sw_size[2]) / (hw_size[0] * hw_size[1])
             total_energy += cnt * analog_array.energy()
 
     return total_energy
