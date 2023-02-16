@@ -11,127 +11,192 @@ sys.path.append(os.path.dirname(parent_directory))
 from sim_core.analog_infra import AnalogArray, AnalogComponent
 from sim_core.enum_const import ProcessorLocation, ProcessDomain
 from sim_core.analog_utils import launch_analog_simulation
-from sim_core.analog_lib import ActivePixelSensor, ActiveAnalogMemory, ColumnAmplifier, Comparator
+from sim_core.pixel_libs import ActivePixelSensor
+from sim_core.analog_libs import ActiveAnalogMemory, ColumnAmplifier, \
+                                 Comparator, SourceFollower
 
 from functional_core.launch import customized_eventification_simulation
 
 from ieee_vr22.mapping_file import mapping_function_w_analog
 from ieee_vr22.sw_pipeline import sw_pipeline_w_analog
-from ieee_vr22.noise_config import sensor_noise_model, eventification_noise_model
+from ieee_vr22.customized_analog_component import EventificationUnit
 
-
-def dummy_energy_func():
-	return 1
 
 def analog_config():
 
-	analog_arrays = []
+    analog_arrays = []
 
-	pixel_array = AnalogArray(
-		name = "PixelArray",
-		layer = ProcessorLocation.SENSOR_LAYER,
-		num_input = [(640, 2, 1)],
-		num_output = (320, 1, 1),
-		functional_pipeline = sensor_noise_model()
-	)
-	pixel = AnalogComponent(
-		name = "BinningPixel",
-		input_domain =[ProcessDomain.OPTICAL],
-		output_domain = ProcessDomain.VOLTAGE,
-		energy_func_list = [
-			(
-				ActivePixelSensor(
-					pd_capacitance = 1e-12,
-					pd_supply = 1.8, # V
-					output_vs = 1, #  
-					num_transistor = 3,
-					num_readout = 1
-				).energy,
-				1
-			)
-		],
-		num_input = [(2, 2)],
-		num_output = (1, 1)
-	)
+    pixel_array = AnalogArray(
+        name = "PixelArray",
+        layer = ProcessorLocation.SENSOR_LAYER,
+        num_input = [(640, 2, 1)],
+        num_output = (320, 1, 1),
+    )
+    pixel = AnalogComponent(
+        name = "BinningPixel",
+        input_domain =[ProcessDomain.OPTICAL],
+        output_domain = ProcessDomain.VOLTAGE,
+        component_list = [
+            (
+                ActivePixelSensor(
+                    # performance parameters
+                    pd_capacitance = 1e-12,
+                    pd_supply = 1.8, # V
+                    output_vs = 1, #  
+                    enable_cds = True,
+                    num_transistor = 4,
+                    # noise model parameters
+                    dark_current_noise = 0.005,
+                    enable_dcnu = True,
+                    enable_prnu = True,
+                    dcnu_std = 0.001,
+                    fd_gain = 1.0,
+                    fd_noise = 0.005,
+                    fd_prnu_std = 0.001,
+                    sf_gain = 1.0,
+                    sf_noise = 0.005,
+                    sf_prnu_std = 0.001
+                ),
+                4
+            )
+        ],
+        num_input = [(2, 2)],
+        num_output = (1, 1)
+    )
 
-	pixel_array.add_component(pixel, (320, 200, 1))
+    pixel_array.add_component(pixel, (320, 200, 1))
 
-	analog_memory_array = AnalogArray(
-		name = "AnalogMemoryArray",
-		layer = ProcessorLocation.SENSOR_LAYER,
-		num_input = [],
-		num_output = [(320, 1, 1)],
-	)
+    analog_memory_array = AnalogArray(
+        name = "AnalogMemoryArray",
+        layer = ProcessorLocation.SENSOR_LAYER,
+        num_input = [],
+        num_output = [(320, 1, 1)],
+    )
 
-	analog_memory_unit = AnalogComponent(
-		name = "AnalogMemoryunit",
-		input_domain = [],
-		output_domain = ProcessDomain.VOLTAGE,
-		energy_func_list = [
-			(ColumnAmplifier().energy, 1),
-			(
-				ActiveAnalogMemory(
-					capacitance = 1e-12,
-					t_sample = 1e-6,
-					t_hold = 10e-3,
-					supply = 1.8 # V
-				).energy,
-				1
-			)
-		],
-		num_input = [],
-		num_output = [(1, 1)]
-	)
-	analog_memory_array.add_component(analog_memory_unit, (320, 201))
+    analog_memory_unit = AnalogComponent(
+        name = "AnalogMemoryunit",
+        input_domain = [],
+        output_domain = ProcessDomain.VOLTAGE,
+        component_list = [
+            (
+                ColumnAmplifier(
+                    gain = 2.0,
+                    noise = 0.005,
+                    enable_prnu = True,
+                    prnu_std = 0.001,
+                ), 
+                1
+            ),
+            (
+                ActiveAnalogMemory(
+                    sample_capacitance = 2e-12,  # [F]
+                    comp_capacitance = 2.5e-12,  # [F]
+                    t_sample = 1e-6,
+                    t_hold = 10e-3,
+                    supply = 1.8, # V
+                    noise = 0.005,
+                    enable_prnu = True,
+                    prnu_std = 0.001,
+                ),
+                1
+            )
+        ],
+        num_input = [],
+        num_output = [(1, 1)]
+    )
+    analog_memory_array.add_component(analog_memory_unit, (320, 201))
 
-	eventification_array = AnalogArray(
-		name = "EventificationArray",
-		layer = ProcessorLocation.SENSOR_LAYER,
-		num_input = [(320, 1), (320, 1)],
-		num_output = (320, 1),
-		functional_pipeline = eventification_noise_model(),
-		functional_sumication_func = customized_eventification_simulation
-	)
-	eventification_pe = AnalogComponent(
-		name = "EventificationPE",
-		input_domain = [ProcessDomain.VOLTAGE, ProcessDomain.VOLTAGE],
-		output_domain = ProcessDomain.VOLTAGE,
-		energy_func_list = [
-			# SourceFollower().energy,
-			# SourceFollower().energy,
-			# SourceFollower().energy,
-			(ColumnAmplifier().energy, 1),
-			(ColumnAmplifier().energy, 1),
-			(Comparator().energy, 1)
-		],
-		num_input = [(1, 1), (1, 1)],
-		num_output = (1, 1)
-	)
-	eventification_array.add_component(eventification_pe, (320, 1))
+    eventification_array = AnalogArray(
+        name = "EventificationArray",
+        layer = ProcessorLocation.SENSOR_LAYER,
+        num_input = [(320, 1), (320, 1)],
+        num_output = (320, 1),
+    )
+    eventification_pe = AnalogComponent(
+        name = "EventificationPE",
+        input_domain = [ProcessDomain.VOLTAGE, ProcessDomain.VOLTAGE],
+        output_domain = ProcessDomain.VOLTAGE,
+        component_list = [
+            (
+                ActiveAnalogMemory(
+                    sample_capacitance = 2e-12,  # [F]
+                    comp_capacitance = 2.5e-12,  # [F]
+                    t_sample = 1e-6,
+                    t_hold = 10e-3,
+                    supply = 1.8, # V
+                    noise = 0.005,
+                    enable_prnu = True,
+                    prnu_std = 0.001,
+                ),
+                2
+            ),
+            (
+                SourceFollower(
+                    supply = 1.8,
+                    gain = 1.0,
+                    noise = 0.005,
+                    enable_prnu = True,
+                    prnu_std = 0.001,
+                ),
+                2
+            ),
+            (
+                EventificationUnit(
+                    event_threshold = 0.3,
+                    # performance parameters
+                    load_capacitance = 1e-12,  # [F]
+                    input_capacitance = 1e-12,  # [F]
+                    t_sample = 2e-6,  # [s]
+                    t_frame = 10e-3,  # [s]
+                    supply = 1.8,  # [V]
+                    gain = 1,
+                    # noise parameters
+                    noise = 0.005,
+                    enable_prnu = True,
+                    prnu_std = 0.001,
+                ),
+                1
+            ),
+            (
+                Comparator(
+                    supply = 1.8,
+                    gain = 1.0,
+                    noise = 0.005,
+                    enable_prnu = True,
+                    prnu_std = 0.001,
+                ),
+                1
+            )
 
-	pixel_array.add_output_array(eventification_array)
-	eventification_array.add_input_array(pixel_array)
+        ],
+        num_input = [(1, 1), (1, 1)],
+        num_output = (1, 1)
+    )
+    eventification_array.add_component(eventification_pe, (320, 1))
 
-	analog_memory_array.add_output_array(eventification_array)
-	eventification_array.add_input_array(analog_memory_array)
+    pixel_array.add_output_array(eventification_array)
+    eventification_array.add_input_array(pixel_array)
 
-	analog_arrays.append(pixel_array)
-	analog_arrays.append(analog_memory_array)
-	analog_arrays.append(eventification_array)
+    analog_memory_array.add_output_array(eventification_array)
+    eventification_array.add_input_array(analog_memory_array)
 
-	return analog_arrays
+    analog_arrays.append(pixel_array)
+    analog_arrays.append(analog_memory_array)
+    analog_arrays.append(eventification_array)
 
-	
+    return analog_arrays
+
+    
 if __name__ == '__main__':
-	analog_arrays = analog_config()
+    analog_arrays = analog_config()
 
-	sw_stages = sw_pipeline_w_analog()
+    sw_stages = sw_pipeline_w_analog()
 
-	mapping_dict = mapping_function_w_analog()
+    mapping_dict = mapping_function_w_analog()
 
-	total_energy = launch_analog_simulation(analog_arrays, sw_stages, mapping_dict)
-	print("total energy:", total_energy)
+    total_energy = launch_analog_simulation(analog_arrays, sw_stages, mapping_dict)
+    print("total energy:", total_energy)
 
-	
+    
 
 

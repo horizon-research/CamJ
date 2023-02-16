@@ -19,28 +19,28 @@ from tutorial.sw_pipeline import sw_pipeline
 
 def analog_config():
 
-	analog_arrays = []
+    analog_arrays = []
 
-	pixel_array = AnalogArray(
-		name = "PixelArray",
-		layer = ProcessorLocation.SENSOR_LAYER,
-		num_input = [(32, 1, 1)],
-		num_output = (32, 1, 1),
-	)
-	pixel = AnalogComponent(
-		name = "Pixel",
-		input_domain =[ProcessDomain.OPTICAL],
-		output_domain = ProcessDomain.VOLTAGE,
-		component_list = [
-			(
-				ActivePixelSensor(
+    pixel_array = AnalogArray(
+        name = "PixelArray",
+        layer = ProcessorLocation.SENSOR_LAYER,
+        num_input = [(32, 1, 1)],
+        num_output = (32, 1, 1),
+    )
+    pixel = AnalogComponent(
+        name = "Pixel",
+        input_domain =[ProcessDomain.OPTICAL],
+        output_domain = ProcessDomain.VOLTAGE,
+        component_list = [
+            (
+                ActivePixelSensor(
                     # performance parameters
-					pd_capacitance = 1e-12,
-					pd_supply = 1.8, # V
-					output_vs = 1, #  
-					enable_cds = True,
+                    pd_capacitance = 1e-12,
+                    pd_supply = 1.8, # V
+                    output_vs = 1, #  
+                    enable_cds = True,
                     num_transistor = 4,
-					# noise model parameters
+                    # noise model parameters
                     dark_current_noise = 0.005,
                     enable_dcnu = True,
                     enable_prnu = True,
@@ -51,31 +51,31 @@ def analog_config():
                     sf_gain = 1.0,
                     sf_noise = 0.005,
                     sf_prnu_std = 0.001
-				),
-				1
-			)
-		],
-		num_input = [(1, 1)],
-		num_output = (1, 1)
-	)
+                ),
+                1
+            )
+        ],
+        num_input = [(1, 1)],
+        num_output = (1, 1)
+    )
 
-	pixel_array.add_component(pixel, (32, 32, 1))
+    pixel_array.add_component(pixel, (32, 32, 1))
 
-	analog_arrays.append(pixel_array)
+    analog_arrays.append(pixel_array)
 
-	return analog_arrays
+    return analog_arrays
 
-	
+    
 if __name__ == '__main__':
     
-	analog_arrays = analog_config()
-	sw_stages = sw_pipeline()
-	mapping_dict = mapping_function()
+    analog_arrays = analog_config()
+    sw_stages = sw_pipeline()
+    mapping_dict = mapping_function()
 
-	total_energy = launch_analog_simulation(analog_arrays, sw_stages, mapping_dict)
+    total_energy = launch_analog_simulation(analog_arrays, sw_stages, mapping_dict)
 
-	print("total energy:", total_energy)
+    print("total energy:", total_energy)
 
-	
+    
 
 

@@ -9,7 +9,7 @@ from functional_core.noise_model import ColumnwiseNoise, PixelwiseNoise, Floatin
                                         CurrentMirrorNoise, ComparatorNoise,\
                                         PassiveSwitchedCapacitorArrayNoise, AnalogToDigitalConverterNoise
 
-class ColumnAmplifierPerf(object):
+class ColumnAmplifier(object):
     """
     NMOS-based single-input-single-output cascode amplifier.
 
@@ -99,10 +99,10 @@ class SourceFollower(object):
 
         self.noise_model = PixelwiseNoise(
             name = "SourceFollower",
-            gain = sf_gain,
-            noise = sf_read_noise,
-            enable_prnu = True,
-            prnu_std = sf_prnu_std
+            gain = gain,
+            noise = noise,
+            enable_prnu = enable_prnu,
+            prnu_std = prnu_std
         )
 
     def energy(self):
@@ -268,9 +268,9 @@ class PassiveSwitchedCapacitorArray(object):
         self,
         # peformance parameters
         capacitance_array,
-        vs_array
+        vs_array,
         # noise parameters
-        noise = 0.
+        noise = 0.,
     ):
         self.perf_model = PassiveSwitchedCapacitorArrayPerf(
             capacitance_array = capacitance_array,
