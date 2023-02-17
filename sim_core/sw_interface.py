@@ -78,6 +78,12 @@ class ProcessStage(object):
                 )
             )
 
+        for i in range(len(self.input_size)):
+            if self.input_size[i][-1] != self.kernel_size[i][-1]:
+                raise Exception(
+                    "The the last dimension of #%d input size and kernel size pair is mismatched!" % (i+1)
+                )
+
         extrapolated_size = deepcopy(self.input_size)
         # first pad the input size
         for i in range(len(self.input_size)):
