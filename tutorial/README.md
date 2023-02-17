@@ -124,6 +124,22 @@ pixel = AnalogComponent(
     num_input = [(1, 1)],
     num_output = (1, 1)
 )
+
+col_amp = AnalogComponent(
+    name = "ColumnAmplifier",
+    input_domain =[ProcessDomain.VOLTAGE],
+    output_domain = ProcessDomain.VOLTAGE,
+    component_list = [
+        (
+            ColumnAmplifier(
+                ...
+            ),
+            1
+        )
+    ],
+    num_input = [(1, 1)],
+    num_output = (1, 1)
+)
 ```
 
 To define an analog structure in CamJ, users first need to define a `AnalogArray` which serves as a 
@@ -140,20 +156,25 @@ builtin template to define an 3T active pixel sensor (3T-APS). We use a list of 
 one analog component might includes more than one analog structures. `1` in the second element of this 
 tuple shows that only one 3T-APS inside this analog component.
 
+Additionally, we also need to define a column amplifier in the pixel array for pixel readout. Here,
+`col_amp` instance is a column amplifer component. Both the input and the output domain of column 
+amplifier are `VOLTAGE`.
+
 ```
 pixel_array.add_component(pixel, (32, 32, 1))
+pixel_array.add_component(col_amp, (32, 1, 1))
 
 analog_arrays.append(pixel_array)
 
 return analog_arrays
 ```
 
-After we define the pxiel array and pixel component, we need to add this pixel component to the pixel
-array using `add_component` function. Next, we need to define the connection both inside the analog
-array and between different analog arrays. Here, we only have one analog array, so no need to define 
+After we define pxiel array and pixel components, we need to add pixel components (both pixel and 
+column amplifier) to the pixel array using `add_component` function. Next, we need to define the 
+connection between different analog arrays. Here, we only have one analog array, so no need to define 
 the connection across different analog arrays. 
 
-Last, we add every analog array to a `analog_arrays` list and return to Camj simulator.
+Last, we add every analog array to a `analog_arrays` list and return to CamJ simulator.
 
 ### Digital Configuration
 

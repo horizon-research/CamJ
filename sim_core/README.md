@@ -111,8 +111,6 @@ contains the analog compoenents that CamJ supports for energy/functional simulat
 
 ```
 pixel_array.add_component(pixel, (640, 400, 1))
-pixel_array.set_source_component([pixel])
-pixel_array.set_destination_component([pixel])
 ```
 
 In addition to these two definitions, we also need to define the structure and the connection of this 
