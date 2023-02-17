@@ -317,7 +317,7 @@ if __name__ == '__main__':
     test_analog_energy_sim()
     # test basic noise simulation routine
     test_analog_noise_sim()
-
+    # test a more complex case 
     test_analog_complex_connection()
 
 

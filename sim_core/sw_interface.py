@@ -53,6 +53,31 @@ class ProcessStage(object):
         self.check_consistency()
 
     def check_consistency(self):
+        if len(self.input_size) != len(self.kernel_size):
+            raise Exception(
+                "ProcessStage '%s' input_size length (%d) is not the same as kernel_size length (%d)" % (
+                    self.name,
+                    len(self.input_size),
+                    len(self.kernel_size)
+                )
+            )
+        if len(self.input_size) != len(self.stride):
+            raise Exception(
+                "ProcessStage '%s' input_size length (%d) is not the same as stride length (%d)" % (
+                    self.name,
+                    len(self.input_size),
+                    len(self.stride)
+                )
+            )
+        if len(self.input_size) != len(self.padding):
+            raise Exception(
+                "ProcessStage '%s' input_size length (%d) is not the same as padding length (%d)" % (
+                    self.name,
+                    len(self.input_size),
+                    len(self.padding)
+                )
+            )
+
         extrapolated_size = deepcopy(self.input_size)
         # first pad the input size
         for i in range(len(self.input_size)):
