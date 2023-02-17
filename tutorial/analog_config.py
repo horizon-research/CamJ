@@ -12,6 +12,7 @@ from sim_core.analog_infra import AnalogArray, AnalogComponent
 from sim_core.enum_const import ProcessorLocation, ProcessDomain
 from sim_core.analog_utils import launch_analog_simulation
 from sim_core.pixel_libs import ActivePixelSensor
+from sim_core.analog_libs import ColumnAmplifier
 
 from tutorial.mapping_file import mapping_function
 from tutorial.sw_pipeline import sw_pipeline
@@ -38,8 +39,8 @@ def analog_config():
                     pd_capacitance = 1e-12,
                     pd_supply = 1.8, # V
                     output_vs = 1, #  
-                    enable_cds = True,
-                    num_transistor = 4,
+                    enable_cds = False,
+                    num_transistor = 3,
                     # noise model parameters
                     dark_current_noise = 0.005,
                     enable_dcnu = True,
@@ -58,8 +59,33 @@ def analog_config():
         num_input = [(1, 1)],
         num_output = (1, 1)
     )
-
-    pixel_array.add_component(pixel, (32, 32, 1))
+    pixel_array.add_component(pixel, (32, 1, 1))
+    
+    col_amp = AnalogComponent(
+        name = "ColumnAmplifier",
+        input_domain =[ProcessDomain.VOLTAGE],
+        output_domain = ProcessDomain.VOLTAGE,
+        component_list = [
+            (
+                ColumnAmplifier(
+                    load_capacitance = 1e-12,  # [F]
+                    input_capacitance = 1e-12,  # [F]
+                    t_sample = 2e-6,  # [s]
+                    t_frame = 10e-3,  # [s]
+                    supply = 1.8,  # [V]
+                    gain = 1,
+                    # noise parameters
+                    noise = 0.005,
+                    enable_prnu = True,
+                    prnu_std = 0.001,
+                ),
+                1
+            )
+        ],
+        num_input = [(1, 1)],
+        num_output = (1, 1)
+    )
+    pixel_array.add_component(col_amp, (32, 1, 1))
 
     analog_arrays.append(pixel_array)
 

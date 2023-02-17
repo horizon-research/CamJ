@@ -58,8 +58,8 @@ def eventification_noise_simulation_example(
     prev_img = np.array(cv2.imread(prev_img_name, cv2.IMREAD_GRAYSCALE))/255*full_scale_input_voltage
 
     input_mapping = {
-        "CurrInput" : photon_input,
-        "PrevResizedInput" : prev_img
+        "CurrInput" : [photon_input],
+        "PrevResizedInput" : [prev_img]
     }
 
     simulation_res = launch_functional_simulation(
@@ -89,9 +89,9 @@ def run_ieee_vr22():
     eventification_noise_simulation_example(
         prev_img_name = "test_imgs/test_eye1.png",
         curr_img_name = "test_imgs/test_eye2.png",
-        hw_dict = copy.deepcopy(hw_dict),
-        mapping_dict = copy.deepcopy(mapping_dict),
-        sw_stage_list = copy.deepcopy(sw_stage_list)
+        hw_dict = hw_dict,
+        mapping_dict = mapping_dict,
+        sw_stage_list = sw_stage_list
     )
     
     launch_simulation(
@@ -120,6 +120,6 @@ if __name__ == '__main__':
 
     run_isscc_22_08v()
     
-    # run_ieee_vr22()
+    run_ieee_vr22()
 
 

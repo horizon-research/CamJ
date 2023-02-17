@@ -72,7 +72,7 @@ def launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_map
     # first process those analog stages that are initial stage in analog pipeline.
     for k in input_mapping.keys():
         analog_array = analog_sw_mapping[k]
-        ready_input[k] = analog_array.noise([input_mapping[k]])
+        ready_input[k] = analog_array.noise(input_mapping[k])
         finished_stages.append(k)
         visited_analog_array.append(analog_array)
 

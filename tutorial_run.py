@@ -5,7 +5,7 @@ import copy
 
 # import local modules
 from sim_core.launch import launch_simulation
-from functional_core.launch import launch_functional_simulation, customized_eventification_simulation
+from functional_core.launch import launch_functional_simulation
 
 # import tutorial example configuration modules
 from tutorial.mapping_file import mapping_function
@@ -30,7 +30,7 @@ def tutorial_functional_simulation(
 	photon_input = img/255*pixel_full_well_capacity
 
 	input_mapping = {
-		"Input" : photon_input
+		"Input" : [photon_input]
 	}
 
 	simulation_res = launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_mapping)
