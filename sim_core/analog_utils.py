@@ -1,4 +1,6 @@
 import numpy as np
+import copy
+
 from sim_core.analog_infra import AnalogArray, AnalogComponent
 from sim_core.enum_const import ProcessDomain
 
@@ -102,10 +104,21 @@ def reverse_sw_to_analog_mapping(analog_arrays, analog_sw_stages, mapping_dict):
 def find_analog_output_stages(sw_stages):
     output_stages = []
 
+    # iterate the sw stages that maps to the same analog array,
+    # if any sw stage has some output stages that are not part of 
+    # the current "sw_stages", then, we consider those sw stages 
+    # as output stages.
     for sw_stage in sw_stages:
         for output_stage in sw_stage.output_stages:
             if output_stage not in sw_stages:
                 output_stages.append(sw_stage)
+
+    # however, if the output stages is empty after the previous loop,
+    # then all the sw stages are independent and they are all output stages
+    if len(output_stages) == 0:
+        # no need deepcopy, we just need the reference of those sw stages
+        # will no modify the output stages
+        output_stages = copy.copy(sw_stages)
 
     return output_stages
 

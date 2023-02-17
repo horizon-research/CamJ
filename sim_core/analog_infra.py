@@ -128,6 +128,29 @@ class AnalogArray(object):
 
         return cnt
 
+    def calc_output_ratio(self, array_ouput, comp_output):
+        array_throughput = 1
+        comp_throughput = 1
+        for i in array_ouput:
+            array_throughput *= i
+
+        for i in comp_output:
+            comp_throughput *= i
+
+        return array_throughput / comp_throughput
+
+    def energy(self):
+        total_compute_energy = 0
+        for component in self.components:
+            # num_component = self.calc_num(self.num_component[component])
+            output_ratio = self.calc_output_ratio(
+                self.num_output, 
+                component.num_output
+            )
+            total_compute_energy += component.energy() * output_ratio
+
+        return total_compute_energy
+
     def noise(self, input_signal_list):
         output_signal_list = copy.deepcopy(input_signal_list)
 
@@ -138,14 +161,6 @@ class AnalogArray(object):
                 output_signal_list = subcomponent.noise(output_signal_list)
 
         return output_signal_list
-
-    def energy(self):
-        total_compute_energy = 0
-        for component in self.components:
-            num_component = self.calc_num(self.num_component[component])
-            total_compute_energy += num_component * component.energy()
-
-        return total_compute_energy
 
     def __str__(self):
         return self.name
