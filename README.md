@@ -1,30 +1,35 @@
-# CamJ: In-sensor Processing Simulator
+# CamJ: In-sensor Processing Simulation Framework
 
-CamJ is an in-sensor processing simulator. CamJ framwork helps sensor designers to easily describe
-their sensor designs using high-level API and evaluates the energy and accuracy of their designs in minutes.
+CamJ is an in-sensor processing simulation Framework. CamJ allows sensor designers to quickly evaluate
+the performance and accuracy of their sensor design in minutes. CamJ provides commonly-used sensor 
+design blocks which allow users describe their sensor designs using CamJ high-level API without 
+lengthly RTL code.
 
 ## What's Inside
 
-CamJ has two main functionalities, power/energy estimation and functional simulation (noise modeling).
-We put the core functions of these two parts into two directories:
+CamJ has two core modules that drive in-sensor simulation: power/energy estimation and functional 
+simulation (noise modeling). We put these two core modules into these two directories:
 
 - [sim_core](https://github.com/horizon-research/in-sensor-simulator/tree/main/sim_core): contains the power simulation API and core implementations.
 - [functional_core](https://github.com/horizon-research/in-sensor-simulator/tree/main/functional_core): contains noising modeling API and core implementations.
 
-For more details about these two parts, go and check these two subdirectories.
+For more details about these two modules, go and check these two subdirectories.
 
 ## Design Philosophy
 
 To use our framework, users need to specify the sensor configuration using CamJ API. CamJ API provides
-three major parts to allow users freely describe their designs. These three parts are:
+three major parts to allow users freely describe their designs and the software  or the algorithms
+that are running on their sensor designs. The followings are the brief descriptions of the three parts:
 
-- software pipeline configuration: this file describes how computations are done in software. 
-Because most image pipeline can be described as a directed acyclic graph (DAG), we design CamJ API
-so that each node is a processing stage and each connection is the data dependency. In each node, 
-we constrain computations to be stencil operations, which is most commonly used operation in image/graph processing.
-- hardware desription: this file describes the hardware configuration. It is like how you decribe
-hardware in other HDLs, but it is much simpler. CamJ also provides some built-in hardware modules 
-so that you can direcly plog in your design.
+- software configuration: this file describes how algorithms are runnning in software. Our assumption
+about the software pipeline is that the image pipeline can be described as a directed acyclic graph (DAG).
+Therefore, we design CamJ API so that each node is a processing stage and each connection is the data 
+dependency. On each node, we constrain computations to be stencil operations, which is most commonly
+used operation in image/graph processing.
+- hardware desription: this file describes the hardware configuration. Similar to writing designs in
+HDL, users need to describe both processing units and memory structures. However, CamJ abstract some 
+commonly-used hardware structures in sensor designs so that users only need to describes their designs
+using built-in high-level hardware components.
 - software-to-hardware mapping function: this part describes how to map software computation stages
 to hardware components.
 
@@ -41,7 +46,8 @@ mechanism between software stages and hardware units.
 
 In `example_run.py`, it contains how to use CamJ API to run simulation. `run_ieee_vr22()` function shows
 an example how to include user-defined hardware configurations and feed to CamJ simulator.
-First, we includes software/hardware configuration files which are defines using CamJ API.
+First, we includes software/hardware configuration files which are defines using CamJ API. To know 
+more about how to set software/hardware configurations, please check out [ieee_vr22](https://github.com/horizon-research/in-sensor-simulator/tree/main/ieee_vr22).
 
 ```
 from ieee_vr22.mapping_file import mapping_function
@@ -49,7 +55,7 @@ from ieee_vr22.sw_pipeline import sw_pipeline
 from ieee_vr22.hw_config import hw_config
 ```
 
-Next, get the major data structures for sensor simulation, as shown below.
+Next, get the major configurations for sensor simulation, as shown below.
 ```
 hw_dict = hw_config()
 mapping_dict = mapping_function()
@@ -58,7 +64,8 @@ sw_stage_list = sw_pipeline()
 
 To understand how to configure hardware and software pipeline please refer [sim_core](https://github.com/horizon-research/in-sensor-simulator/tree/main/sim_core) directory. If you want to understand more about noise modeling in CamJ, please refer [functional_core](https://github.com/horizon-research/in-sensor-simulator/tree/main/functional_core).
 
-Then, based on what we want to simulate, this example shows three different simulations. Call:
+Next, based on what we want to simulate, this example shows both energy simulation and functional 
+simulation. The following function runs power/energy simulation:
 ```
 launch_simulation(
 	hw_dict = hw_dict,
@@ -66,13 +73,12 @@ launch_simulation(
 	sw_stage_list = sw_stage_list
 )
 ```
-This performs power estimation.
 
-Function `eventification_noise_simulation_example` is an example that shows how to run noise modeling 
-simulations. In this example, it first runs noise modeling for an common sensor imaging pipeline. 
+Function `eventification_noise_simulation_example` shows how to run noise modeling simulations. 
+In this example, it first runs noise modeling for an common sensor imaging pipeline. 
 Then, the noising image will feed to a special hardware to generate events between two temporally-adjacent
-images. In this example, we also show how CamJ accepts default noise simulation routine and also any 
-customized simulation routine. For more details, please check out `ieee_vr22` and `functional_core` directory.
+images. In this example, we also show how CamJ accepts builtin hardware components and also any customized
+hardware components. For more details, please check out `ieee_vr22` and `functional_core` directory.
 
 After those functions are defined, just run `example_run.py`
 ```
