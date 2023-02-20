@@ -59,7 +59,7 @@ def analog_config():
         num_input = [(1, 1)],
         num_output = (1, 1)
     )
-    pixel_array.add_component(pixel, (32, 1, 1))
+    pixel_array.add_component(pixel, (32, 32, 1))
     
     col_amp = AnalogComponent(
         name = "ColumnAmplifier",
