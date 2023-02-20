@@ -5,14 +5,14 @@ This is the core library for power/energy estimation in CamJ framework.
 ## Structure of This Library
 
 This library is organized into four major parts:
-- *analog computing simulation*: `analog_infra.py`, `analog_lib.py`, `analog_perf_lib.py` and `analog_utils.py` are 
-modules or classes that are used for analog simulation.
+- *analog computing simulation*: `analog_infra.py`, `analog_lib.py`, `analog_perf_lib.py` and 
+`analog_utils.py` are modules or classes that are used for analog simulation.
 - *digital computing simulation*: `digital_compute.py`, `digital_memory.py`, `sim_infra.py` 
 and `sim_utils.py` are modules for digital simulation.
 - *software interface*: `sw_interface.py` provides the software interface for users to provide
 the software algorithms that they want to perform simulation. `sw_utils.py` contains utility code
 for software pipeline.
-- *harness code*: `launch.py`, `enum_const.py` and `flags.py` are harness codes or configuration flags
+- *harness code*: `launch.py`, `enum_const.py` and `flags.py` are harness codes and configuration flags
 which can be modified if necessary.
 
 
@@ -22,19 +22,15 @@ In software interface, CamJ provides three main classes that allow users to desc
 processing algorithms, including conventional algorithms in image processing pipeline or DNN-based
 algorithms that are running on GPU or customized hardware. 
 
-These three classes are:
+CamJ provides three classes for users to describe their algorithms:
 - `PixelInput`: this describes the input of the software algorithm. this class should be always at
 the beginning at the software pipelines.
 - `ProcessStage`: this class is used to describe the processing stensil operations in conventional
 image processing pipeline or some operations like MaxPool or ReLU operations.
-- `DNNProcessStage`: this class can describe major computation in DNN-based algorithms, such as
-convolution, depthwise-convolution and fully-connected layer.
+- `DNNProcessStage`: this class can describe major computation in DNN-based algorithms. Currently,
+CamJ supports 2D convolution, 2D depthwise-convolution and fully-connected layer.
 
-The following code describes an input with a shape of (640, 400, 1). In `PixelInput`, there is another attribute,
-`functional_pipeline`, which is used for functional simulation. In this case, it is used to simulate
-how to generate pixels. If you don't want to perform functional simulation, no need to specify this
-attribute. To understand how to specify `functional_pipeline` attribute, please check out `functional_core` 
-directory.
+The following code shows an example to describe an input with a shape of (640, 400, 1). 
 ```
 input_data = PixelInput(
     (640, 400, 1), 
@@ -53,12 +49,13 @@ resize_stage = ProcessStage(
 )
 ```
 This instance describes a resize operation. The input size is (640, 400, 1). The kernel size is (2, 2, 1)
-and stride size is (2, 2, 1). The computation order is a raster-scanning fashion. The reason that 
-`input_size`, `kernel_size` and `stride` are lists of tuples is that CamJ allows one `ProcessStage` 
-has multiple inputs. However, CamJ only allows one output per `ProcessStage`. In this example,
-the output size is (320, 200, 1).
+and stride size is (2, 2, 1). The computation order is a raster-scanning fashion. As you can see, 
+CamJ does not need users to specify the exact computation just dataflow and input/output dimensions.
+This largely simplifies the definition work. In the definition, `input_size`, `kernel_size` and 
+`stride` are lists of tuples. This is beccause that CamJ allows one `ProcessStage` has multiple inputs. 
+However, CamJ only allows one output per `ProcessStage`. In this example, the output size is (320, 200, 1).
 
-The following shows a convolution operation.
+The following shows a DNN operations, a convolution operation.
 ```
 conv2d_stage = DNNProcessStage(
     name = "Conv2D",
@@ -69,22 +66,25 @@ conv2d_stage = DNNProcessStage(
 )
 ```
 This example shows a convolution layer with input size of (320, 200, 1), the kernel size is (3, 3, 1, 32) 
-and stride size is 2. Operation types can be others such as `FC` and `DWConv2D`. 
+(the kernel size is (3, 3, 1) with 32 number of kernels). Stride size is 2. Here, the operation type 
+is `Conv2D` (2D Convolution). Operation types can be others such as `FC` and `DWConv2D`. 
 
 After defining those classes, users also need to define the data dependency in the software pipeline.
-For instance, the following code describes the `input_data` is the input of `resize_stage` and `resize_stage` 
-is the input of `conv2d_stage`.
+For instance, the following code describes the `input_data` is the input of `resize_stage` and 
+`resize_stage` is the input of `conv2d_stage`.
 ```
 resize_stage.set_input_stage(input_data)
 conv2d_stage.set_input_stage(resize_stage)
 
 ```
-The above code just finishes describing a simple software pipeline using CamJ API.
+After describing the data dependencies, you just finished describing a simple software pipeline 
+using CamJ API!
 
 ## Analog Configuration
 
-Analog configuration starts from describing a set of analog arrays. In each analog array, users then
-need to define what analog components are inside. Here, we show an example of defining an analog array:
+CamJ describes analog structures in a two-level fashion. At the uppper level, CamJ asks users to 
+describe a set of analog arrays. Then, at the lower level, users are asked to define what analog 
+components are inside each analog array. Here, we show an example of defining an analog array:
 
 ```
 pixel_array = AnalogArray(
@@ -106,7 +106,7 @@ attribute shows that this `PixelArray` resides in sensor layer. In addition to `
 need to define an analog component called `Pixel`. The `Pixel` component has input domain and output
 domain which allow CamJ framework to verify the correctness of the analog implementation. `component_list` 
 attribute defines the implementation of this analog component. This information allows CamJ to 
-estimate the overall energy/power consumption and perform functional simulation. `analog_libs.py` 
+estimate the overall energy/power consumption and perform functional simulation. [`analog_libs.py`](https://github.com/horizon-research/in-sensor-simulator/tree/main/sim_core/analog_libs.py) 
 contains the analog compoenents that CamJ supports for energy/functional simulation.
 
 ```
@@ -115,9 +115,11 @@ pixel_array.add_component(pixel, (640, 400, 1))
 
 In addition to these two definitions, we also need to define the structure and the connection of this 
 pixel array. Here, `add_component` function shows the pixel array has (640, 400, 1) of pixels. In 
-current CamJ implementation, each `AnalogArray` only allows to add one `AnalogComponent`. *However*,
-`AnalogComponent` (considered as a super-component) can add multiple analog basic components that 
-are supported by CamJ.
+current CamJ implementation, each `AnalogArray` allows users to add multiple `AnalogComponent`. This
+allows one analog array has two different analog component with different shapes. For instance, one
+pixel array can have have (640, 400, 1) number of pixels and (640, 1, 1) number of column amplifiers.
+Additionally, `AnalogComponent` (considered as a super-component) can add multiple analog basic 
+components with the same structure shape.
 
 ## Digital Configuration
 
