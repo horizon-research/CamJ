@@ -5,4 +5,4 @@ CamJ API.
 
 ## Described Pipeline
 
-![algo](https://github.com/horizon-research/CamJ/files/10786428/github_fig.pdf)
+![alog](https://user-images.githubusercontent.com/21286132/220165334-f2a24219-3349-43f2-b14c-bf9ae9afafaf.png)
