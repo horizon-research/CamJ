@@ -305,65 +305,60 @@ mapping = {
 ## Functional Simulation
 
 CamJ supports analog functional simulation. The purpose of functional simulation is to mimic the noise
-generated during analog computing process. Since digital computing is always precise if we assume no hardware error happens.
+generated during analog computing process. Since digital computing is always precise if we assume no
+hardware error happens.
 
-In `functional_pipeline.py`, we define a noise model for sensor imaging pipeline. In this pipeline, 
-we assume following pipeline: photodiode (PD) -> floating diffusion (FD) -> source follower (SF) -> 
-column amplifier (CA) -> correlated double sampling (CDS) -> analog-to-digital convertor (ADC).
+In `analog_config.py`, we define two analog compoenents called `Pixel` and `ColumnAmplifier`. Inside
+`Pixel` instance, we add `ActivePixelSensor`, here, we show the detailed definition of `ActivePixelSensor`:
 
-For some analog components, we have specific templates to describe the hardware, for instance, PD, 
-FD and ADC. Here is an example of defining PD:
 ```
-pd_noise = PhotodiodeNoise(
-	"Photodiode",
-	dark_current_noise=dc_noise,
-	max_val=pixel_full_well_capacity,
-	enable_dcnu=True,
-	dcnu_std=dcnu_std,
+ActivePixelSensor(
+    # performance parameters
+    pd_capacitance = 1e-12,
+    pd_supply = 1.8, # V
+    output_vs = 1, #  
+    enable_cds = False,
+    num_transistor = 3,
+    # noise model parameters
+    dark_current_noise = 0.005,
+    enable_dcnu = True,
+    enable_prnu = True,
+    dcnu_std = 0.001,
+    fd_gain = 1.0,
+    fd_noise = 0.005,
+    fd_prnu_std = 0.001,
+    sf_gain = 1.0,
+    sf_noise = 0.005,
+    sf_prnu_std = 0.001
 )
 ```
 
-Here, we define a PD noise model with dark current and dark current non-uniformity (DCNU). You can 
-check `functional_pipeline.py` for FD and ADC definition.
+As the comment shows, there are a few input parameters define the noide model of this instance. For 
+instance, `dark_current_noise` and `enable_dcnu` set the average dark current noise and enable DCNU.
+`fd_gain` set the floating diffusion (FD) gain is 1. `fd_noise` sets FD read noise. `enable_prnu` 
+and `fd_prnu_std` set to enable simulate PRNU of FD and the standard deviation of FD is 0.001. Same
+as `sf`-related parameters which configure source follower inside pixel.
 
-In addition to specific templates, we also provide some general templates that can fit a broad range
-of analog components. Here is an example to use CamJ `PixelwiseNoise` template to define a SF:
 ```
-sf_noise = PixelwiseNoise(
-	name = "SourceFollower",
-	gain = sf_gain,
-	noise = sf_read_noise,
-	max_val = pixel_full_well_capacity*conversion_gain,
-	enable_prnu = True,
-	prnu_std = sf_prnu_std
+ColumnAmplifier(
+    load_capacitance = 1e-12,  # [F]
+    input_capacitance = 1e-12,  # [F]
+    t_sample = 2e-6,  # [s]
+    t_frame = 10e-3,  # [s]
+    supply = 1.8,  # [V]
+    gain = 1,
+    # noise parameters
+    noise = 0.005,
+    enable_prnu = True,
+    prnu_std = 0.001,
 )
-```
-Because SF noise applies to individual pxiels and each pixel can potential have different pixel
-responses, which we call it pixel response non-uniformity (PRNU). Here, we also define to enable PRNU
-during the simulation.
-
-In comparison, CA is shared for the entire column of pixels, CamJ provides another template called 
-`ColumnwiseNoise` to define CA:
-```
-col_amplifier_noise = ColumnwiseNoise(
-	name = "ColumnAmplifier",
-	gain = column_amplifier_gain,
-	noise = col_amp_read_noise,
-	max_val = pixel_full_well_capacity*conversion_gain*column_amplifier_gain,
-	enable_prnu = True,
-	prnu_std = col_amp_prnu_std
-)
-```
-
-After we define each analog component in the imaging pipeline, we add every component into a list 
-*IN ORDER* and return to CamJ simulator.
 
 ```
-...
-functional_pipeline_list.append(adc_noise)
 
-return functional_pipeline_list
-```
+Here, we show how to configure a column amplifier. Noise-related parameters are:
+* `noise`: defines the average read noise of column amplifier
+* `enable_prnu`: enable PRNU on column amplifier gain.
+* `prnu_std`: set the standard deviation of PRNU.
 
 ## How to Run
 
