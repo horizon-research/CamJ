@@ -207,7 +207,6 @@ abs_unit = ComputeUnit(
 	initial_delay = 0,
 	delay = 3,
 )
-
 ```
 
 Here, we define two compute units using CamJ API, `ComputeUnit`. In `ComputeUnit`, we need to define 
@@ -352,7 +351,6 @@ ColumnAmplifier(
     enable_prnu = True,
     prnu_std = 0.001,
 )
-
 ```
 
 Here, we show how to configure a column amplifier. Noise-related parameters are:
