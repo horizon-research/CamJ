@@ -1,10 +1,8 @@
 import os
 import sys
-# directory reach
-directory = os.getcwd()
-parent_directory = os.path.dirname(directory)
+# directory
+parent_directory = os.path.dirname(os.getcwd())
 # setting path
-sys.path.append(os.path.dirname(directory))
 sys.path.append(os.path.dirname(parent_directory))
 
 
@@ -133,18 +131,16 @@ def analog_config():
 
     return analog_arrays
 
-    
 if __name__ == '__main__':
+    # get the configs
     analog_arrays = analog_config()
     mapping_dict = mapping_function()
     sw_stage_list = sw_pipeline()
+    # build sw stage connections
     build_sw_graph(sw_stage_list)
 
     check_analog_connect_consistency(analog_arrays)
-
+    # analog energy simulation
     total_energy = launch_analog_simulation(analog_arrays, sw_stage_list, mapping_dict)
     print("total energy:", total_energy)
-
-    check_analog_pipeline(analog_arrays)
-
 
