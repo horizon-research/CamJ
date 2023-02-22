@@ -1,4 +1,3 @@
-from camj.sim_core.enum_const import Padding
 from copy import deepcopy
 
 class PixelInput(object):
@@ -83,18 +82,13 @@ class ProcessStage(object):
         extrapolated_size = deepcopy(self.input_size)
         # first pad the input size
         for i in range(len(self.input_size)):
-            if self.padding[i] == Padding.NONE: 
-                # no need to change the size
-                continue
-            elif self.padding[i] == Padding.ZEROS:
+            if self.padding[i]:
                 # change the input size 
                 extrapolated_size[i] = (
                     extrapolated_size[i][0]+2*(self.kernel_size[i][0]//2),
                     extrapolated_size[i][1]+2*(self.kernel_size[i][1]//2),
                     extrapolated_size[i][2]+2*(self.kernel_size[i][2]//2)
                 )
-            else:
-                raise Exception("Unsupported padding types.")
 
         for i in range(len(extrapolated_size)):
             extrapolated_size[i] = (
