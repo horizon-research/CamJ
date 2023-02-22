@@ -18,31 +18,31 @@ def sw_pipeline():
         name = "Conv",
         input_size = [(126, 126, 1)],
         kernel_size = [(3, 3, 1)],
-        num_kernels = [1],
+        num_kernels = [8],
         stride = [(3, 3, 1)],
-        output_size = (42, 42, 1),
+        output_size = (42, 42, 8),
         padding = [False]
     )
     sw_stage_list.append(conv_stage)
 
     relu_stage = ProcessStage(
         name = "ReLU",
-        input_size = [(42, 42, 1)],
+        input_size = [(42, 42, 8)],
         kernel_size = [(1, 1, 1)],
         num_kernels = [1],
         stride = [(1, 1, 1)],
-        output_size = (42, 42, 1),
+        output_size = (42, 42, 8),
         padding = [False]
     )
     sw_stage_list.append(relu_stage)
 
     mp_stage = ProcessStage(
         name = "MaxPool",
-        input_size = [(42, 42, 1)],
+        input_size = [(42, 42, 8)],
         kernel_size = [(2, 2, 1)],
         num_kernels = [1],
         stride = [(2, 2, 1)],
-        output_size = (21, 21, 1),
+        output_size = (21, 21, 8),
         padding = [False]
     )
     sw_stage_list.append(mp_stage)
