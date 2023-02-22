@@ -41,12 +41,12 @@ Next, we define the first computation stage of the software pipeline, `Conv`:
 
 ```python
 conv_stage = ProcessStage(
-	name = "Conv",
-	input_size = [(32, 32, 1)],
-	kernel_size = [(3, 3, 1)],
-	stride = [(1, 1, 1)],
-	output_size = (32, 32, 1),
-	padding = [Padding.ZEROS]
+    name = "Conv",
+    input_size = [(32, 32, 1)],
+    kernel_size = [(3, 3, 1)],
+    stride = [(1, 1, 1)],
+    output_size = (32, 32, 1),
+    padding = [Padding.ZEROS]
 )
 ```
 
@@ -63,12 +63,12 @@ stride is `1x1x1` and the padding is `NONE` to make sure that the output size is
 
 ```python
 abs_stage = ProcessStage(
-	name = "Abs",
-	input_size = [(32, 32, 1)],
-	kernel_size = [(1, 1, 1)],
-	stride = [(1, 1, 1)],
-	output_size = (32, 32, 1),
-	padding = [Padding.NONE]
+    name = "Abs",
+    input_size = [(32, 32, 1)],
+    kernel_size = [(1, 1, 1)],
+    stride = [(1, 1, 1)],
+    output_size = (32, 32, 1),
+    padding = [Padding.NONE]
 )
 ```
 
@@ -104,10 +104,10 @@ Here, we just need to define one analog strcuture which is pixel array itself.
 
 ```python
 pixel_array = AnalogArray(
-	name = "PixelArray",
-	layer = ProcessorLocation.SENSOR_LAYER,
-	num_input = [(32, 1, 1)],
-	num_output = (32, 1, 1),
+    name = "PixelArray",
+    layer = ProcessorLocation.SENSOR_LAYER,
+    num_input = [(32, 1, 1)],
+    num_output = (32, 1, 1),
 )
 pixel = AnalogComponent(
     name = "Pixel",
@@ -183,29 +183,29 @@ software pipeline.
 
 ```python
 conv_unit = ComputeUnit(
- 	name="ConvUnit",
-	domain=ProcessDomain.DIGITAL,
-	location=ProcessorLocation.SENSOR_LAYER,
-	input_throughput = [(32, 3, 1)],
-	output_throughput = (32, 1, 1), 
-	clock = 500, # MHz
-	energy = XX,
-	area = XX,
-	initial_delay = 0,
-	delay = 3,
+    name="ConvUnit",
+    domain=ProcessDomain.DIGITAL,
+    location=ProcessorLocation.SENSOR_LAYER,
+    input_throughput = [(32, 3, 1)],
+    output_throughput = (32, 1, 1), 
+    clock = 500, # MHz
+    energy = XX,
+    area = XX,
+    initial_delay = 0,
+    delay = 3,
 )
 
 abs_unit = ComputeUnit(
- 	name="AbsUnit",
-	domain=ProcessDomain.DIGITAL,
-	location=ProcessorLocation.SENSOR_LAYER,
-	input_throughput = [(32, 1, 1)],
-	output_throughput = (32, 1, 1), 
-	clock = 500, # MHz
-	energy = XX,
-	area = XX,
-	initial_delay = 0,
-	delay = 3,
+    name="AbsUnit",
+    domain=ProcessDomain.DIGITAL,
+    location=ProcessorLocation.SENSOR_LAYER,
+    input_throughput = [(32, 1, 1)],
+    output_throughput = (32, 1, 1), 
+    clock = 500, # MHz
+    energy = XX,
+    area = XX,
+    initial_delay = 0,
+    delay = 3,
 )
 ```
 
@@ -223,42 +223,42 @@ definition of these three memory structures:
 ```python
 
 fifo_buffer1 = FIFO(
-	name="FIFO-1",
-	hw_impl = "sram",
-	count = 32*32,
-	clock = 500, 	# MHz
-	write_energy = 3,
-	read_energy = 1,
-	location = ProcessorLocation.COMPUTE_LAYER,
-	duplication = 100,
-	write_unit = "ADC",
-	read_unit = "ConvUnit"
+    name="FIFO-1",
+    hw_impl = "sram",
+    count = 32*32,
+    clock = 500,    # MHz
+    write_energy = 3,
+    read_energy = 1,
+    location = ProcessorLocation.COMPUTE_LAYER,
+    duplication = 100,
+    write_unit = "ADC",
+    read_unit = "ConvUnit"
 )
 
 fifo_buffer2 = FIFO(
-	name="FIFO-2",
-	hw_impl = "sram",
-	count = 32*32,
-	clock = 500, 	# MHz
-	write_energy = 3,
-	read_energy = 1,
-	location = ProcessorLocation.COMPUTE_LAYER,
-	duplication = 100,
-	write_unit = "ConvUnit",
-	read_unit = "AbsUnit"
+    name="FIFO-2",
+    hw_impl = "sram",
+    count = 32*32,
+    clock = 500,    # MHz
+    write_energy = 3,
+    read_energy = 1,
+    location = ProcessorLocation.COMPUTE_LAYER,
+    duplication = 100,
+    write_unit = "ConvUnit",
+    read_unit = "AbsUnit"
 )
 
 fifo_buffer3 = FIFO(
-	name="FIFO-3",
-	hw_impl = "sram",
-	count = 32*32,
-	clock = 500, 	# MHz
-	write_energy = 3,
-	read_energy = 1,
-	location = ProcessorLocation.COMPUTE_LAYER,
-	duplication = 100,
-	write_unit = "AbsUnit",
-	read_unit = "AbsUnit"
+    name="FIFO-3",
+    hw_impl = "sram",
+    count = 32*32,
+    clock = 500,    # MHz
+    write_energy = 3,
+    read_energy = 1,
+    location = ProcessorLocation.COMPUTE_LAYER,
+    duplication = 100,
+    write_unit = "AbsUnit",
+    read_unit = "AbsUnit"
 )
 ```
 
@@ -289,9 +289,9 @@ and each key is the software stage names and values are the hardware component n
 
 ```python
 mapping = {
-	"Input" : "PixelArray",
-	"Conv" : "ConvUnit",
-	"Abs" : "AbsUnit",
+    "Input" : "PixelArray",
+    "Conv" : "ConvUnit",
+    "Abs" : "AbsUnit",
 }
 ```
 
@@ -360,8 +360,48 @@ Here, we show how to configure a column amplifier. Noise-related parameters are:
 
 ## How to Run
 
-How to run CamJ simulation for this example is quite simple. In the root directory, we have a running
-script called `tutorial_run.py`. Run this script:
+The script `tutorial_run.py` shows how to run this simple example. First, we import the configuration
+files:
+```python
+# import tutorial example configuration modules
+from tutorial.mapping_file import mapping_function
+from tutorial.sw_pipeline import sw_pipeline
+from tutorial.hw_config import hw_config
+```
+Next, we load the configuration setting into the `main` program.
+```python
+hw_dict = hw_config()
+mapping_dict = mapping_function()
+sw_stage_list = sw_pipeline()
+```
+In this tutorial, we show both functional simulation and energy simulation. `tutorial_functional_simulation`
+corresponds to functional simulation and `launch_simulation`.
+
+In `tutorial_functional_simulation`, we first load the image into the program and then converts the 
+image into proper input format, in this case, we convert a grayscale image into photon based on the
+sensor settings that we use in hardware configuration file. Put `photon_input` array into a dictionary
+which CamJ simulator will use later. The keyword `Input` in the dictionary corresponds to the name 
+of the software stage which uses `phonton_input` as input:
+```python
+# sensor specs
+full_scale_input_voltage = 1.2 # V
+pixel_full_well_capacity = 10000 # e
+
+# load test image
+img = np.array(cv2.imread(img_name, cv2.IMREAD_GRAYSCALE))
+# a simple inverse img to photon
+photon_input = img/255*pixel_full_well_capacity
+
+input_mapping = {
+    "Input" : [photon_input]
+}
+```
+Next, feed `input_mapping` with other configuration structures to a default functional simulation 
+function called `launch_functional_simulation`. The output of `launch_functional_simulation` is dictionary.
+Every key in this dictionary is a software stage name and the corresponding value is the simulation 
+output of the software stage.
+
+How to run CamJ simulation for this example is quite simple. Just use python to run this script:
 ```
  $ python3 tutorial_run.py
 ```
