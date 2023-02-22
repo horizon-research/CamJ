@@ -9,9 +9,9 @@ sys.path.append(os.path.dirname(parent_directory))
 from camj.sim_core.analog_infra import AnalogArray, AnalogComponent
 from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
 from camj.sim_core.analog_utils import check_analog_connect_consistency, compute_total_energy,\
-                                  check_analog_pipeline, launch_analog_simulation
+                                       launch_analog_simulation
 from camj.sim_core.pixel_libs import PulseWidthModulationPixel
-from camj.sim_core.analog_libs import DigitalToCurrentConverter, CurrentMirror
+from camj.sim_core.analog_libs import DigitalToCurrentConverter, CurrentMirror, Comparator
 from camj.sim_core.sw_utils import build_sw_graph
 
 from examples.isscc_22_08v.mapping_file import mapping_function
@@ -47,7 +47,6 @@ def analog_config():
         num_input = [(1, 1)],
         num_output = (1, 1)
     )
-
     pixel_array.add_component(pixel, (126, 126))
 
     analog_weight = AnalogArray(
@@ -81,20 +80,19 @@ def analog_config():
         num_input = [(1, 1)],
         num_output = (1, 1)
     )
-    
     analog_weight.add_component(current_dac, (3, 3))
 
-    pe_array = AnalogArray(
-        name = "PEArray",
+    conv_array = AnalogArray(
+        name = "ConvArray",
         layer = ProcessorLocation.SENSOR_LAYER,
         num_input = [(3, 3), (3, 126)],
         num_output = (1, 42)
     )
 
-    pe = AnalogComponent(
-        name = "PE",
+    conv = AnalogComponent(
+        name = "Conv",
         input_domain = [ProcessDomain.CURRENT, ProcessDomain.TIME],
-        output_domain = ProcessDomain.DIGITAL,
+        output_domain = ProcessDomain.CURRENT,
         component_list = [
             (
                 CurrentMirror(
@@ -113,21 +111,56 @@ def analog_config():
                 1
             )
         ],
+        num_input = [(3, 3), (3, 3)],
+        num_output = (1, 1)
+    )
+    conv_array.add_component(conv, (1, 42))
+
+    relu_array = AnalogArray(
+        name = "ReLUArray",
+        layer = ProcessorLocation.SENSOR_LAYER,
+        num_input = [(1, 42)],
+        num_output = (1, 42)
+    )
+    relu = AnalogComponent(
+        name = "ReLU",
+        input_domain = [ProcessDomain.CURRENT],
+        output_domain = ProcessDomain.DIGITAL,
+        component_list = [
+            (
+                Comparator(
+                    # performance parameters
+                    supply = 1.8,  # [V]
+                    i_bias = 10e-6,  # [A]
+                    t_readout = 1e-9,  # [s]
+                    # noise parameters
+                    gain = 1.0,
+                    noise = 0.005,
+                    enable_prnu = True,
+                    prnu_std = 0.001
+                ),
+                1
+            )
+        ],
         num_input = [(1, 1)],
         num_output = (1, 1)
     )
 
-    pe_array.add_component(pe, (1, 42))
+    relu_array.add_component(relu, (1, 42))
 
-    pe_array.add_input_array(pixel_array)
-    pe_array.add_input_array(analog_weight)
+    pixel_array.add_output_array(conv_array)
+    conv_array.add_input_array(pixel_array)
 
-    pixel_array.add_output_array(pe_array)
-    analog_weight.add_output_array(pe_array)
+    analog_weight.add_output_array(conv_array)
+    conv_array.add_input_array(analog_weight)
+
+    conv_array.add_output_array(relu_array)
+    relu_array.add_input_array(conv_array)
 
     analog_arrays.append(pixel_array)
     analog_arrays.append(analog_weight)
-    analog_arrays.append(pe_array)
+    analog_arrays.append(conv_array)
+    analog_arrays.append(relu_array)
 
     return analog_arrays
 

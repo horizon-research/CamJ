@@ -2,7 +2,8 @@
 def mapping_function():
     mapping = {
         "Input" : "PixelArray",
-        "Conv" : "PEArray",
+        "Conv" : "ConvArray",
+        "ReLU" : "ReLUArray",
         "MaxPool" : "MPUnit",
     }
 
