@@ -72,7 +72,7 @@ def hw_config():
 		domain=ProcessDomain.DIGITAL,
 		location=ProcessorLocation.SENSOR_LAYER,
 		input_throughput = [(32, 3, 1)],
-		output_throughput = (32, 1, 1), 
+		output_throughput = (32, 1, 8), 
 		clock = 500, # MHz
 		energy = 32*9*compute_op_power,
 		area = 30,
@@ -88,8 +88,8 @@ def hw_config():
 	 	name="AbsUnit",
 		domain=ProcessDomain.DIGITAL,
 		location=ProcessorLocation.SENSOR_LAYER,
-		input_throughput = [(32, 1, 1)],
-		output_throughput = (32, 1, 1), 
+		input_throughput = [(32, 1, 8)],
+		output_throughput = (32, 1, 8), 
 		clock = 500, # MHz
 		energy = 32*1*compute_op_power,
 		area = 10,

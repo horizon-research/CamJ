@@ -36,6 +36,7 @@ class ProcessStage(object):
         name: str,
         input_size: list,
         kernel_size: list,
+        num_kernels: list,
         stride: list,
         output_size: list,
         padding: list,
@@ -45,6 +46,7 @@ class ProcessStage(object):
         self.input_size = input_size
         self.stride = stride
         self.kernel_size = kernel_size
+        self.num_kernels = num_kernels
         self.output_size = output_size
         self.input_stages = []
         self.output_stages = []
@@ -78,12 +80,6 @@ class ProcessStage(object):
                 )
             )
 
-        for i in range(len(self.input_size)):
-            if self.input_size[i][-1] != self.kernel_size[i][-1]:
-                raise Exception(
-                    "The the last dimension of #%d input size and kernel size pair is mismatched!" % (i+1)
-                )
-
         extrapolated_size = deepcopy(self.input_size)
         # first pad the input size
         for i in range(len(self.input_size)):
@@ -104,8 +100,9 @@ class ProcessStage(object):
             extrapolated_size[i] = (
                 (extrapolated_size[i][0] - (self.kernel_size[i][0] - self.stride[i][0])) // self.stride[i][0],
                 (extrapolated_size[i][1] - (self.kernel_size[i][1] - self.stride[i][1])) // self.stride[i][1],
-                (extrapolated_size[i][2] - (self.kernel_size[i][2] - self.stride[i][2])) // self.stride[i][2]
+                (extrapolated_size[i][2] - (self.kernel_size[i][2] - self.stride[i][2])) // self.stride[i][2] * self.num_kernels[i]
             )
+
             if extrapolated_size[i] != self.output_size:
                 raise Exception(
                     "Size doesn't match, output size[%d] should be: (%d, %d, %d), but is (%d, %d, %d)" % \

@@ -25,18 +25,20 @@ def sw_pipeline():
 		name = "Conv",
 		input_size = [(32, 32, 1)],
 		kernel_size = [(3, 3, 1)],
+        num_kernels = [8],
 		stride = [(1, 1, 1)],
-		output_size = (32, 32, 1),
+		output_size = (32, 32, 8),
 		padding = [Padding.ZEROS]
 	)
 	
 	# define a 1x1 absolution stage
 	abs_stage = ProcessStage(
 		name = "Abs",
-		input_size = [(32, 32, 1)],
+		input_size = [(32, 32, 8)],
 		kernel_size = [(1, 1, 1)],
+        num_kernels = [1],
 		stride = [(1, 1, 1)],
-		output_size = (32, 32, 1),
+		output_size = (32, 32, 8),
 		padding = [Padding.NONE]
 	)
 	
