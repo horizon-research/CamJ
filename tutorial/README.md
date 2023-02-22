@@ -31,7 +31,7 @@ list below shows the stages inside this software pipeline.
 `Input` is used to define the initial input of the software pipeline. To define software pipeline 
 input is simple:
 
-```
+```python
 input_data = PixelInput((32, 32, 1), name="Input")
 ```
 
@@ -39,7 +39,7 @@ Use CamJ `PixelInput` API, and set the pixel input size. This will do the work!
 
 Next, we define the first computation stage of the software pipeline, `Conv`:
 
-```
+```python
 conv_stage = ProcessStage(
 	name = "Conv",
 	input_size = [(32, 32, 1)],
@@ -61,7 +61,7 @@ Similarly, we define a `Abs` operation. This `Abs` operation compute the element
 definition is similar to `Conv` operation. Here, the input and output size are both `32x32x1`. The 
 stride is `1x1x1` and the padding is `NONE` to make sure that the output size is still `32x32x1`.
 
-```
+```python
 abs_stage = ProcessStage(
 	name = "Abs",
 	input_size = [(32, 32, 1)],
@@ -76,14 +76,14 @@ This would define all the stages in the software pipeline. In addtion to define 
 software pipeline, we also need to define the connection in the software pipeline. Here, we show the 
 connection:
 
-```
+```python
 conv_stage.set_input_stage(input_data)
 abs_stage.set_input_stage(conv_stage)
 ```
 
 In the end, we need to put every computational stage into a single list and return to `CamJ` simulator:
 
-```
+```python
 sw_stage_list.append(input_data)
 sw_stage_list.append(conv_stage)
 sw_stage_list.append(abs_stage)
@@ -102,7 +102,7 @@ introduce them one-by-one.
 
 Here, we just need to define one analog strcuture which is pixel array itself.
 
-```
+```python
 pixel_array = AnalogArray(
 	name = "PixelArray",
 	layer = ProcessorLocation.SENSOR_LAYER,
@@ -160,7 +160,7 @@ Additionally, we also need to define a column amplifier in the pixel array for p
 `col_amp` instance is a column amplifer component. Both the input and the output domain of column 
 amplifier are `VOLTAGE`.
 
-```
+```python
 pixel_array.add_component(pixel, (32, 32, 1))
 pixel_array.add_component(col_amp, (32, 1, 1))
 
@@ -181,7 +181,7 @@ Last, we add every analog array to a `analog_arrays` list and return to CamJ sim
 Here, we define two digital components that supports both convolution and absolute operations in 
 software pipeline.
 
-```
+```python
 conv_unit = ComputeUnit(
  	name="ConvUnit",
 	domain=ProcessDomain.DIGITAL,
@@ -220,7 +220,7 @@ between two compute units. Here, we define three line buffers. The first line bu
 pixel sensor readout and `ConvUnit`. The second line buffer is used to save the result from `ConvUnit` 
 and read by `AbsUnit`. The last line buffer is used to save the result from `Absunit`. Here is the 
 definition of these three memory structures:
-```
+```python
 
 fifo_buffer1 = FIFO(
 	name="FIFO-1",
@@ -269,7 +269,7 @@ permission to access the memory structure is not able to access the memory struc
 Last, we define the connection between memory structures and compute units by using `set_input_buffer`
 and `set_output_buffer`:
 
-```
+```python
 adc.set_output_buffer(fifo_buffer1)
 
 conv_unit.set_input_buffer(fifo_buffer1)
@@ -287,7 +287,7 @@ This will finish defining the hardware configuration!
 To define the mapping between hardware and software is quite simple. We just need to define a dictionary
 and each key is the software stage names and values are the hardware component names.
 
-```
+```python
 mapping = {
 	"Input" : "PixelArray",
 	"Conv" : "ConvUnit",
@@ -310,7 +310,7 @@ hardware error happens.
 In `analog_config.py`, we define two analog compoenents called `Pixel` and `ColumnAmplifier`. Inside
 `Pixel` instance, we add `ActivePixelSensor`, here, we show the detailed definition of `ActivePixelSensor`:
 
-```
+```python
 ActivePixelSensor(
     # performance parameters
     pd_capacitance = 1e-12,
@@ -338,7 +338,7 @@ instance, `dark_current_noise` and `enable_dcnu` set the average dark current no
 and `fd_prnu_std` set to enable simulate PRNU of FD and the standard deviation of FD is 0.001. Same
 as `sf`-related parameters which configure source follower inside pixel.
 
-```
+```python
 ColumnAmplifier(
     load_capacitance = 1e-12,  # [F]
     input_capacitance = 1e-12,  # [F]
