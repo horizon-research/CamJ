@@ -6,7 +6,6 @@
 
 import numpy as np
 from camj.sim_core.digital_memory import FIFO, LineBuffer
-from camj.sim_core.enum_const import Padding
 from camj.sim_core.sw_interface import ProcessStage, DNNProcessStage
 from camj.sim_core.flags import *
 
@@ -86,7 +85,7 @@ def calculate_virtual_size(dst_stage, src_stage):
     if isinstance(dst_stage, ProcessStage):
         kernel_size = dst_stage.kernel_size
         output_size = src_stage.output_size
-        if dst_stage.padding[0] == Padding.ZEROS:
+        if dst_stage.padding[0]:
             return (
                 output_size[0]+2*(kernel_size[0][0]//2),
                 output_size[1]+2*(kernel_size[0][1]//2),
