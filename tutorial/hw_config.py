@@ -1,8 +1,8 @@
 
 # import local modules
-from sim_core.enum_const import ProcessorLocation, ProcessDomain
-from sim_core.digital_memory import FIFO, DoubleBuffer
-from sim_core.digital_compute import ADC, ComputeUnit, SystolicArray
+from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
+from camj.sim_core.digital_memory import FIFO, DoubleBuffer
+from camj.sim_core.digital_compute import ADC, ComputeUnit, SystolicArray
 
 from tutorial.analog_config import analog_config
 

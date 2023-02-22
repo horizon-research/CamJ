@@ -5,10 +5,10 @@
 '''
 
 import numpy as np
-from sim_core.digital_memory import FIFO, LineBuffer
-from sim_core.enum_const import Padding
-from sim_core.sw_interface import ProcessStage, DNNProcessStage
-from sim_core.flags import *
+from camj.sim_core.digital_memory import FIFO, LineBuffer
+from camj.sim_core.enum_const import Padding
+from camj.sim_core.sw_interface import ProcessStage, DNNProcessStage
+from camj.sim_core.flags import *
 
 # this function creates the mapping from sw stage to hw unit.
 # sw stage to hw unit is one-to-one mapping.

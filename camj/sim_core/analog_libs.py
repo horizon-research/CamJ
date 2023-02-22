@@ -1,11 +1,11 @@
 import numpy as np
 
-from sim_core.analog_perf_libs import ColumnAmplifierPerf, SourceFollowerPerf, SourceFollowerPerf,\
+from camj.sim_core.analog_perf_libs import ColumnAmplifierPerf, SourceFollowerPerf, SourceFollowerPerf,\
                                       ActiveAnalogMemoryPerf, PassiveAnalogMemoryPerf,\
                                       DigitalToCurrentConverterPerf, CurrentMirrorPerf,\
                                       ComparatorPerf, PassiveSwitchedCapacitorArrayPerf,\
                                       AnalogToDigitalConverterPerf, DigitalToCurrentConverterPerf
-from functional_core.noise_model import ColumnwiseNoise, PixelwiseNoise, FloatingDiffusionNoise,\
+from camj.functional_core.noise_model import ColumnwiseNoise, PixelwiseNoise, FloatingDiffusionNoise,\
                                         CurrentMirrorNoise, ComparatorNoise,\
                                         PassiveSwitchedCapacitorArrayNoise, AnalogToDigitalConverterNoise
 

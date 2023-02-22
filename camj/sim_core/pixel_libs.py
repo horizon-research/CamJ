@@ -1,9 +1,9 @@
 import numpy as np
 
-from sim_core.analog_perf_libs import ActivePixelSensorPerf, DigitalPixelSensorPerf,\
+from camj.sim_core.analog_perf_libs import ActivePixelSensorPerf, DigitalPixelSensorPerf,\
                                       PulseWidthModulationPixelPerf
-from functional_core.launch import default_functional_simulation
-from functional_core.noise_model import PhotodiodeNoise, PixelwiseNoise, FloatingDiffusionNoise,\
+from camj.functional_core.launch import default_functional_simulation
+from camj.functional_core.noise_model import PhotodiodeNoise, PixelwiseNoise, FloatingDiffusionNoise,\
                                         CorrelatedDoubleSamplingNoise, AnalogToDigitalConverterNoise
 
 # Active pxiel sensor

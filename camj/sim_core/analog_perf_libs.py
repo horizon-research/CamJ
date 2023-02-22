@@ -1,5 +1,5 @@
 import numpy as np
-from sim_core.analog_utils import *
+from camj.sim_core.analog_utils import *
 
 
 class PinnedPhotodiodePerf(object):

@@ -2,10 +2,18 @@ from pprint import pprint
 import numpy as np
 import cv2
 import copy
+import os
+import sys
+# directory reach
+directory = os.getcwd()
+parent_directory = os.path.dirname(directory)
+# setting path
+sys.path.append(os.path.dirname(directory))
+sys.path.append(os.path.dirname(parent_directory))
 
 # import local modules
-from sim_core.launch import launch_simulation
-from functional_core.launch import launch_functional_simulation
+from camj.sim_core.launch import launch_simulation
+from camj.functional_core.launch import launch_functional_simulation
 
 # import tutorial example configuration modules
 from tutorial.mapping_file import mapping_function
@@ -48,7 +56,7 @@ def main():
 	sw_stage_list = sw_pipeline()
 
 	tutorial_functional_simulation(
-		img_name = "test_imgs/test_img.jpeg",
+		img_name = "../test_imgs/test_img.jpeg",
 	    hw_dict = hw_dict,
 		mapping_dict = mapping_dict,
 		sw_stage_list = sw_stage_list

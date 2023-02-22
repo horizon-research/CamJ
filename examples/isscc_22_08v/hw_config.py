@@ -8,11 +8,11 @@ sys.path.append(os.path.dirname(directory))
 sys.path.append(os.path.dirname(parent_directory))
 
 # import local modules
-from sim_core.enum_const import ProcessorLocation, ProcessDomain
-from sim_core.digital_memory import FIFO, LineBuffer
-from sim_core.digital_compute import ADC, ComputeUnit
+from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
+from camj.sim_core.digital_memory import FIFO, LineBuffer
+from camj.sim_core.digital_compute import ADC, ComputeUnit
 
-from isscc_22_08v.analog_config import analog_config
+from examples.isscc_22_08v.analog_config import analog_config
 
 # an example of user defined hw configuration setup 
 def hw_config():

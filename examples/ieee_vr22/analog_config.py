@@ -8,16 +8,16 @@ sys.path.append(os.path.dirname(directory))
 sys.path.append(os.path.dirname(parent_directory))
 
 
-from sim_core.analog_infra import AnalogArray, AnalogComponent
-from sim_core.enum_const import ProcessorLocation, ProcessDomain
-from sim_core.analog_utils import launch_analog_simulation
-from sim_core.pixel_libs import ActivePixelSensor
-from sim_core.analog_libs import ActiveAnalogMemory, ColumnAmplifier, \
+from camj.sim_core.analog_infra import AnalogArray, AnalogComponent
+from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
+from camj.sim_core.analog_utils import launch_analog_simulation
+from camj.sim_core.pixel_libs import ActivePixelSensor
+from camj.sim_core.analog_libs import ActiveAnalogMemory, ColumnAmplifier, \
                                  Comparator, SourceFollower
 
-from ieee_vr22.mapping_file import mapping_function_w_analog
-from ieee_vr22.sw_pipeline import sw_pipeline_w_analog
-from ieee_vr22.customized_analog_component import EventificationUnit
+from examples.ieee_vr22.mapping_file import mapping_function_w_analog
+from examples.ieee_vr22.sw_pipeline import sw_pipeline_w_analog
+from examples.ieee_vr22.customized_analog_component import EventificationUnit
 
 
 def analog_config():
@@ -71,7 +71,7 @@ def analog_config():
         name = "AnalogMemoryArray",
         layer = ProcessorLocation.SENSOR_LAYER,
         num_input = [],
-        num_output = [(320, 1, 1)],
+        num_output = (320, 1, 1),
     )
 
     analog_memory_unit = AnalogComponent(
@@ -103,7 +103,7 @@ def analog_config():
             )
         ],
         num_input = [],
-        num_output = [(1, 1)]
+        num_output = (1, 1)
     )
     analog_memory_array.add_component(analog_memory_unit, (320, 201))
 

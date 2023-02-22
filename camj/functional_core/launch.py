@@ -2,8 +2,8 @@ import copy
 import numpy as np
 from inspect import signature
 
-from sim_core.sw_utils import build_sw_graph
-from sim_core.analog_utils import find_analog_sw_stages, find_analog_sw_mapping
+from camj.sim_core.sw_utils import build_sw_graph
+from camj.sim_core.analog_utils import find_analog_sw_stages, find_analog_sw_mapping
                     
 def process_signal_stage(stage, input_signals):
 

@@ -1,8 +1,8 @@
 import numpy as np
 import copy
 
-from sim_core.analog_infra import AnalogArray, AnalogComponent
-from sim_core.enum_const import ProcessDomain
+from camj.sim_core.analog_infra import AnalogArray, AnalogComponent
+from camj.sim_core.enum_const import ProcessDomain
 
 
 def check_component_internal_connect_consistency(analog_component):
@@ -134,6 +134,7 @@ def compute_total_energy(analog_arrays, analog_sw_stages, mapping_dict):
         for output_stage in output_stages:
             sw_size = output_stage.output_size
             hw_size = analog_array.num_output
+            print(analog_array, output_stage, sw_size, hw_size)
             cnt = (sw_size[0] * sw_size[1] * sw_size[2]) / (hw_size[0] * hw_size[1])
             total_energy += cnt * analog_array.energy()
 

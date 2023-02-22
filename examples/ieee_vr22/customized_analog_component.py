@@ -1,6 +1,6 @@
 import numpy as np
 
-from sim_core.analog_libs import ColumnAmplifier
+from camj.sim_core.analog_libs import ColumnAmplifier
 
 class EventificationUnit(object):
     """docstring for EventificationUnit"""

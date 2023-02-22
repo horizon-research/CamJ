@@ -2,40 +2,19 @@ from pprint import pprint
 import numpy as np
 import cv2
 import copy
+import os
+import sys
+
+# directory reach
+directory = os.getcwd()
+parent_directory = os.path.dirname(directory)
+# setting path
+sys.path.append(os.path.dirname(directory))
+sys.path.append(os.path.dirname(parent_directory))
 
 # import local modules
-from sim_core.launch import launch_simulation
-from functional_core.launch import launch_functional_simulation
-
-# from isscc_22_08v.mapping_file import mapping_function
-# from isscc_22_08v.sw_pipeline import sw_pipeline
-# from isscc_22_08v.hw_config import hw_config
-
-
-
-# from isscc_16_1_42.mapping_file import mapping_function
-# from isscc_16_1_42.sw_pipeline import sw_pipeline
-# from isscc_16_1_42.hw_config import hw_config
-
-# from isscc_17_0_62.mapping_file import mapping_function
-# from isscc_17_0_62.sw_pipeline import sw_pipeline
-# from isscc_17_0_62.hw_config import hw_config
-
-# from isscc_08_iVisual.mapping_file import mapping_function
-# from isscc_08_iVisual.sw_pipeline import sw_pipeline
-# from isscc_08_iVisual.hw_config import hw_config
-
-# from isscc_13_reconfigurable.mapping_file import mapping_function
-# from isscc_13_reconfigurable.sw_pipeline import sw_pipeline
-# from isscc_13_reconfigurable.hw_config import hw_config
-
-# from isscc_21_back_illuminated.mapping_file import mapping_function
-# from isscc_21_back_illuminated.sw_pipeline import sw_pipeline
-# from isscc_21_back_illuminated.hw_config import hw_config
-
-# from rhythmic_pixel_21.mapping_file import mapping_function
-# from rhythmic_pixel_21.sw_pipeline import sw_pipeline
-# from rhythmic_pixel_21.hw_config import hw_config
+from camj.sim_core.launch import launch_simulation
+from camj.functional_core.launch import launch_functional_simulation
 
 
 def eventification_noise_simulation_example(
@@ -77,9 +56,9 @@ def eventification_noise_simulation_example(
 
 def run_ieee_vr22():
 
-    from ieee_vr22.mapping_file import mapping_function, mapping_function_w_analog
-    from ieee_vr22.sw_pipeline import sw_pipeline, sw_pipeline_w_analog
-    from ieee_vr22.hw_config import hw_config, hw_config_w_analog
+    from examples.ieee_vr22.mapping_file import mapping_function, mapping_function_w_analog
+    from examples.ieee_vr22.sw_pipeline import sw_pipeline, sw_pipeline_w_analog
+    from examples.ieee_vr22.hw_config import hw_config, hw_config_w_analog
 
     hw_dict = hw_config_w_analog()
     mapping_dict = mapping_function_w_analog()
@@ -87,8 +66,8 @@ def run_ieee_vr22():
 
     # eventification simulation
     eventification_noise_simulation_example(
-        prev_img_name = "test_imgs/test_eye1.png",
-        curr_img_name = "test_imgs/test_eye2.png",
+        prev_img_name = "../test_imgs/test_eye1.png",
+        curr_img_name = "../test_imgs/test_eye2.png",
         hw_dict = hw_dict,
         mapping_dict = mapping_dict,
         sw_stage_list = sw_stage_list
@@ -102,9 +81,9 @@ def run_ieee_vr22():
 
 def run_isscc_22_08v():
 
-    from isscc_22_08v.mapping_file import mapping_function
-    from isscc_22_08v.sw_pipeline import sw_pipeline
-    from isscc_22_08v.hw_config import hw_config
+    from examples.isscc_22_08v.mapping_file import mapping_function
+    from examples.isscc_22_08v.sw_pipeline import sw_pipeline
+    from examples.isscc_22_08v.hw_config import hw_config
     
     hw_dict = hw_config()
     mapping_dict = mapping_function()
@@ -118,7 +97,7 @@ def run_isscc_22_08v():
 
 if __name__ == '__main__':
 
-    run_isscc_22_08v()
+    # run_isscc_22_08v()
     
     run_ieee_vr22()
 

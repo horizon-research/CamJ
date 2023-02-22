@@ -1,4 +1,4 @@
-from sim_core.enum_const import Padding
+from camj.sim_core.enum_const import Padding
 from copy import deepcopy
 
 class PixelInput(object):

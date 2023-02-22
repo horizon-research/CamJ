@@ -2,18 +2,18 @@ from pprint import pprint
 import numpy as np
 
 # import local modules
-from sim_core.enum_const import ProcessorLocation, ProcessDomain
-from sim_core.digital_compute import SystolicArray, NeuralProcessor
-from sim_core.sim_utils import map_sw_hw, check_buffer_consistency, build_buffer_edges, allocate_output_buffer, \
+from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
+from camj.sim_core.digital_compute import SystolicArray, NeuralProcessor
+from camj.sim_core.sim_utils import map_sw_hw, check_buffer_consistency, build_buffer_edges, allocate_output_buffer, \
                       increment_buffer_index, check_stage_finish, write_output_throughput, \
                       check_input_buffer_data_ready, increment_input_buffer_index, check_input_buffer, \
                       check_finish_data_dependency, check_fc_input_ready, check_input_stage_finish, \
                       find_digital_sw_stages
-from sim_core.sim_infra import ReservationBoard, BufferMonitor
-from sim_core.analog_utils import launch_analog_simulation
-from sim_core.sw_interface import PixelInput
-from sim_core.sw_utils import build_sw_graph
-from sim_core.flags import *
+from camj.sim_core.sim_infra import ReservationBoard, BufferMonitor
+from camj.sim_core.analog_utils import launch_analog_simulation
+from camj.sim_core.sw_interface import PixelInput
+from camj.sim_core.sw_utils import build_sw_graph
+from camj.sim_core.flags import *
 
 
 # The overall harness function to simulate analog and digital computation.

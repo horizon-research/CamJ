@@ -9,9 +9,9 @@ directory = os.getcwd()
 # setting path
 sys.path.append(os.path.dirname(directory))
 
-from sim_core.enum_const import Padding
-from sim_core.sw_interface import ProcessStage, DNNProcessStage, PixelInput
-from sim_core.sw_utils import build_sw_graph
+from camj.sim_core.enum_const import Padding
+from camj.sim_core.sw_interface import ProcessStage, DNNProcessStage, PixelInput
+from camj.sim_core.sw_utils import build_sw_graph
 
 def sw_pipeline():
 

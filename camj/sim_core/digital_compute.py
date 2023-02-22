@@ -1,6 +1,6 @@
 
 import numpy as np
-from sim_core.flags import *
+from camj.sim_core.flags import *
 
 R_W_ENERGY = 4.1 # pJ
 
