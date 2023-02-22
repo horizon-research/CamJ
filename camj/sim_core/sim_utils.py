@@ -61,7 +61,7 @@ def check_buffer_consistency(src_unit, dst_unit):
     if src_unit.output_buffer == dst_unit.input_buffer:
         return True
     else:
-        raise Exception("%s %s don't have a common buffer to commnicate!" % src_unit.name, dst_unit.name)
+        raise Exception("%s %s don't have a common buffer to commnicate!" % (src_unit.name, dst_unit.name))
 
 '''
     This function is used to connect the consumer and producer in the computational graph.
