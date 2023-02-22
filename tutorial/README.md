@@ -399,9 +399,19 @@ input_mapping = {
 Next, feed `input_mapping` with other configuration structures to a default functional simulation 
 function called `launch_functional_simulation`. The output of `launch_functional_simulation` is dictionary.
 Every key in this dictionary is a software stage name and the corresponding value is the simulation 
-output of the software stage.
+output of the software stage (in a form of list, because it might contains multiple outputs). We can 
+inspect the result using OpenCV `imshow` function:
+```python
+simulation_res = launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_mapping)
 
-How to run CamJ simulation for this example is quite simple. Just use python to run this script:
+img_after_adc = simulation_res['Input'][0]
+
+cv2.imshow("image after adc", img_after_adc/np.max(img_after_adc))
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+```
+
+To run CamJ simulation for this example is quite simple. Just use python to run this script:
 ```
  $ python3 tutorial_run.py
 ```
