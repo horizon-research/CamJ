@@ -1,23 +1,21 @@
 import os
 import sys
 # directory reach
-directory = os.getcwd()
-parent_directory = os.path.dirname(directory)
+parent_directory = os.path.dirname(os.getcwd())
 # setting path
-sys.path.append(os.path.dirname(directory))
 sys.path.append(os.path.dirname(parent_directory))
 
 
-from sim_core.analog_infra import AnalogArray, AnalogComponent
-from sim_core.enum_const import ProcessorLocation, ProcessDomain
-from sim_core.analog_utils import check_analog_connect_consistency, compute_total_energy,\
+from camj.sim_core.analog_infra import AnalogArray, AnalogComponent
+from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
+from camj.sim_core.analog_utils import check_analog_connect_consistency, compute_total_energy,\
                                   check_analog_pipeline, launch_analog_simulation
-from sim_core.pixel_libs import PulseWidthModulationPixel
-from sim_core.analog_libs import DigitalToCurrentConverter, CurrentMirror
-from sim_core.sw_utils import build_sw_graph
+from camj.sim_core.pixel_libs import PulseWidthModulationPixel
+from camj.sim_core.analog_libs import DigitalToCurrentConverter, CurrentMirror
+from camj.sim_core.sw_utils import build_sw_graph
 
-from isscc_22_08v.mapping_file import mapping_function
-from isscc_22_08v.sw_pipeline import sw_pipeline
+from examples.jssc21_05v.mapping_file import mapping_function
+from examples.jssc21_05v.sw_pipeline import sw_pipeline
 
 def analog_config():
 
@@ -135,16 +133,15 @@ def analog_config():
 
     
 if __name__ == '__main__':
+    # get the configuration files
     analog_arrays = analog_config()
     mapping_dict = mapping_function()
     sw_stage_list = sw_pipeline()
+    # build sw stage connection
     build_sw_graph(sw_stage_list)
-
+    # check connection consistency
     check_analog_connect_consistency(analog_arrays)
 
     total_energy = launch_analog_simulation(analog_arrays, sw_stage_list, mapping_dict)
     print("total energy:", total_energy)
-
-    check_analog_pipeline(analog_arrays)
-
 
