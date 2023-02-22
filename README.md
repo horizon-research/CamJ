@@ -37,26 +37,33 @@ Here shows the overview of our system. For more details, please refer our [paper
 
 ![camj](https://user-images.githubusercontent.com/21286132/216838473-c1477396-f1f6-4b04-a14b-7292c32948ad.png)
 
-## How to Use
 
-Directory `ieee_vr22` contains an example about how to describe a sensor design and a software pipeline
-using CamJ API. In `ieee_vr22` folder, `sw_pipeline.py` describes the software dataflow, `hw_config`
-and `analog_config.py` describes hardware configuration and `mapping_file.py` describes the mapping 
-mechanism between software stages and hardware units. 
+## Tutorial
+
+In [`tutorial`](https://github.com/horizon-research/in-sensor-simulator/tree/main/tutorial) subdirectory,
+we have a simple example and a step-by-step explanation of implementing 
+a simple imaging pipeline using CamJ API. Please check out [`tutorial`](https://github.com/horizon-research/in-sensor-simulator/tree/main/tutorial) directory for more details.
+
+## To run Existing Examples
+
+Directory `examples` contains several examples that we use for validation in our paper. Here, we use
+`ieee_vr22` as an example to show how to run our program. In `ieee_vr22` folder, `sw_pipeline.py` 
+describes the software dataflow, `hw_config` and `analog_config.py` describes hardware configuration
+and `mapping_file.py` describes the mapping mechanism between software stages and hardware units. 
 
 In `example_run.py`, it contains how to use CamJ API to run simulation. `run_ieee_vr22()` function shows
 an example how to include user-defined hardware configurations and feed to CamJ simulator.
 First, we includes software/hardware configuration files which are defines using CamJ API. To know 
 more about how to set software/hardware configurations, please check out [ieee_vr22](https://github.com/horizon-research/in-sensor-simulator/tree/main/ieee_vr22).
 
-```
+```python
 from ieee_vr22.mapping_file import mapping_function
 from ieee_vr22.sw_pipeline import sw_pipeline
 from ieee_vr22.hw_config import hw_config
 ```
 
 Next, get the major configurations for sensor simulation, as shown below.
-```
+```python
 hw_dict = hw_config()
 mapping_dict = mapping_function()
 sw_stage_list = sw_pipeline()
@@ -66,7 +73,7 @@ To understand how to configure hardware and software pipeline please refer [sim_
 
 Next, based on what we want to simulate, this example shows both energy simulation and functional 
 simulation. The following function runs power/energy simulation:
-```
+```python
 launch_simulation(
 	hw_dict = hw_dict,
 	mapping_dict = mapping_dict,
@@ -86,8 +93,3 @@ After those functions are defined, just run `example_run.py`
 ```
 You will see the simulation is running!
 
-## Tutorial
-
-In [`tutorial`](https://github.com/horizon-research/in-sensor-simulator/tree/main/tutorial) subdirectory,
-we have a simple example and a step-by-step explanation of implementing 
-a simple imaging pipeline using CamJ API. Please check out [`tutorial`](https://github.com/horizon-research/in-sensor-simulator/tree/main/tutorial) directory for more details.
