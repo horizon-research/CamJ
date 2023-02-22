@@ -5,6 +5,7 @@ def mapping_function():
         "Conv" : "ConvArray",
         "ReLU" : "ReLUArray",
         "MaxPool" : "MPUnit",
+        "FC" : "FCUnit",
     }
 
     return mapping

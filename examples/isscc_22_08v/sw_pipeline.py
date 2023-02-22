@@ -47,6 +47,18 @@ def sw_pipeline():
     )
     sw_stage_list.append(mp_stage)
 
+    fc_stage = ProcessStage(
+        name = "FC",
+        input_size = [(21, 21, 8)],
+        kernel_size = [(21, 21, 8)],
+        num_kernels = [1],
+        stride = [(1, 1, 1)],
+        output_size = (1, 1, 1),
+        padding = [False]
+    )
+    sw_stage_list.append(fc_stage)
+
+    # build the connections among different sw stages
     input_data = PixelInput((126, 126, 1), name="Input")
     sw_stage_list.append(input_data)
 
@@ -56,14 +68,14 @@ def sw_pipeline():
     
     mp_stage.set_input_stage(relu_stage)
 
+    fc_stage.set_input_stage(mp_stage)
+
     return sw_stage_list
 
 if __name__ == '__main__':
 
     sw_stage_list = sw_pipeline()
     build_sw_graph(sw_stage_list)
-
-
 
 
 
