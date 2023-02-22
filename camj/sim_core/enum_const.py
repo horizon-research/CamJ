@@ -17,7 +17,3 @@ class ProcessDomain(Enum):
     CHARGE = 4
     TIME = 5
     OPTICAL = 6
-
-class Padding(Enum):
-    NONE = 0
-    ZEROS = 1
