@@ -4,8 +4,7 @@ import sys
 def options():
 
     parser = argparse.ArgumentParser()
-
-    # sys.argv includes a list of elements starting with the program
+    # if there is no argment in the input, print help
     if len(sys.argv) < 2:
         parser.print_help()
         sys.exit(1)
