@@ -17,6 +17,8 @@ case has:
 | ieee_vr22             |      Yes      |      Yes       |         Yes          |
 | isscc_22_08v          |      Yes      |      Yes       |         No           |
 | jssc_21_05v           |      Yes      |      No        |         No           |
+| tcas_i22              |      Yes      |      Yes       |         No           |
+
 
 ## How to run
 
