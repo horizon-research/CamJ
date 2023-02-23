@@ -17,3 +17,26 @@ case has:
 | ieee_vr22             |      Yes      |      Yes       |         Yes          |
 | isscc_22_08v          |      Yes      |      Yes       |         No           |
 | jssc_21_05v           |      Yes      |      No        |         No           |
+
+## How to run
+
+Use `example_run.py` to run different validation cases:
+```
+ $ python example_run.py
+```
+
+To know different run options, run `--help` options, you will see different options:
+```
+ $ python example_run.py --help
+
+usage: example_run.py [-h] [--ieee_vr22] [--isscc_22_08v] [--jssc21_05v] [--tcas_i22]
+
+optional arguments:
+  -h, --help      show this help message and exit
+  --ieee_vr22     Run IEEE VR22 example
+  --isscc_22_08v  Run ISSCC 22 0.8V example
+  --jssc21_05v    Run JSSC 21 0.5V example
+  --tcas_i22      Run TCAS-I 22 example
+  ...
+  
+```

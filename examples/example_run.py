@@ -130,14 +130,13 @@ if __name__ == '__main__':
 
     if args.ieee_vr22:
         run_ieee_vr22()
-    elif args.isscc_22_08v:
+    if args.isscc_22_08v:
         run_isscc_22_08v()
-    elif args.tcas_i22:
+    if args.tcas_i22:
         run_tcas_i22()
-    elif args.jssc21_05v:
+    if args.jssc21_05v:
         run_jssc21_05v()
-    else:
-        
+
 
 
 
