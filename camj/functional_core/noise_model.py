@@ -290,7 +290,7 @@ class PassiveSwitchedCapacitorArrayNoise(object):
         num_capacitor,
         noise = None
     ):
-        super(PixelwiseNoise, self).__init__()
+        super(PassiveSwitchedCapacitorArrayNoise, self).__init__()
         self.name = name
         self.num_capacitor = num_capacitor
         self.noise = noise

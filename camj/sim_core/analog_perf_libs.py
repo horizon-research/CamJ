@@ -394,7 +394,7 @@ class PassiveSwitchedCapacitorArrayPerf(object):
         self.vs_array = vs_array
 
     def energy(self):
-        energy = np.sum(np.multiply(self.capacitance_array, self.vs_array ** 2))
+        energy = np.sum(np.multiply(self.capacitance_array, [vs ** 2 for vs in self.vs_array]))
         return energy
 
 
