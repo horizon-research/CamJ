@@ -5,17 +5,14 @@ import copy
 import os
 import sys
 
-# directory reach
-directory = os.getcwd()
-parent_directory = os.path.dirname(directory)
 # setting path
-sys.path.append(os.path.dirname(directory))
-sys.path.append(os.path.dirname(parent_directory))
+sys.path.append(os.path.dirname(os.getcwd()))
 
 # import local modules
 from camj.sim_core.launch import launch_simulation
 from camj.functional_core.launch import launch_functional_simulation
 
+from examples.opt import options
 
 def eventification_noise_simulation_example(
     prev_img_name,
@@ -95,10 +92,53 @@ def run_isscc_22_08v():
         sw_stage_list = sw_stage_list
     )
 
+def run_tcas_i22():
+
+    from examples.tcas_i22.mapping_file import mapping_function
+    from examples.tcas_i22.sw_pipeline import sw_pipeline
+    from examples.tcas_i22.hw_config import hw_config
+    
+    hw_dict = hw_config()
+    mapping_dict = mapping_function()
+    sw_stage_list = sw_pipeline()
+
+    launch_simulation(
+        hw_dict = hw_dict,
+        mapping_dict = mapping_dict,
+        sw_stage_list = sw_stage_list
+    )
+
+def run_jssc21_05v():
+
+    from examples.jssc21_05v.mapping_file import mapping_function
+    from examples.jssc21_05v.sw_pipeline import sw_pipeline
+    from examples.jssc21_05v.hw_config import hw_config
+    
+    hw_dict = hw_config()
+    mapping_dict = mapping_function()
+    sw_stage_list = sw_pipeline()
+
+    launch_simulation(
+        hw_dict = hw_dict,
+        mapping_dict = mapping_dict,
+        sw_stage_list = sw_stage_list
+    )
+
 if __name__ == '__main__':
 
-    # run_isscc_22_08v()
-    
-    run_ieee_vr22()
+    args = options()
+
+    if args.ieee_vr22:
+        run_ieee_vr22()
+    elif args.isscc_22_08v:
+        run_isscc_22_08v()
+    elif args.tcas_i22:
+        run_tcas_i22()
+    elif args.jssc21_05v:
+        run_jssc21_05v()
+    else:
+        
+
+
 
 
