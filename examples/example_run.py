@@ -124,6 +124,22 @@ def run_jssc21_05v():
         sw_stage_list = sw_stage_list
     )
 
+def run_jssc21_51pj():
+
+    from examples.jssc21_51pj.mapping_file import mapping_function
+    from examples.jssc21_51pj.sw_pipeline import sw_pipeline
+    from examples.jssc21_51pj.hw_config import hw_config
+    
+    hw_dict = hw_config()
+    mapping_dict = mapping_function()
+    sw_stage_list = sw_pipeline()
+
+    launch_simulation(
+        hw_dict = hw_dict,
+        mapping_dict = mapping_dict,
+        sw_stage_list = sw_stage_list
+    )
+
 if __name__ == '__main__':
 
     args = options()
@@ -136,6 +152,8 @@ if __name__ == '__main__':
         run_tcas_i22()
     if args.jssc21_05v:
         run_jssc21_05v()
+    if args.jssc21_51pj:
+        run_jssc21_51pj()
 
 
 

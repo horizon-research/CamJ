@@ -28,6 +28,12 @@ def options():
         help="Run JSSC 21 0.5V example",
     )
     parser.add_argument(
+        "--jssc21_51pj",
+        default=False,
+        action="store_true",
+        help="Run JSSC 21 51pJ example",
+    )
+    parser.add_argument(
         "--tcas_i22",
         default=False,
         action="store_true",

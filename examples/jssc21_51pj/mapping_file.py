@@ -2,7 +2,7 @@
 def mapping_function():
     mapping = {
         "Input" : "PixelArray",
-        "Conv" : "CSArray",
+        "CS" : "CSArray",
     }
 
     return mapping
