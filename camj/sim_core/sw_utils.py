@@ -53,6 +53,8 @@ def build_ready_board(sw_stage_list):
             sw_stage.construct_ready_board(in_stage)
 
 def build_sw_graph(sw_stage_list):
+    if len(sw_stage_list) == 0:
+        return
 
     set_output_stages(sw_stage_list)
     build_ready_board(sw_stage_list)

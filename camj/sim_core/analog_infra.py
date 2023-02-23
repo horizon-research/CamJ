@@ -137,7 +137,6 @@ class AnalogArray(object):
         for i in comp_output:
             comp_throughput *= i
 
-        print(array_ouput, comp_output)
         return array_throughput / comp_throughput
 
     def energy(self):

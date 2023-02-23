@@ -18,12 +18,23 @@ from camj.sim_core.flags import *
 
 # The overall harness function to simulate analog and digital computation.
 def launch_simulation(hw_dict, mapping_dict, sw_stage_list):
-    
-    total_analog_energy = launch_analog_simulation(hw_dict["analog"], sw_stage_list, mapping_dict)
+    print("###  Launch analog simulation  ###")
+    analog_energy_dict = launch_analog_simulation(hw_dict["analog"], sw_stage_list, mapping_dict)
 
-    total_digital_energy = launch_digital_simulation(hw_dict, mapping_dict, sw_stage_list)
+    print("\n\n###  Launch digital simulation  ###")
+    digital_energy_dict = launch_digital_simulation(hw_dict, mapping_dict, sw_stage_list)
 
-    return total_analog_energy + total_digital_energy
+    ret_energy_dict = {}
+    total_energy = 0
+    for name in analog_energy_dict.keys():
+        ret_energy_dict[name] = analog_energy_dict[name]
+        total_energy += analog_energy_dict[name]
+
+    for name in digital_energy_dict.keys():
+        ret_energy_dict[name] = digital_energy_dict[name]
+        total_energy += digital_energy_dict[name]
+
+    return total_energy, ret_energy_dict
 
 # This function finds those functions that are at the interface between analog and digital
 # and creates the input object for digital domain if necessary. 
@@ -328,14 +339,18 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
             print("\n\n[Summary]")
             print("Overall system cycle count: ", cycle)
             print("[Cycle distribution]", reserved_cycle_cnt)
+            ret_dict = {}
             for hw_unit in hw_list:
+                ret_dict[hw_unit.name] = hw_unit.compute_energy() + hw_unit.communication_energy()
                 print(hw_unit, 
                     "total_cycle: ", hw_unit.sys_all_compute_cycle, 
                     "total_write: ", hw_unit.sys_all_write_cnt,
                     "total_read: ", hw_unit.sys_all_read_cnt,
                     "total_compute_energy: %d pJ" % hw_unit.compute_energy(),
                     "total_comm_energy: %d pJ" % hw_unit.communication_energy())
-            print("DONE!")
-            exit()
+            print("[End] Digitial Simulation is DONE!")
+
+            return ret_dict
+            
 
     print("\nSimulation is not finished, increase your cycle counts or debug your code.")

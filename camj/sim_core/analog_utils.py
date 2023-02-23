@@ -23,7 +23,6 @@ def check_component_internal_connect_consistency(analog_component):
                 if output_component not in new_head_list:
                     new_head_list.append(output_component)
 
-        print(head_list)
         head_list = new_head_list
         new_head_list = []
 
@@ -127,18 +126,18 @@ def compute_total_energy(analog_arrays, analog_sw_stages, mapping_dict):
     
     analog_to_sw = reverse_sw_to_analog_mapping(analog_arrays, analog_sw_stages, mapping_dict)
 
-    total_energy = 0
+    ret_dict = {}
     for analog_array in analog_to_sw.keys():
         # check data dependency
         output_stages = find_analog_output_stages(analog_to_sw[analog_array])
         for output_stage in output_stages:
             sw_size = output_stage.output_size
             hw_size = analog_array.num_output
-            print(analog_array, output_stage, sw_size, hw_size)
             cnt = (sw_size[0] * sw_size[1] * sw_size[2]) / (hw_size[0] * hw_size[1])
-            total_energy += cnt * analog_array.energy()
+            ret_dict[analog_array.name] = cnt * analog_array.energy()
+            print("[Energy]", analog_array.name, cnt * analog_array.energy())
 
-    return total_energy
+    return ret_dict
 
 def check_analog_pipeline(analog_arrays):
 
@@ -200,6 +199,7 @@ def launch_analog_simulation(analog_arrays, sw_stages, mapping_dict):
     check_analog_connect_consistency(analog_arrays)
     # find stages corresponding to analog computing
     analog_sw_stages = find_analog_sw_stages(sw_stages, analog_arrays, mapping_dict)
+    print("Software stages in analog domain: ", analog_sw_stages)
     # check analog pipeline correctness
     check_analog_pipeline(analog_arrays)
     # compute analog computing energy

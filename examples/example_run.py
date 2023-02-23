@@ -51,6 +51,18 @@ def eventification_noise_simulation_example(
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
+def run_energy_simulation(hw_dict, mapping_dict, sw_stage_list):
+
+    total_energy, energy_breakdown = launch_simulation(
+        hw_dict = hw_dict,
+        mapping_dict = mapping_dict,
+        sw_stage_list = sw_stage_list
+    )
+
+    print("Total energy: ", total_energy)
+    print("Energy breakdown:")
+    pprint(energy_breakdown)
+
 def run_ieee_vr22():
 
     from examples.ieee_vr22.mapping_file import mapping_function, mapping_function_w_analog
@@ -70,7 +82,7 @@ def run_ieee_vr22():
         sw_stage_list = sw_stage_list
     )
     
-    launch_simulation(
+    run_energy_simulation(
         hw_dict = hw_dict,
         mapping_dict = mapping_dict,
         sw_stage_list = sw_stage_list
@@ -86,7 +98,7 @@ def run_isscc_22_08v():
     mapping_dict = mapping_function()
     sw_stage_list = sw_pipeline()
 
-    launch_simulation(
+    run_energy_simulation(
         hw_dict = hw_dict,
         mapping_dict = mapping_dict,
         sw_stage_list = sw_stage_list
@@ -102,7 +114,7 @@ def run_tcas_i22():
     mapping_dict = mapping_function()
     sw_stage_list = sw_pipeline()
 
-    launch_simulation(
+    run_energy_simulation(
         hw_dict = hw_dict,
         mapping_dict = mapping_dict,
         sw_stage_list = sw_stage_list
@@ -118,7 +130,7 @@ def run_jssc21_05v():
     mapping_dict = mapping_function()
     sw_stage_list = sw_pipeline()
 
-    launch_simulation(
+    run_energy_simulation(
         hw_dict = hw_dict,
         mapping_dict = mapping_dict,
         sw_stage_list = sw_stage_list
@@ -134,7 +146,7 @@ def run_jssc21_51pj():
     mapping_dict = mapping_function()
     sw_stage_list = sw_pipeline()
 
-    launch_simulation(
+    run_energy_simulation(
         hw_dict = hw_dict,
         mapping_dict = mapping_dict,
         sw_stage_list = sw_stage_list
