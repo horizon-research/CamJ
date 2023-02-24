@@ -14,8 +14,8 @@ from camj.sim_core.pixel_libs import ActivePixelSensor
 from camj.sim_core.analog_libs import PassiveSwitchedCapacitorArray
 from camj.sim_core.sw_utils import build_sw_graph
 
-from examples.jssc21_51pj.mapping_file import mapping_function
-from examples.jssc21_51pj.sw_pipeline import sw_pipeline
+from examples.jssc21_51pj.mapping import mapping_function
+from examples.jssc21_51pj.sw import sw_pipeline
 
 def analog_config():
 

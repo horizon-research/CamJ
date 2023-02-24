@@ -7,7 +7,7 @@ parent_directory = os.path.dirname(directory)
 sys.path.append(os.path.dirname(directory))
 sys.path.append(os.path.dirname(parent_directory))
 
-from examples.jssc21_51pj.analog_config import analog_config
+from examples.jssc21_51pj.analog import analog_config
 
 # an example of user defined hw configuration setup 
 def hw_config():
