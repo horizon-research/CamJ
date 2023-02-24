@@ -1,8 +1,83 @@
 # Tutorial
 
-This README gives a simple yet complete example of how to define each part (software/hardware) 
-configuration using CamJ API. By going through this example, you will be able to define a image sensor
-and perform both functional and power simulation using CamJ!
+The best way to learn how to use CamJ is to go through this tutorual.
+We show you, step-by-step, how to use CamJ APIs to describe a simple computational CIS, both its software and hardware,
+and then perform functional (noise) and energy simulations.
+
+## How to Run
+
+It's a good idea to run the tutorial first and see what it does. We will then explain how it does it.
+
+To run the example in this tutorial, simply do:
+```
+python3 tutorial_run.py
+```
+
+You will see two things: a new window showing an image and a bunch of statistics dumped in your terminal. The image shown in the window is the image captured by the CIS (after the ADC) you create in this example. That image is noisy, because the imaging process is noisy; one main goal of CamJ is to accurately capture the noises introduced by the CIS, which we will discuss later.
+
+The terminal will show the following statistics, which is a component-level breakdown of the energy consumption per pixel.
+
+```
+CamJ output
+```
+
+Pressing any key destroys the window and exits the program.
+
+## The Code Entry Point
+
+The script `tutorial_run.py` shows how to run this simple example. First, we import the configuration
+files:
+```python
+# import tutorial example configuration modules
+from tutorial.mapping_file import mapping_function
+from tutorial.sw_pipeline import sw_pipeline
+from tutorial.hw_config import hw_config
+```
+Next, we load the configuration setting into the `main` program.
+```python
+hw_dict = hw_config()
+mapping_dict = mapping_function()
+sw_stage_list = sw_pipeline()
+```
+In this tutorial, we show both functional simulation and energy simulation. `tutorial_functional_simulation`
+corresponds to functional simulation and `launch_simulation`.
+
+In `tutorial_functional_simulation`, we first load the image into the program and then converts the 
+image into proper input format, in this case, we convert a grayscale image into photon based on the
+sensor settings that we use in hardware configuration file. Put `photon_input` array into a dictionary
+which CamJ simulator will use later. The keyword `Input` in the dictionary corresponds to the name 
+of the software stage which uses `phonton_input` as input:
+```python
+# sensor specs
+full_scale_input_voltage = 1.2 # V
+pixel_full_well_capacity = 10000 # e
+
+# load test image
+img = np.array(cv2.imread(img_name, cv2.IMREAD_GRAYSCALE))
+# a simple inverse img to photon
+photon_input = img/255*pixel_full_well_capacity
+
+input_mapping = {
+    "Input" : [photon_input]
+}
+```
+Next, feed `input_mapping` with other configuration structures to a default functional simulation 
+function called `launch_functional_simulation`. The output of `launch_functional_simulation` is dictionary.
+Every key in this dictionary is a software stage name and the corresponding value is the simulation 
+output of the software stage (in a form of list, because it might contains multiple outputs). We can 
+inspect the result using OpenCV `imshow` function:
+```python
+simulation_res = launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_mapping)
+
+img_after_adc = simulation_res['Input'][0]
+
+cv2.imshow("image after adc", img_after_adc/np.max(img_after_adc))
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+```
+
+
+You will be able to run both functional simulation and power simulation!
 
 ## Structures
 
@@ -358,65 +433,6 @@ Here, we show how to configure a column amplifier. Noise-related parameters are:
 * `enable_prnu`: enable PRNU on column amplifier gain.
 * `prnu_std`: set the standard deviation of PRNU.
 
-## How to Run
-
-The script `tutorial_run.py` shows how to run this simple example. First, we import the configuration
-files:
-```python
-# import tutorial example configuration modules
-from tutorial.mapping_file import mapping_function
-from tutorial.sw_pipeline import sw_pipeline
-from tutorial.hw_config import hw_config
-```
-Next, we load the configuration setting into the `main` program.
-```python
-hw_dict = hw_config()
-mapping_dict = mapping_function()
-sw_stage_list = sw_pipeline()
-```
-In this tutorial, we show both functional simulation and energy simulation. `tutorial_functional_simulation`
-corresponds to functional simulation and `launch_simulation`.
-
-In `tutorial_functional_simulation`, we first load the image into the program and then converts the 
-image into proper input format, in this case, we convert a grayscale image into photon based on the
-sensor settings that we use in hardware configuration file. Put `photon_input` array into a dictionary
-which CamJ simulator will use later. The keyword `Input` in the dictionary corresponds to the name 
-of the software stage which uses `phonton_input` as input:
-```python
-# sensor specs
-full_scale_input_voltage = 1.2 # V
-pixel_full_well_capacity = 10000 # e
-
-# load test image
-img = np.array(cv2.imread(img_name, cv2.IMREAD_GRAYSCALE))
-# a simple inverse img to photon
-photon_input = img/255*pixel_full_well_capacity
-
-input_mapping = {
-    "Input" : [photon_input]
-}
-```
-Next, feed `input_mapping` with other configuration structures to a default functional simulation 
-function called `launch_functional_simulation`. The output of `launch_functional_simulation` is dictionary.
-Every key in this dictionary is a software stage name and the corresponding value is the simulation 
-output of the software stage (in a form of list, because it might contains multiple outputs). We can 
-inspect the result using OpenCV `imshow` function:
-```python
-simulation_res = launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_mapping)
-
-img_after_adc = simulation_res['Input'][0]
-
-cv2.imshow("image after adc", img_after_adc/np.max(img_after_adc))
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-```
-
-To run CamJ simulation for this example is quite simple. Just use python to run this script:
-```
- $ python3 tutorial_run.py
-```
-
-You will be able to run both functional simulation and power simulation!
 
 
 
