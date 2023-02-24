@@ -29,9 +29,13 @@ in `customized_analog_component.py`.
 
 `mapping_file.py` defines the mapping between software stages and hardware components.
 
+
 ## How to run
 
-To run this example, go to the root directory of this repository and run:
+Run python script `run.py`. You will simulate the example above:
 ```
- $ python3 run_example.py
+ $ python run.py
 ```
+
+You can also run power simulation where eventification is operated in digital domain, please see 
+`run.py` for more details.

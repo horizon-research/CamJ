@@ -15,8 +15,8 @@ from camj.sim_core.pixel_libs import ActivePixelSensor
 from camj.sim_core.analog_libs import ActiveAnalogMemory, ColumnAmplifier, \
                                  Comparator, SourceFollower
 
-from examples.ieee_vr22.mapping_file import mapping_function_w_analog
-from examples.ieee_vr22.sw_pipeline import sw_pipeline_w_analog
+from examples.ieee_vr22.mapping import mapping_function_w_analog
+from examples.ieee_vr22.sw import sw_pipeline_w_analog
 from examples.ieee_vr22.customized_analog_component import EventificationUnit
 
 
