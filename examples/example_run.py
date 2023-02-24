@@ -65,9 +65,9 @@ def run_energy_simulation(hw_dict, mapping_dict, sw_stage_list):
 
 def run_ieee_vr22():
 
-    from examples.ieee_vr22.mapping_file import mapping_function, mapping_function_w_analog
-    from examples.ieee_vr22.sw_pipeline import sw_pipeline, sw_pipeline_w_analog
-    from examples.ieee_vr22.hw_config import hw_config, hw_config_w_analog
+    from examples.ieee_vr22.mapping import mapping_function_w_analog
+    from examples.ieee_vr22.sw import sw_pipeline_w_analog
+    from examples.ieee_vr22.hw import hw_config_w_analog
 
     hw_dict = hw_config_w_analog()
     mapping_dict = mapping_function_w_analog()
@@ -90,9 +90,9 @@ def run_ieee_vr22():
 
 def run_isscc_22_08v():
 
-    from examples.isscc_22_08v.mapping_file import mapping_function
-    from examples.isscc_22_08v.sw_pipeline import sw_pipeline
-    from examples.isscc_22_08v.hw_config import hw_config
+    from examples.isscc_22_08v.mapping import mapping_function
+    from examples.isscc_22_08v.sw import sw_pipeline
+    from examples.isscc_22_08v.hw import hw_config
     
     hw_dict = hw_config()
     mapping_dict = mapping_function()
@@ -106,9 +106,9 @@ def run_isscc_22_08v():
 
 def run_tcas_i22():
 
-    from examples.tcas_i22.mapping_file import mapping_function
-    from examples.tcas_i22.sw_pipeline import sw_pipeline
-    from examples.tcas_i22.hw_config import hw_config
+    from examples.tcas_i22.mapping import mapping_function
+    from examples.tcas_i22.sw import sw_pipeline
+    from examples.tcas_i22.hw import hw_config
     
     hw_dict = hw_config()
     mapping_dict = mapping_function()
@@ -122,9 +122,9 @@ def run_tcas_i22():
 
 def run_jssc21_05v():
 
-    from examples.jssc21_05v.mapping_file import mapping_function
-    from examples.jssc21_05v.sw_pipeline import sw_pipeline
-    from examples.jssc21_05v.hw_config import hw_config
+    from examples.jssc21_05v.mapping import mapping_function
+    from examples.jssc21_05v.sw import sw_pipeline
+    from examples.jssc21_05v.hw import hw_config
     
     hw_dict = hw_config()
     mapping_dict = mapping_function()
@@ -138,9 +138,9 @@ def run_jssc21_05v():
 
 def run_jssc21_51pj():
 
-    from examples.jssc21_51pj.mapping_file import mapping_function
-    from examples.jssc21_51pj.sw_pipeline import sw_pipeline
-    from examples.jssc21_51pj.hw_config import hw_config
+    from examples.jssc21_51pj.mapping import mapping_function
+    from examples.jssc21_51pj.sw import sw_pipeline
+    from examples.jssc21_51pj.hw import hw_config
     
     hw_dict = hw_config()
     mapping_dict = mapping_function()
@@ -166,8 +166,4 @@ if __name__ == '__main__':
         run_jssc21_05v()
     if args.jssc21_51pj:
         run_jssc21_51pj()
-
-
-
-
 
