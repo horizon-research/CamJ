@@ -6,10 +6,11 @@ In this example, we only simulate the analog part of this sensor design which co
 array and a convolution PE array as shown in the following figure:
 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/21286132/221257022-08a3a17c-bdab-410c-bd51-1d764368721d.png">
+  <img src="https://user-images.githubusercontent.com/21286132/221304735-e6fb3361-6931-431e-8803-700e1d634c1b.png">
 </p>
 
 ## How to run
+
 
 Run python script `run.py`, you will simulate the example above:
 ```
