@@ -14,8 +14,8 @@ from camj.sim_core.pixel_libs import PulseWidthModulationPixel
 from camj.sim_core.analog_libs import DigitalToCurrentConverter, CurrentMirror, Comparator
 from camj.sim_core.sw_utils import build_sw_graph
 
-from examples.isscc_22_08v.mapping_file import mapping_function
-from examples.isscc_22_08v.sw_pipeline import sw_pipeline
+from examples.isscc_22_08v.mapping import mapping_function
+from examples.isscc_22_08v.sw import sw_pipeline
 
 def analog_config():
 

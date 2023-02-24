@@ -10,7 +10,7 @@ from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
 from camj.sim_core.digital_memory import FIFO, LineBuffer
 from camj.sim_core.digital_compute import ADC, ComputeUnit
 
-from examples.isscc_22_08v.analog_config import analog_config
+from examples.isscc_22_08v.analog import analog_config
 
 # an example of user defined hw configuration setup 
 def hw_config():
