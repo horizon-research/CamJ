@@ -16,3 +16,9 @@ voltage. The same as the pixels with weight `-1`. Then, the sumed weight `+1` vo
 weight `-1` voltage will go to comparator to compare. The comparator serves as `ReLU`. If voltage `+1`
 is greater than voltage `-1`, then the comparator will output the difference of voltage `+1` and votage
 `-1`. Otherwise, the comparator will output 0.
+## How to run
+
+Run python script `run.py`, you will simulate the example above:
+```
+ $ python run.py
+```
