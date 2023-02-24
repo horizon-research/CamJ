@@ -1,4 +1,3 @@
-import path
 import sys
 import os
 
