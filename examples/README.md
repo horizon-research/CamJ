@@ -14,14 +14,72 @@ Here are the directory names with corresponding papers.
 The following table shows what computing domain each paper involves and what kind of simulation each
 case has:
 
-| Case Name             | Analog Domain | Digital Domain | Funtional Simulation |
-|-----------------------|---------------|----------------|----------------------|
-| ieee_vr22             |      Yes      |      Yes       |         Yes          |
-| isscc_22_08v          |      Yes      |      Yes       |         No           |
-| jssc_21_05v           |      Yes      |      No        |         No           |
-| jssc_21_51pj          |      Yes      |      No        |         No           |
-| tcas_i22              |      Yes      |      Yes       |         No           |
-
+<table>
+    <tr>
+        <th rowspan="2">Case Name</th>
+        <th align="center" colspan="5">Analog Domain</td>
+        <th align="center" colspan="2">Digital Domain</td>
+    </tr>
+    <tr>
+        <td>Pixel</td>
+        <td>Memory</td>
+        <td>PE Operation</td>
+        <td>PE Position</td>
+        <td>Op Domain</td>
+        <td>Memory</td>
+        <td>PE Size</td>
+    </tr>
+    <tr>
+        <td>ieee_vr22</td>
+        <td>3T APS</td>
+        <td>201x320</td>
+        <td>Mul. & Abs. Diff.</td>
+        <td>Column</td>
+        <td>Voltage</td>
+        <td>64K</td>
+        <td>16x16</td>
+    </tr>
+    <tr>
+        <td>isscc_22_08v</td>
+        <td>PWM</td>
+        <td>No</td>
+        <td>MAC</td>
+        <td>Column</td>
+        <td>Time & Current</td>
+        <td>256B</td>
+        <td>1</td>
+    </tr>
+    <tr>
+        <td>jssc_21_05v</td>
+        <td>PWM</td>
+        <td>No</td>
+        <td>MAC</td>
+        <td>Column</td>
+        <td>Time & Current</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>jssc_21_51pj</td>
+        <td>4T APS</td>
+        <td>No</td>
+        <td>MAC</td>
+        <td>Column</td>
+        <td>Charge</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>tcas_i22</td>
+        <td>3T APS</td>
+        <td>No</td>
+        <td>Mul. & Add</td>
+        <td>Pixel & Chip</td>
+        <td>Current</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
 
 ## How to run
 
