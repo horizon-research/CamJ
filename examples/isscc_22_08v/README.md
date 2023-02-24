@@ -4,7 +4,7 @@ This example describes the sensor design from paper: [A 0.8V Intelligent Vision 
 
 This is the vision pipeline that implemented in this example:
 
-![isscc22_08v](https://user-images.githubusercontent.com/21286132/220750469-71df3114-55b3-474e-8882-62b7a9027e28.png)
+![isscc22_08v](https://user-images.githubusercontent.com/21286132/221304421-c999f0f5-76d3-4c43-886d-b81c1571e638.png)
 
 ## How to run
 
