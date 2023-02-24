@@ -9,3 +9,9 @@ array and a convolution PE array as shown in the following figure:
   <img src="https://user-images.githubusercontent.com/21286132/221257022-08a3a17c-bdab-410c-bd51-1d764368721d.png">
 </p>
 
+## How to run
+
+Run python script `run.py`, you will simulate the example above:
+```
+ $ python run.py
+```
