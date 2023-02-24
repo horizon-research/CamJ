@@ -11,11 +11,10 @@ second layer is operated in digital domain.
 (Credit: Senputing: An Ultra-Low-Power Always-On Vision Perception Chip Featuring the Deep Fusion of Sensing and Computing. Fig.3)
 
 The figure in the original paper explains the sensor design quite well. For each pixel, the SRAM Macro
-will control the sitches `Q` and `QB` so that all pixels with weight `+1` and accumulated the sumed 
-voltage. The same as the pixels with weight `-1`. Then, the sumed weight `+1` votage and the sumed 
-weight `-1` voltage will go to comparator to compare. The comparator serves as `ReLU`. If voltage `+1`
-is greater than voltage `-1`, then the comparator will output the difference of voltage `+1` and votage
-`-1`. Otherwise, the comparator will output 0.
+will control the switches `S2` and `S3` so that all pixels with weight `+1` are accumulated as the sumed 
+voltage. The same as the pixels with weight `-1`. Then, the sumed votage with weight `+1` and the sumed  voltage with weight `-1` will go to comparator to compare. The comparator serves as `ReLU`. If voltage `+1`
+is greater than voltage `-1`, then the comparator will output `+1`. Otherwise, the comparator will output 0.
+
 ## How to run
 
 Run python script `run.py`, you will simulate the example above:
