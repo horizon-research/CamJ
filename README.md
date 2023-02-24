@@ -16,9 +16,10 @@ Thus, CamJ enables end-to-end modeling and optimization of the CIS architecture 
 
 ## Installing CamJ
 
-The code is written entirely in Python, and requires minimal external packages, which are all listed in `requirements.txt`.
-Install the packages that CamJ relies on by running `pip install -r requirements.txt`.
-As with any Python project, we recommend creating a [virtual environment](https://docs.python.org/3/library/venv.html) (or other alternatives).
+The code is written entirely in Python, and requires minimal external packages, which are all listed in `requirements.txt` or `requirements.yml`. We recommend to use package management system like `Conda`. 
+Install the packages that CamJ relies on by running `conda env create -f requirements.yml` via `Conda`.
+You can also install packages via `pip` by runnning `pip install -r requirements.txt`
+As with any Python project, we recommend creating a [virtual environment](https://docs.python.org/3/library/venv.html) (or other alternatives). 
 
 ## What is CamJ Useful For?
 
