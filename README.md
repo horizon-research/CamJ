@@ -32,6 +32,6 @@ Ideally, a designer uses CamJ to estimate the system energy given initial design
 For instance, CamJ can identify energy bottlenecks and guide the re-design of corresponding components.
 Orthogonally, a designer can use CamJ to explore optimal mapping and partitioning of the algorithms between analog vs. digital domains or in vs. off CIS to minimize overall system energy under performance targets.
 
-CamJ is *not* a synthesis tool; it does not generate (nor estimate the energy of) an accelerator.
+CamJ is *not* a synthesis tool; it does not generate a digital accelerator (or analog circuits for that matter), which is the goal of a High-Level Synthesis (HLS) tool.
 Rather, CamJ can be used in conjunction with HLS: one could use HLS to first generate an accelerator and then use CamJ to explore, in the
 bigger system, how/whether that accelerator would fit in a computational CIS to maximize end-to-end application gains.
