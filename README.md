@@ -1,19 +1,20 @@
-# CamJ: In-sensor Processing Simulation Framework
+# CamJ: An Energy Modeling and System-Level Exploration Framework for In-Sensor Visual Computing
 
-CamJ is an in-sensor processing simulation Framework. CamJ allows sensor designers to quickly evaluate
-the performance and accuracy of their sensor design in minutes. CamJ provides commonly-used sensor 
-design blocks which allow users describe their sensor designs using CamJ high-level API without 
-lengthly RTL code.
+CamJ is an in-sensor processing simulation Framework. CamJ allows image sensor designers to quickly evaluate
+the energy of their designs in minutes. CamJ provides commonly-used sensor design blocks, both analog and digital,
+which allow users to describe the designs using a declarative interface in Python.
 
-## What's Inside
+## Code Organization
 
 CamJ has two core modules that drive in-sensor simulation: power/energy estimation and functional 
 simulation (noise modeling). We put these two core modules into these two directories:
 
-- [sim_core](https://github.com/horizon-research/in-sensor-simulator/tree/main/sim_core): contains the power simulation API and core implementations.
-- [functional_core](https://github.com/horizon-research/in-sensor-simulator/tree/main/functional_core): contains noising modeling API and core implementations.
-
-For more details about these two modules, go and check these two subdirectories.
+- `camj`: the main source code of CamJ.
+- `tutorial`: a tutorial walking you through the CamJ APIs and showing you how to use CamJ to model a concrete computational image sensor and obtain energy consumption estimations.
+- `utility`: useful tools, e.g., generating noise-free images (input to CamJ) from RGB images.
+- `examples`: examples we built that use CamJ to model existing (computational) image sensors and validate against published results.
+- `tests`: test cases.
+- `test_imgs`: sample inputs to CamJ, i.e., noise-free images.
 
 ## Design Philosophy
 
