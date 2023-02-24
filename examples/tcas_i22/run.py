@@ -11,9 +11,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.getcwd())))
 # import local modules
 from camj.sim_core.launch import launch_simulation
 
-from examples.tcas_i22.mapping_file import mapping_function
-from examples.tcas_i22.sw_pipeline import sw_pipeline
-from examples.tcas_i22.hw_config import hw_config
+from examples.tcas_i22.mapping import mapping_function
+from examples.tcas_i22.sw import sw_pipeline
+from examples.tcas_i22.hw import hw_config
 
 def run_energy_simulation(hw_dict, mapping_dict, sw_stage_list):
 
