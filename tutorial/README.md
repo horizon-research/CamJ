@@ -18,7 +18,18 @@ You will see two things: a new window showing an image and a bunch of statistics
 The terminal will show the following statistics, which is a component-level breakdown of the energy consumption per pixel.
 
 ```
-CamJ output
+[Summary]
+Overall system cycle count:  1354
+[Cycle distribution] {Input: 96, Conv: 896, Abs: 448}
+ADC total_cycle:  32 total_write:  1024 total_read:  0 total_compute_energy: 19200 pJ total_comm_energy: 4198 pJ
+ConvUnit total_cycle:  768 total_write:  8192 total_read:  3072 total_compute_energy: 36864 pJ total_comm_energy: 46182 pJ
+AbsUnit total_cycle:  256 total_write:  8192 total_read:  8192 total_compute_energy: 4096 pJ total_comm_energy: 67174 pJ
+[End] Digitial Simulation is DONE!
+(181574.38905275147,
+ {'PixelArray': 3860.3890527514923,
+  'ADC': 23398,
+  'ConvUnit': 83046,
+  'AbsUnit': 71270})
 ```
 
 ## Code Walk-Through
@@ -41,7 +52,7 @@ hw_dict = {
 }
 ```
 
-The three members represent the digital memory structures, digital compute units, and analog units. In this example, we will need three FIFOs as the digital memories. We create them by instantiating three CamJ `FIFO` objects; they are added to the CIS hardware through `hw_dict["memory"].append`. Our CIS here also needs a bunch of digital units, starting with an ADC created as an CamJ `ADC` object, and two compute units, which are created as two CamJ `ComputeUnit` objects. The naming convention in CamJ is that all the natively-supported hardware structures (compute and memory, analog and digital) are defined as UpperCamelCase-named classes.
+The three members represent the digital memory structures, digital compute units, and analog units. In this example, we will need three FIFOs as the digital memories. We create them by instantiating three CamJ [`FIFO`]() objects; they are added to the CIS hardware through `hw_dict["memory"].append`. Our CIS here also needs a bunch of digital units, starting with an ADC created as an CamJ `ADC` object, and two compute units, which are created as two CamJ `ComputeUnit` objects. The naming convention in CamJ is that all the natively-supported hardware structures (compute and memory, analog and digital) are defined as UpperCamelCase-named classes.
 
 Digital compute units are connected to digital memory structures using the `set_input_buffer` API. For instance, `conv_unit.set_input_buffer(fifo_buffer1)` sets `fifo_buffer1` as the input buffer of `conv_unit`.
 
@@ -128,9 +139,9 @@ mapping = {
 }
 ```
 
-### Functional (Noise) Simulation
+## Functional (Noise) Simulation
 
-In addition to energy simulation, CamJ also models the noises introduced in the CIS hardware. Noise simulation is important for architectural exploration. For instance, using a 3D stacking CIS design would increase the data communication bandwidth (between the pixel array and the compute units) and allow for [heterogeneous integration](https://www.eetimes.eu/heterogeneous-integration-and-the-evolution-of-ic-packaging/), but might also increase the temperature, which increases thermal-induced noises (e.g., read noise, dark-current noise).
+In addition to energy simulation, CamJ also models the noises introduced in the CIS hardware. Noise simulation is important for architectural exploration. For instance, using a 3D stacking CIS design would increase the data communication bandwidth (between the pixel array and the compute units) and allow for [heterogeneous integration](https://www.eetimes.eu/heterogeneous-integration-and-the-evolution-of-ic-packaging/), but might also increase the temperature, which increases thermal-induced noises (e.g., read noise, dark-current noise). Noise simulation allows us to evaluate the energy-vs-task quality trade-offs when making hardware design decisions.
 
 In CamJ, noise simulation is also called functional simulation, and is performed using the following API:
 
@@ -140,13 +151,12 @@ launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_mapping
 
 As you can see, noise simulation requires the three parameters needed for energy simulation, along with an addtional parameter: the input image.
 Calling it an input image is a bit confusing, because it's not really an image. Rather, it's the map of the photon counts after an exposure stored in each photo-diode (before any read out).
-In theory, the photon count map is obtained by simulate the light transport in the physical scene and the camera optics, but CamJ currently doesn't do that, so we emulate it by requiring an raw photon count map as the input. We are currently integrating CamJ with tools like [Iset3D](https://github.com/ISET/iset3d) to obtain an actual photon map.
+In theory, the photon count map is obtained by simulate the light transport in the physical scene and the camera optics, but CamJ currently doesn't do that, so we emulate it by directly requiring an raw photon count map as the input. We are working on integrating CamJ with tools like [ISET3d](https://github.com/ISET/iset3d) or [PBRT](https://github.com/mmp/pbrt-v4) to obtain an actual photon map with physics simulations.
 
-In `tutorial_functional_simulation`, we first load the image into the program and then converts the 
-image into proper input format, in this case, we convert a grayscale image into photon based on the
-sensor settings that we use in hardware configuration file. Put `photon_input` array into a dictionary
-which CamJ simulator will use later. The keyword `Input` in the dictionary corresponds to the name 
-of the software stage which uses `phonton_input` as input:
+### Creating Photon Map
+
+We create a photon map by reading a gray-scale image and convert pixel values to photon counts based on the full-well capacity of the CIS.
+
 ```python
 # sensor specs
 full_scale_input_voltage = 1.2 # V
@@ -161,58 +171,54 @@ input_mapping = {
     "Input" : [photon_input]
 }
 ```
-Next, feed `input_mapping` with other configuration structures to a default functional simulation 
-function called `launch_functional_simulation`. The output of `launch_functional_simulation` is dictionary.
-Every key in this dictionary is a software stage name and the corresponding value is the simulation 
-output of the software stage (in a form of list, because it might contains multiple outputs). We can 
-inspect the result using OpenCV `imshow` function:
+
+The gray-scale image is used as a container for raw photon counts. So it's your responsibility to make sure the pixel values are proportional to photon counts. Gray-scale downloaded from the Internet most likely won't be that. If you have a RGB image, there is a script under `utility` folder that reverses the ISP pipeline and generates a raw pixel map.
+
+### Noise Simulation Outputs
+
+The output of `launch_functional_simulation` is a dictionary.
+Every key in this dictionary is a software stage name and the corresponding value is the simulated 
+output of that software stage.
+Note that the output of each stage is a list, because a stage might contains multiple outputs.
+
+For instance, we can look at the image generated after the ADC:
+
 ```python
-simulation_res = launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_mapping)
-
 img_after_adc = simulation_res['Input'][0]
-
-cv2.imshow("image after adc", img_after_adc/np.max(img_after_adc))
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+img_res = Image.fromarray(np.uint8(img_after_adc / full_scale_input_voltage  * 255) , 'L')
 ```
 
-CamJ supports analog functional simulation. The purpose of functional simulation is to mimic the noise
-generated during analog computing process. Since digital computing is always precise if we assume no
-hardware error happens.
+### Noise Modeling Details
 
-In `analog_config.py`, we define two analog compoenents called `Pixel` and `ColumnAmplifier`. Inside
-`Pixel` instance, we add `ActivePixelSensor`, here, we show the detailed definition of `ActivePixelSensor`:
+The noise model that CamJ uses is described in detail [here](https://www.cs.rochester.edu/courses/572/fall2022/decks/lect11-noise-color-sensing.pdf#page=65). Briefly, it considers both temporas noise and fixed-pattern noise (FPN). Temporal noise includes photon shot noise, dark-current noise, and read noise. FPN includes dark signal non-uniformity (DSNU) and photon response non-uniformity (PSNU).
+
+CamJ allows programmers to specify a set of noise-related attributes when creating an analog component. For instance in `analog_config.py`, the `ActivePixelSensor` and `ColumnAmplifier` are instantiated as follows:
 
 ```python
 ActivePixelSensor(
-    # performance parameters
+    # latency and performance parameters
     pd_capacitance = 1e-12,
     pd_supply = 1.8, # V
     output_vs = 1, #  
     enable_cds = False,
     num_transistor = 3,
-    # noise model parameters
-    dark_current_noise = 0.005,
+    # noise parameters
+    dark_current_noise = 0.005, # mean dark current distribution (Poisson); unit: number of electrons
     enable_dcnu = True,
     enable_prnu = True,
-    dcnu_std = 0.001,
-    fd_gain = 1.0,
-    fd_noise = 0.005,
-    fd_prnu_std = 0.001,
-    sf_gain = 1.0,
-    sf_noise = 0.005,
-    sf_prnu_std = 0.001
+    dcnu_std = 0.001, # standard deviation of mean dark current across the pixel array
+    fd_gain = 1.0, # gain of the floating diffusion (FD)
+    fd_noise = 0.005, # standard deviation of the electron count distribution (Gaussian) at FD
+    fd_prnu_std = 0.001, # standard deviation FD gain distribution across the pixel array
+    sf_gain = 1.0, # gain of the source follower (SF)
+    sf_noise = 0.005, # standard deviation of the voltage distribution (Gaussian) at SF
+    sf_prnu_std = 0.001 # standard deviation SF gain distribution across the pixel array
 )
 ```
 
-As the comment shows, there are a few input parameters define the noide model of this instance. For 
-instance, `dark_current_noise` and `enable_dcnu` set the average dark current noise and enable DCNU.
-`fd_gain` set the floating diffusion (FD) gain is 1. `fd_noise` sets FD read noise. `enable_prnu` 
-and `fd_prnu_std` set to enable simulate PRNU of FD and the standard deviation of FD is 0.001. Same
-as `sf`-related parameters which configure source follower inside pixel.
-
 ```python
 ColumnAmplifier(
+    # latency and performance parameters
     load_capacitance = 1e-12,  # [F]
     input_capacitance = 1e-12,  # [F]
     t_sample = 2e-6,  # [s]
@@ -220,17 +226,11 @@ ColumnAmplifier(
     supply = 1.8,  # [V]
     gain = 1,
     # noise parameters
-    noise = 0.005,
+    noise = 0.005, # read noise of the amplifier (unit: voltage)
     enable_prnu = True,
     prnu_std = 0.001,
 )
 ```
-
-Here, we show how to configure a column amplifier. Noise-related parameters are:
-* `noise`: defines the average read noise of column amplifier
-* `enable_prnu`: enable PRNU on column amplifier gain.
-* `prnu_std`: set the standard deviation of PRNU.
-
 
 
 
