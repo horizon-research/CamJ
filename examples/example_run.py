@@ -1,6 +1,6 @@
 from pprint import pprint
 import numpy as np
-import cv2
+from PIL import Image
 import copy
 import os
 import sys
@@ -27,11 +27,12 @@ def eventification_noise_simulation_example(
     pixel_full_well_capacity = 10000 # e
 
     # load test image
-    curr_img = np.array(cv2.imread(curr_img_name, cv2.IMREAD_GRAYSCALE))
-    # a simple inverse img to photon
-    photon_input = curr_img/255*pixel_full_well_capacity
+    curr_img = np.array(Image.open(curr_img_name).convert("L"))
 
-    prev_img = np.array(cv2.imread(prev_img_name, cv2.IMREAD_GRAYSCALE))/255*full_scale_input_voltage
+    # a simple inverse img to photon
+    photon_input = curr_img/255.*pixel_full_well_capacity
+
+    prev_img = np.array(Image.open(prev_img_name).convert("L"))/255.*full_scale_input_voltage
 
     input_mapping = {
         "CurrInput" : [photon_input],
@@ -46,10 +47,8 @@ def eventification_noise_simulation_example(
     )
 
     img_after_adc = simulation_res['Eventification'][0]
-
-    cv2.imshow("image after adc", img_after_adc/np.max(img_after_adc))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    img_res = Image.fromarray(np.uint8(img_after_adc * 255) , 'L')
+    img_res.save("tmp.png")
 
 def run_energy_simulation(hw_dict, mapping_dict, sw_stage_list):
 
