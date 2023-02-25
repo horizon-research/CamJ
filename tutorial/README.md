@@ -145,12 +145,13 @@ abs_unit = ComputeUnit(
 )
 ```
 
-See the [`ComputeUnit`]() documents for its interface details. Briefly, in `ComputeUnit` we need to define 
-input and output throughput, the number of cycles it takes to finish computing such number of elements, and energy per operation.
+In `ComputeUnit`, we need to define the input and output throughput of that unit. The input throughput means the number of elements that must be ready before the unit can start processing. The output throughput is the number of output elements generated given that many input elements.
+We also need to specify a `delay` attribute, which indicates the number of cycles it takes to process that many input elements.
 
 For instance, `ConvUnit` has an input throughput of `32x3x1` and an output throughput of `32x1x1`.
 It takes 3 cycles to finish processing that many elements.
-The `location` attribute is used to define where this compute unit is.
+
+In addition, CamJ also requires programmers to specify the clock rate and the per operation energy of each compute unit. The `location` attribute is used to define where this compute unit is.
 
 #### Digital Memory Units
 
