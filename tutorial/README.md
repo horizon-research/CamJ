@@ -317,12 +317,12 @@ launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_mapping
 ```
 
 As you can see, noise simulation requires the three parameters needed for energy simulation, along with an addtional parameter: the input image.
-Calling it an input image is a bit confusing, because it's not really an image. Rather, it's the map of the photon counts after an exposure stored in each photo-diode (before any read out).
-In theory, the photon count map is obtained by simulate the light transport in the physical scene and the camera optics, but CamJ currently doesn't do that, so we emulate it by directly requiring an raw photon count map as the input. We are working on integrating CamJ with tools like [ISET3d](https://github.com/ISET/iset3d) or [PBRT](https://github.com/mmp/pbrt-v4) to obtain an actual photon map with physics simulations.
+Calling it an input image is a bit confusing, because it's not really an image. Rather, it's the map of the electron counts after an exposure stored in each photo-diode (before any read out).
+In theory, the electron count map is obtained by simulate the light transport in the physical scene and the camera optics, but CamJ currently doesn't do that, so we emulate it by directly requiring an raw electron count map as the input. We are working on integrating CamJ with tools like [ISET3d](https://github.com/ISET/iset3d) or [PBRT](https://github.com/mmp/pbrt-v4) to obtain an actual electron map with physics simulations.
 
-### Creating Photon Map
+### Creating Electron Map
 
-We create a photon map by reading a gray-scale image and convert pixel values to photon counts based on the full-well capacity of the CIS.
+We create a electron map by reading a gray-scale image and convert pixel values to electron counts based on the full-well capacity of the CIS.
 
 ```python
 # sensor specs
@@ -339,7 +339,7 @@ input_mapping = {
 }
 ```
 
-The gray-scale image is used as a container for raw photon counts. So it's your responsibility to make sure the pixel values are proportional to photon counts. Gray-scale downloaded from the Internet most likely won't be that. If you have a RGB image, there is a script under `utility` folder that reverses the ISP pipeline and generates a raw pixel map.
+The gray-scale image is used as a container for raw electron counts. So it's your responsibility to make sure the pixel values are proportional to electron counts. Gray-scale downloaded from the Internet most likely won't be that. If you have a RGB image, there is a script under `utility` folder that reverses the ISP pipeline and generates a raw pixel map.
 
 ### Noise Simulation Outputs
 
