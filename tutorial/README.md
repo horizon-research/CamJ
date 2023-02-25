@@ -37,7 +37,7 @@ In this tutorial example, `hw_dict` is defined in `hw_config.py`. CamJ requires 
 hw_dict = {
   "memory" : [], # to be added later
   "compute" : [], # to be added later
-  "analog" : analog_config() # defined and added into analog_config.py
+  "analog" : analog_config() # defined and added in analog_config.py
 }
 ```
 
@@ -129,6 +129,18 @@ mapping = {
 ```
 
 ### Functional (Noise) Simulation
+
+In addition to energy simulation, CamJ also models the noises introduced in the CIS hardware. Noise simulation is important for architectural exploration. For instance, using a 3D stacking CIS design would increase the data communication bandwidth (between the pixel array and the compute units) and allow for [heterogeneous integration](https://www.eetimes.eu/heterogeneous-integration-and-the-evolution-of-ic-packaging/), but might also increase the temperature, which increases thermal-induced noises (e.g., read noise, dark-current noise).
+
+In CamJ, noise simulation is also called functional simulation, and is performed using the following API:
+
+```python
+launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_mapping)
+```
+
+As you can see, noise simulation requires the three parameters needed for energy simulation, along with an addtional parameter: the input image.
+Calling it an input image is a bit confusing, because it's not really an image. Rather, it's the map of the photon counts after an exposure stored in each photo-diode (before any read out).
+In theory, the photon count map is obtained by simulate the light transport in the physical scene and the camera optics, but CamJ currently doesn't do that, so we emulate it by requiring an raw photon count map as the input. We are currently integrating CamJ with tools like [Iset3D](https://github.com/ISET/iset3d) to obtain an actual photon map.
 
 In `tutorial_functional_simulation`, we first load the image into the program and then converts the 
 image into proper input format, in this case, we convert a grayscale image into photon based on the
