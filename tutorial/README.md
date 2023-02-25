@@ -40,31 +40,6 @@ In `tutorial_run.py`, `launch_simulation()` is the CamJ API that performs the en
 launch_simulation(hw_dict, mapping_dict, sw_stage_list)
 ```
 
-### Hardware Description
-
-In this tutorial example, `hw_dict` is defined in `hw_config.py`. CamJ requires the hardware description of a CIS to be a dictionary with three keys, each of which accepts an array as its value:
-
-```python
-hw_dict = {
-  "memory" : [], # to be added later
-  "compute" : [], # to be added later
-  "analog" : analog_config() # defined and added in analog_config.py
-}
-```
-
-The three members represent the digital memory structures, digital compute units, and analog units. In this example, we will need three FIFOs as the digital memories. We create them by instantiating three CamJ [`FIFO`]() objects; they are added to the CIS hardware through `hw_dict["memory"].append`. Our CIS here also needs a bunch of digital units, starting with an ADC created as an CamJ `ADC` object, and two compute units, which are created as two CamJ `ComputeUnit` objects. The naming convention in CamJ is that all the natively-supported hardware structures (compute and memory, analog and digital) are defined as UpperCamelCase-named classes.
-
-Digital compute units are connected to digital memory structures using the `set_input_buffer` API. For instance, `conv_unit.set_input_buffer(fifo_buffer1)` sets `fifo_buffer1` as the input buffer of `conv_unit`.
-
-The analog hardware is a bit more complicated, so we create them in a separate file `analog_config.py`. The hardware in the analog domain consists of a set of `AnalogArray`s, each of which consists of a set of `AnalogComponent`s. Our simple CIS has one `AnalogArray`, which is the `pixel_array`. The pixel array has two types of `AnalogComponent`s, 32x32 `pixel`s and 1x32 `col_amp`s (column amplifiers). The two types of components are added to the pixel array, which is then added to the analog hardware description as follows:
-
-```python
-pixel_array.add_component(pixel, (32, 32, 1))
-pixel_array.add_component(col_amp, (32, 1, 1))
-
-analog_arrays.append(pixel_array)
-```
-
 ### Software Description
 
 This CIS executes a simple software pipeline, which is described in `sw_pipeline.py` and has three stages:
@@ -75,13 +50,12 @@ This CIS executes a simple software pipeline, which is described in `sw_pipeline
 | Conv       | defines a 3x3x1 convolution with stride of 1  |
 | Abs        | defines a element-wise absolute               |
 
-In CamJ, any software pipeline starts with an input image, which is created by instaitiating a `PixelInput` object in CamJ:
+In CamJ, any software pipeline starts with an input image, which is created by instaitiating a [`PixelInput`]() object in CamJ below, which says the pixel array captures a 32x32 image.
+The naming convention in CamJ is that all the natively-supported hardware structures (compute and memory, analog and digital) are defined as UpperCamelCase-named classes.
 
 ```python
 input_data = PixelInput((32, 32, 1), name="Input")
 ```
-
-Clearly, we are saying that the pixel array captures a 32x32 image. Since CamJ currently doesn't perform light transport simulation in the scene and the optics, the input to CamJ necessarily starts in the electrical domain and is expressed as an array that's of the same size as the pixel array.
 
 This raw pixel array is then sent through two sequential processing stages, one performing a simple 3x3 convolution and the other performing an element-wise absolute operation. We observe that image processing algorithms can be abstracted as stencil operations
 that operate on a local window of pixels at a time.
@@ -122,6 +96,198 @@ sw_stage_list.append(conv_stage)
 sw_stage_list.append(abs_stage)
 
 return sw_stage_list
+```
+
+### Hardware Description
+
+In this tutorial example, `hw_dict` is defined in `hw_config.py`. CamJ requires the hardware description of a CIS to be a dictionary with three keys, each of which accepts an array as its value:
+
+```python
+hw_dict = {
+  "memory" : [], # to be added later
+  "compute" : [], # to be added later
+  "analog" : analog_config() # defined and added in analog_config.py
+}
+```
+
+The three members represent the digital memory structures, digital compute units, and analog units. Let's see how each is described.
+
+#### Digital Compute Units
+
+Our CIS needs three digital units, starting with an ADC created as an CamJ `ADC` object, and two compute units for the convolution and absolute operations in the software pipeline.
+The two compute units are instantiated as two CamJ [`ComputeUnit`]() objects.
+
+```python
+conv_unit = ComputeUnit(
+    name="ConvUnit",
+    domain=ProcessDomain.DIGITAL,
+    location=ProcessorLocation.SENSOR_LAYER,
+    input_throughput = [(32, 3, 1)],
+    output_throughput = (32, 1, 1), 
+    clock = 500, # MHz
+    energy = 32*9*compute_op_power,
+    area = 30,
+    initial_delay = 0,
+    delay = 3,
+)
+
+abs_unit = ComputeUnit(
+    name="AbsUnit",
+    domain=ProcessDomain.DIGITAL,
+    location=ProcessorLocation.SENSOR_LAYER,
+    input_throughput = [(32, 1, 1)],
+    output_throughput = (32, 1, 1), 
+    clock = 500, # MHz
+    energy = 32*1*compute_op_power,
+    area = 10,
+    initial_delay = 0,
+    delay = 3,
+)
+```
+
+See the [`ComputeUnit`]() documents for its interface details. Briefly, in `ComputeUnit` we need to define 
+input and output throughput, the number of cycles it takes to finish computing such number of elements, and energy per operation.
+
+For instance, `ConvUnit` has an input throughput of `32x3x1` and an output throughput of `32x1x1`.
+It takes 3 cycles to finish processing that many elements.
+The `location` attribute is used to define where this compute unit is.
+
+#### Digital Memory Units
+
+In this example, we will need three line bufferes as the digital memories. We create them by instantiating three CamJ [`LineBuffer`]() objects.
+
+The first line buffer is used between pixel sensor readout and `ConvUnit`.
+The second line buffer is used to save the result from `ConvUnit` and read by `AbsUnit`.
+The last line buffer is used to save the result from `Absunit` and will eventually be transferred out of the CIS.
+
+Here is the  definition of these three memory structures:
+```python
+
+fifo_buffer1 = FIFO(
+    name="FIFO-1",
+    hw_impl = "sram",
+    count = 32*3,
+    clock = 500,    # MHz
+    write_energy = 3,
+    read_energy = 1,
+    location = ProcessorLocation.COMPUTE_LAYER,
+    duplication = 100,
+    write_unit = "ADC",
+    read_unit = "ConvUnit"
+)
+
+fifo_buffer2 = FIFO(
+    name="FIFO-2",
+    hw_impl = "sram",
+    count = 32*3,
+    clock = 500,    # MHz
+    write_energy = 3,
+    read_energy = 1,
+    location = ProcessorLocation.COMPUTE_LAYER,
+    duplication = 100,
+    write_unit = "ConvUnit",
+    read_unit = "AbsUnit"
+)
+
+fifo_buffer3 = FIFO(
+    name="FIFO-3",
+    hw_impl = "sram",
+    count = 32*3,
+    clock = 500,    # MHz
+    write_energy = 3,
+    read_energy = 1,
+    location = ProcessorLocation.COMPUTE_LAYER,
+    duplication = 100,
+    write_unit = "AbsUnit",
+    read_unit = "AbsUnit"
+)
+```
+
+All three line buffers have a size of `32x3`, that is, 3 lines each storing 32 pixels.
+The per-read and per-write energy consumption is 1 pJ and 3 pJ, respectively.
+
+Also, we need to define the access unit for each line buffer. The compute unit that does not have the 
+permission to access the memory structure is not able to access the memory structure.
+
+Last, we define the connections between memory structures and compute units by using `set_input_buffer`
+and `set_output_buffer`:
+
+```python
+adc.set_output_buffer(fifo_buffer1)
+
+conv_unit.set_input_buffer(fifo_buffer1)
+conv_unit.set_output_buffer(fifo_buffer2)
+
+abs_unit.set_input_buffer(fifo_buffer2)
+abs_unit.set_output_buffer(fifo_buffer3)
+```
+
+#### Analog Hardware (Compute and Memory)
+
+The analog hardware is a bit more complicated, so we create them in a separate file `analog_config.py`. The hardware in the analog domain consists of a set of `AnalogArray`s. In our CIS, the only analog array we need is the `PixelArray`. Its input and output throughputs are both `32x1x1`, mimicking a rolling shutter sensor.
+
+```python
+pixel_array = AnalogArray(
+    name = "PixelArray",
+    layer = ProcessorLocation.SENSOR_LAYER,
+    num_input = [(32, 1, 1)],
+    num_output = (32, 1, 1),
+)
+```
+
+Each `AnalogArray` consists of a set of [`AnalogComponent`]()s. In our CIS, the pixel array has two types of [`AnalogComponent`]()s, 32x32 `pixel`s and 1x32 `col_amp`s (column amplifiers).
+
+The `pixel` component's input is in the `OPTICAL` domain and its output is in the `VOLTAGE` domain.
+Specifying the input and output domains allows CamJ to check if the connections between different analog components are correct.
+The specific pixel technology we want to use in this CIS is a 3T active pixel sensor (3T-APS), which is instantiated through the [`ActivePixelSensor`]() class.
+The 3T-APS is then added to the `component_list`, which is an array, indicating that there could be multiple sub-components in a component.
+Each sub-component is a tuple, where the second element indicates the number of sub-components in a component. For instance, `1` here means we have only one 3T-APS inside a pixel.
+
+```python
+pixel = AnalogComponent(
+    name = "Pixel",
+    input_domain =[ProcessDomain.OPTICAL],
+    output_domain = ProcessDomain.VOLTAGE,
+    component_list = [
+        (
+            ActivePixelSensor(
+                ...
+            ),
+            1
+        )
+    ],
+    num_input = [(1, 1)],
+    num_output = (1, 1)
+)
+```
+
+`col_amp` is a column amplifer component. Both the input and the output domain of the column amplifier are `VOLTAGE`.
+
+```python
+col_amp = AnalogComponent(
+    name = "ColumnAmplifier",
+    input_domain =[ProcessDomain.VOLTAGE],
+    output_domain = ProcessDomain.VOLTAGE,
+    component_list = [
+        (
+            ColumnAmplifier(
+                ...
+            ),
+            1
+        )
+    ],
+    num_input = [(1, 1)],
+    num_output = (1, 1)
+)
+```
+
+The two types of components are added to the pixel array, which is then added to the analog hardware description, which is eventually returned.
+
+```python
+pixel_array.add_component(pixel, (32, 32, 1))
+pixel_array.add_component(col_amp, (32, 1, 1))
+
+analog_arrays.append(pixel_array)
 ```
 
 ### Mapping
@@ -230,199 +396,6 @@ ColumnAmplifier(
     enable_prnu = True,
     prnu_std = 0.001,
 )
-```
-
-
-
-
-
-
-
-## Hardware configuration
-
-hardware configuration contains two parts: analog configuration and digital configuration, we will 
-introduce them one-by-one.
-
-### Analog configuration
-
-Here, we just need to define one analog strcuture which is pixel array itself.
-
-```python
-pixel_array = AnalogArray(
-    name = "PixelArray",
-    layer = ProcessorLocation.SENSOR_LAYER,
-    num_input = [(32, 1, 1)],
-    num_output = (32, 1, 1),
-)
-pixel = AnalogComponent(
-    name = "Pixel",
-    input_domain =[ProcessDomain.OPTICAL],
-    output_domain = ProcessDomain.VOLTAGE,
-    component_list = [
-        (
-            ActivePixelSensor(
-                ...
-            ),
-            1
-        )
-    ],
-    num_input = [(1, 1)],
-    num_output = (1, 1)
-)
-
-col_amp = AnalogComponent(
-    name = "ColumnAmplifier",
-    input_domain =[ProcessDomain.VOLTAGE],
-    output_domain = ProcessDomain.VOLTAGE,
-    component_list = [
-        (
-            ColumnAmplifier(
-                ...
-            ),
-            1
-        )
-    ],
-    num_input = [(1, 1)],
-    num_output = (1, 1)
-)
-```
-
-To define an analog structure in CamJ, users first need to define a `AnalogArray` which serves as a 
-template to contain smaller structures which are called `AnalogComponent`. Here, we first define 
-`PixelArray`. For this `PixelArray`, we don't need to define the input and output size but input/output
-throughput. Here, the input and the output throughput are both `32x1x1`. This mimics the rolling shutter
-effect.
-
-After we define the analog array template, we need to define the component inside this analog array.
-Here, this example shows the pxiel input domain is `OPTICAL` and output domain is `VOLTAGE`. To deine
-the input and output domain allows CamJ to check if the connections between different analog components
-are correct. Then, we define the energy function of this analog compoenent. Here, we use a CamJ 
-builtin template to define an 3T active pixel sensor (3T-APS). We use a list of tuple here, because 
-one analog component might includes more than one analog structures. `1` in the second element of this 
-tuple shows that only one 3T-APS inside this analog component.
-
-Additionally, we also need to define a column amplifier in the pixel array for pixel readout. Here,
-`col_amp` instance is a column amplifer component. Both the input and the output domain of column 
-amplifier are `VOLTAGE`.
-
-```python
-pixel_array.add_component(pixel, (32, 32, 1))
-pixel_array.add_component(col_amp, (32, 1, 1))
-
-analog_arrays.append(pixel_array)
-
-return analog_arrays
-```
-
-After we define pxiel array and pixel components, we need to add pixel components (both pixel and 
-column amplifier) to the pixel array using `add_component` function. Next, we need to define the 
-connection between different analog arrays. Here, we only have one analog array, so no need to define 
-the connection across different analog arrays. 
-
-Last, we add every analog array to a `analog_arrays` list and return to CamJ simulator.
-
-### Digital Configuration
-
-Here, we define two digital components that supports both convolution and absolute operations in 
-software pipeline.
-
-```python
-conv_unit = ComputeUnit(
-    name="ConvUnit",
-    domain=ProcessDomain.DIGITAL,
-    location=ProcessorLocation.SENSOR_LAYER,
-    input_throughput = [(32, 3, 1)],
-    output_throughput = (32, 1, 1), 
-    clock = 500, # MHz
-    energy = XX,
-    area = XX,
-    initial_delay = 0,
-    delay = 3,
-)
-
-abs_unit = ComputeUnit(
-    name="AbsUnit",
-    domain=ProcessDomain.DIGITAL,
-    location=ProcessorLocation.SENSOR_LAYER,
-    input_throughput = [(32, 1, 1)],
-    output_throughput = (32, 1, 1), 
-    clock = 500, # MHz
-    energy = XX,
-    area = XX,
-    initial_delay = 0,
-    delay = 3,
-)
-```
-
-Here, we define two compute units using CamJ API, `ComputeUnit`. In `ComputeUnit`, we need to define 
-input and output throughput and number of delay to finish compute such number of elements. Here, we 
-show that `ConvUnit` input throughput is `32x3x1` and its output throughput is `32x1x1`. The time to
-compute those elements is 3 cycles. Also, we show the corresponding energy consumption to output those 
-element. `location` attribute is used to define where this compute unit is.
-
-After we define the compute components in digital domain, we also need to define the memory buffer 
-between two compute units. Here, we define three line buffers. The first line buffer is used between 
-pixel sensor readout and `ConvUnit`. The second line buffer is used to save the result from `ConvUnit` 
-and read by `AbsUnit`. The last line buffer is used to save the result from `Absunit`. Here is the 
-definition of these three memory structures:
-```python
-
-fifo_buffer1 = FIFO(
-    name="FIFO-1",
-    hw_impl = "sram",
-    count = 32*32,
-    clock = 500,    # MHz
-    write_energy = 3,
-    read_energy = 1,
-    location = ProcessorLocation.COMPUTE_LAYER,
-    duplication = 100,
-    write_unit = "ADC",
-    read_unit = "ConvUnit"
-)
-
-fifo_buffer2 = FIFO(
-    name="FIFO-2",
-    hw_impl = "sram",
-    count = 32*32,
-    clock = 500,    # MHz
-    write_energy = 3,
-    read_energy = 1,
-    location = ProcessorLocation.COMPUTE_LAYER,
-    duplication = 100,
-    write_unit = "ConvUnit",
-    read_unit = "AbsUnit"
-)
-
-fifo_buffer3 = FIFO(
-    name="FIFO-3",
-    hw_impl = "sram",
-    count = 32*32,
-    clock = 500,    # MHz
-    write_energy = 3,
-    read_energy = 1,
-    location = ProcessorLocation.COMPUTE_LAYER,
-    duplication = 100,
-    write_unit = "AbsUnit",
-    read_unit = "AbsUnit"
-)
-```
-
-All three line buffers have the size of `32x32`. Their read and write energy are 1 and 3 pJ, respectively.
-Also, we need to define the access unit for each line buffer. The compute unit that does not have the 
-permission to access the memory structure is not able to access the memory structure.
-
-Last, we define the connection between memory structures and compute units by using `set_input_buffer`
-and `set_output_buffer`:
-
-```python
-adc.set_output_buffer(fifo_buffer1)
-
-conv_unit.set_input_buffer(fifo_buffer1)
-conv_unit.set_output_buffer(fifo_buffer2)
-
-abs_unit.set_input_buffer(fifo_buffer2)
-abs_unit.set_output_buffer(fifo_buffer3)
-
 ```
 
 
