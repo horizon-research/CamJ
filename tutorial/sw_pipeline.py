@@ -1,14 +1,8 @@
-
-import path
 import sys
 import os
-  
-# directory reach
-directory = os.getcwd()
-parent_directory = os.path.dirname(directory)
+
 # setting path
-sys.path.append(os.path.dirname(directory))
-sys.path.append(os.path.dirname(parent_directory))
+sys.path.append(os.path.dirname(os.getcwd()))
 
 from camj.sim_core.sw_interface import ProcessStage, PixelInput
 from camj.sim_core.sw_utils import build_sw_graph
