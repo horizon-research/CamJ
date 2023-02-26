@@ -10,12 +10,15 @@ from camj.sim_core.analog_utils import launch_analog_simulation
 from camj.sim_core.pixel_libs import ActivePixelSensor
 from camj.sim_core.analog_libs import ColumnAmplifier
 
-from tutorial.mapping_file import mapping_function
-from tutorial.sw_pipeline import sw_pipeline
+from tutorial.mapping import mapping_function
+from tutorial.sw import sw_pipeline
 
 
 def analog_config():
 
+    full_scale_input_voltage = 1.8 # V
+    pixel_full_well_capacity = 10000 # e
+    conversion_gain = full_scale_input_voltage / pixel_full_well_capacity
     analog_arrays = []
 
     pixel_array = AnalogArray(
@@ -42,7 +45,7 @@ def analog_config():
                     enable_dcnu = True,
                     enable_prnu = True,
                     dcnu_std = 0.001,
-                    fd_gain = 1.0,
+                    fd_gain = conversion_gain,
                     fd_noise = 0.005,
                     fd_prnu_std = 0.001,
                     sf_gain = 1.0,

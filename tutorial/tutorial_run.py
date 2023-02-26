@@ -1,6 +1,6 @@
 from pprint import pprint
 import numpy as np
-import cv2
+from PIL import Image
 import copy
 import os
 import sys
@@ -13,9 +13,9 @@ from camj.sim_core.launch import launch_simulation
 from camj.functional_core.launch import launch_functional_simulation
 
 # import tutorial example configuration modules
-from tutorial.mapping_file import mapping_function
-from tutorial.sw_pipeline import sw_pipeline
-from tutorial.hw_config import hw_config
+from tutorial.mapping import mapping_function
+from tutorial.sw import sw_pipeline
+from tutorial.hw import hw_config
 
 # functional simulation harness function
 def tutorial_functional_simulation(
@@ -26,11 +26,11 @@ def tutorial_functional_simulation(
 ):
 
     # sensor specs
-    full_scale_input_voltage = 1.2 # V
+    full_scale_input_voltage = 1.8 # V
     pixel_full_well_capacity = 10000 # e
 
     # load test image
-    img = np.array(cv2.imread(img_name, cv2.IMREAD_GRAYSCALE))
+    img = np.array(Image.open(img_name).convert("L"))
     # a simple inverse img to electrons
     electron_input = img/255*pixel_full_well_capacity
 
@@ -41,10 +41,8 @@ def tutorial_functional_simulation(
     simulation_res = launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_mapping)
 
     img_after_adc = simulation_res['Input'][0]
-
-    cv2.imshow("image after adc", img_after_adc/np.max(img_after_adc))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    img_res = Image.fromarray(np.uint8(img_after_adc / full_scale_input_voltage * 255) , 'L')
+    img_res.show()
 
 def main():
 
