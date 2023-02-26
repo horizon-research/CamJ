@@ -34,12 +34,12 @@ def hw_config():
     fifo_buffer1 = FIFO(
         name="FIFO-1",
         hw_impl = "sram",
-        count = 32*32,
+        count = 3*32,
         clock = 500,    # MHz
         write_energy = 3,
         read_energy = 1,
         location = ProcessorLocation.COMPUTE_LAYER,
-        duplication = 8,
+        duplication = 1,
         write_unit = "ConvUnit",
         read_unit = "AbsUnit"
     )
@@ -53,7 +53,7 @@ def hw_config():
         write_energy = 3,
         read_energy = 1,
         location = ProcessorLocation.COMPUTE_LAYER,
-        duplication = 8,
+        duplication = 1,
         write_unit = "AbsUnit",
         read_unit = "AbsUnit"
     )
@@ -72,7 +72,7 @@ def hw_config():
         domain=ProcessDomain.DIGITAL,
         location=ProcessorLocation.SENSOR_LAYER,
         input_throughput = [(32, 3, 1)],
-        output_throughput = (32, 1, 8), 
+        output_throughput = (32, 1, 1), 
         clock = 500, # MHz
         energy = 32*9*compute_op_power,
         area = 30,
@@ -88,8 +88,8 @@ def hw_config():
         name="AbsUnit",
         domain=ProcessDomain.DIGITAL,
         location=ProcessorLocation.SENSOR_LAYER,
-        input_throughput = [(32, 1, 8)],
-        output_throughput = (32, 1, 8), 
+        input_throughput = [(32, 1, 1)],
+        output_throughput = (32, 1, 1), 
         clock = 500, # MHz
         energy = 32*1*compute_op_power,
         area = 10,
