@@ -34,11 +34,11 @@ def tutorial_functional_simulation(
 
     # load test image
     img = np.array(cv2.imread(img_name, cv2.IMREAD_GRAYSCALE))
-    # a simple inverse img to photon
-    photon_input = img/255*pixel_full_well_capacity
+    # a simple inverse img to electrons
+    electron_input = img/255*pixel_full_well_capacity
 
     input_mapping = {
-        "Input" : [photon_input]
+        "Input" : [electron_input]
     }
 
     simulation_res = launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_mapping)
