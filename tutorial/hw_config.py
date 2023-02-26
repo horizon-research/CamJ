@@ -31,8 +31,8 @@ def hw_config():
     )
     hw_dict["memory"].append(line_buffer)
 
-    fifo_buffer2 = FIFO(
-        name="FIFO-2",
+    fifo_buffer1 = FIFO(
+        name="FIFO-1",
         hw_impl = "sram",
         count = 32*32,
         clock = 500,    # MHz
@@ -43,10 +43,10 @@ def hw_config():
         write_unit = "ConvUnit",
         read_unit = "AbsUnit"
     )
-    hw_dict["memory"].append(fifo_buffer2)
+    hw_dict["memory"].append(fifo_buffer1)
 
-    fifo_buffer3 = FIFO(
-        name="FIFO-3",
+    fifo_buffer2 = FIFO(
+        name="FIFO-2",
         hw_impl = "sram",
         count = 32*32,
         clock = 500,    # MHz
@@ -57,7 +57,7 @@ def hw_config():
         write_unit = "AbsUnit",
         read_unit = "AbsUnit"
     )
-    hw_dict["memory"].append(fifo_buffer3)
+    hw_dict["memory"].append(fifo_buffer2)
 
     adc = ADC(
         name = "ADC",
@@ -82,7 +82,7 @@ def hw_config():
     hw_dict["compute"].append(conv_unit)
 
     conv_unit.set_input_buffer(line_buffer)
-    conv_unit.set_output_buffer(fifo_buffer2)
+    conv_unit.set_output_buffer(fifo_buffer1)
 
     abs_unit = ComputeUnit(
         name="AbsUnit",
@@ -98,8 +98,8 @@ def hw_config():
     )
     hw_dict["compute"].append(abs_unit)
 
-    abs_unit.set_input_buffer(fifo_buffer2)
-    abs_unit.set_output_buffer(fifo_buffer3)
+    abs_unit.set_input_buffer(fifo_buffer1)
+    abs_unit.set_output_buffer(fifo_buffer2)
 
     return hw_dict
 
