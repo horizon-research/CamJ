@@ -42,7 +42,7 @@ launch_simulation(hw_dict, mapping_dict, sw_stage_list)
 
 ### Software Description
 
-This CIS executes a simple software pipeline, which is described in `sw_pipeline.py` and has three stages:
+This CIS executes a simple software pipeline, which is described in `sw.py` and has three stages:
 
 | Stage Name | Description                                   |
 |------------|-----------------------------------------------|
@@ -100,13 +100,13 @@ return sw_stage_list
 
 ### Hardware Description
 
-In this tutorial example, `hw_dict` is defined in `hw_config.py`. CamJ requires the hardware description of a CIS to be a dictionary with three keys, each of which accepts an array as its value:
+In this tutorial example, `hw_dict` is defined in `hw.py`. CamJ requires the hardware description of a CIS to be a dictionary with three keys, each of which accepts an array as its value:
 
 ```python
 hw_dict = {
   "memory" : [], # to be added later
   "compute" : [], # to be added later
-  "analog" : analog_config() # defined and added in analog_config.py
+  "analog" : analog_config() # defined and added in analog.py
 }
 ```
 
@@ -138,7 +138,7 @@ abs_unit = ComputeUnit(
     input_throughput = [(32, 1, 1)],
     output_throughput = (32, 1, 1), 
     clock = 500, # MHz
-    energy = 32*1*compute_op_power,
+    energy = 32*compute_op_power,
     area = 10,
     initial_delay = 0,
     delay = 3,
@@ -148,7 +148,7 @@ abs_unit = ComputeUnit(
 In `ComputeUnit`, we need to define the input and output throughput of that unit. The input throughput means the number of elements that must be ready before the unit can start processing. The output throughput is the number of output elements generated given that many input elements.
 We also need to specify a `delay` attribute, which indicates the number of cycles it takes to process that many input elements.
 
-For instance, `ConvUnit` has an input throughput of `32x3x1` and an output throughput of `32x1x1`.
+For instance, `ConvUnit` has an input throughput of `32x3x1` and an output throughput of `32x1x8`.
 It takes 3 cycles to finish processing that many elements.
 
 In addition, CamJ also requires programmers to specify the clock rate and the per operation energy of each compute unit. The `location` attribute is used to define where this compute unit is.
@@ -163,42 +163,41 @@ The last line buffer is used to save the result from `Absunit` and will eventual
 
 Here is the  definition of these three memory structures:
 ```python
-
-fifo_buffer1 = FIFO(
-    name="FIFO-1",
+line_buffer = LineBuffer(
+    name="LineBuffer",
     hw_impl = "sram",
-    count = 32*3,
+    size = (3, 32),
     clock = 500,    # MHz
     write_energy = 3,
     read_energy = 1,
     location = ProcessorLocation.COMPUTE_LAYER,
-    duplication = 100,
+    duplication = 1,
     write_unit = "ADC",
     read_unit = "ConvUnit"
+)
+
+fifo_buffer1 = FIFO(
+    name="FIFO-1",
+    hw_impl = "sram",
+    count = 3*32,
+    clock = 500,    # MHz
+    write_energy = 3,
+    read_energy = 1,
+    location = ProcessorLocation.COMPUTE_LAYER,
+    duplication = 8,
+    write_unit = "ConvUnit",
+    read_unit = "AbsUnit"
 )
 
 fifo_buffer2 = FIFO(
     name="FIFO-2",
     hw_impl = "sram",
-    count = 32*3,
+    count = 3*32,
     clock = 500,    # MHz
     write_energy = 3,
     read_energy = 1,
     location = ProcessorLocation.COMPUTE_LAYER,
-    duplication = 100,
-    write_unit = "ConvUnit",
-    read_unit = "AbsUnit"
-)
-
-fifo_buffer3 = FIFO(
-    name="FIFO-3",
-    hw_impl = "sram",
-    count = 32*3,
-    clock = 500,    # MHz
-    write_energy = 3,
-    read_energy = 1,
-    location = ProcessorLocation.COMPUTE_LAYER,
-    duplication = 100,
+    duplication = 8,
     write_unit = "AbsUnit",
     read_unit = "AbsUnit"
 )
@@ -214,18 +213,18 @@ Last, we define the connections between memory structures and compute units by u
 and `set_output_buffer`:
 
 ```python
-adc.set_output_buffer(fifo_buffer1)
+adc.set_output_buffer(line_buffer)
 
-conv_unit.set_input_buffer(fifo_buffer1)
-conv_unit.set_output_buffer(fifo_buffer2)
+conv_unit.set_input_buffer(line_buffer)
+conv_unit.set_output_buffer(fifo_buffer1)
 
-abs_unit.set_input_buffer(fifo_buffer2)
-abs_unit.set_output_buffer(fifo_buffer3)
+abs_unit.set_input_buffer(fifo_buffer1)
+abs_unit.set_output_buffer(fifo_buffer2)
 ```
 
 #### Analog Hardware (Compute and Memory)
 
-The analog hardware is a bit more complicated, so we create them in a separate file `analog_config.py`. The hardware in the analog domain consists of a set of `AnalogArray`s. In our CIS, the only analog array we need is the `PixelArray`. Its input and output throughputs are both `32x1x1`, mimicking a rolling shutter sensor.
+The analog hardware is a bit more complicated, so we create them in a separate file `analog.py`. The hardware in the analog domain consists of a set of `AnalogArray`s. In our CIS, the only analog array we need is the `PixelArray`. Its input and output throughputs are both `32x1x1`, mimicking a rolling shutter sensor.
 
 ```python
 pixel_array = AnalogArray(
@@ -326,16 +325,16 @@ We create a electron map by reading a gray-scale image and convert pixel values 
 
 ```python
 # sensor specs
-full_scale_input_voltage = 1.2 # V
+full_scale_input_voltage = 1.8 # V
 pixel_full_well_capacity = 10000 # e
 
 # load test image
-img = np.array(cv2.imread(img_name, cv2.IMREAD_GRAYSCALE))
-# a simple inverse img to photon
-photon_input = img/255*pixel_full_well_capacity
+img = np.array(Image.open(img_name).convert("L"))
+# a simple inverse img to electrons
+electron_input = img/255*pixel_full_well_capacity
 
 input_mapping = {
-    "Input" : [photon_input]
+    "Input" : [electron_input]
 }
 ```
 
