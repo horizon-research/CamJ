@@ -38,11 +38,11 @@ def sw_pipeline():
     # define a 1x1 absolution stage
     abs_stage = ProcessStage(
         name = "Abs",
-        input_size = [(12, 12, 1)],
-        kernel_size = [(1, 1, 1)],
+        input_size = [(12, 12, 1)], # (H, W, C)
+        kernel_size = [(1, 1, 1)],  # (K_h, K_w, K_c) 
         num_kernels = [1],
-        stride = [(1, 1, 1)],
-        output_size = (12, 12, 1),
+        stride = [(1, 1, 1)],       # (H, W, C)
+        output_size = (12, 12, 1),  # same as input size
         padding = [False]
     )
 
