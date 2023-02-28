@@ -25,11 +25,11 @@ ADC total compute cycle:  1296 total compute energy: 777600 pJ
 ConvUnit-1 total compute cycle:  1298 total compute energy: 5841 pJ
 ConvUnit-2 total compute cycle:  146 total compute energy: 657 pJ
 AbsUnit total compute cycle:  144 total compute energy: 72 pJ
-[End] Digitial Simulation is DONE!
 LineBuffer total memory energy: 5182 pJ
 FIFO-1 total memory energy: 5184 pJ
 FIFO-2 total memory energy: 576 pJ
 FIFO-3 total memory energy: 432 pJ
+[End] Digitial Simulation is DONE!
 ```
 
 ## Code Walk-Through

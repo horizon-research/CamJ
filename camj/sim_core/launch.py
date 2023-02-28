@@ -321,11 +321,11 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
                 print(hw_unit, 
                     "total compute cycle: ", hw_unit.sys_all_compute_cycle,
                     "total compute energy: %d pJ" % hw_unit.compute_energy())
-            print("[End] Digitial Simulation is DONE!")
 
             for mem_unit in hw_dict["memory"]:
                 print(mem_unit, "total memory energy: %d pJ" % mem_unit.total_memory_access_energy())
 
+            print("[End] Digitial Simulation is DONE!")
             return ret_dict
             
 
