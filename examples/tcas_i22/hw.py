@@ -25,27 +25,25 @@ def hw_config():
 
     fifo_buffer1 = FIFO(
         name="FIFO1",
-        hw_impl = "sram",
-        count = 16,
-        clock = 500,    # MHz
-        write_energy = 3,
-        read_energy = 1,
+        size = 16,
         location = ProcessorLocation.COMPUTE_LAYER,
-        duplication = 16,
+        write_energy_per_word = 3,
+        read_energy_per_word = 1,
+        write_word_length = 1,
+        read_word_length = 1,
         write_unit = "ADC",
         read_unit = "FCUnit"
     )
     hw_dict["memory"].append(fifo_buffer1)
 
     fifo_buffer2 = FIFO(
-        name="FIFO2",
-        hw_impl = "sram",
-        count = 10,
-        clock = 500,    # MHz
-        write_energy = 3,
-        read_energy = 1,
+        name = "FIFO2",
+        size = 10,
         location = ProcessorLocation.COMPUTE_LAYER,
-        duplication = 10,
+        write_energy_per_word = 3,
+        read_energy_per_word = 1,
+        write_word_length = 1,
+        read_word_length = 1,
         write_unit = "FCUnit",
         read_unit = None
     )
@@ -53,23 +51,21 @@ def hw_config():
 
     adc = ADC(
         name = "ADC",
-        output_throughput = (1, 1, 16),
+        output_per_cycle = (1, 1, 1),
         location = ProcessorLocation.SENSOR_LAYER,
     )
     adc.set_output_buffer(fifo_buffer1)
     hw_dict["compute"].append(adc)
 
     fc_unit = ComputeUnit(
-        name="FCUnit",
-        domain=ProcessDomain.DIGITAL,
-        location=ProcessorLocation.COMPUTE_LAYER,
-        input_throughput = [(1, 1, 16)],
-        output_throughput = (1, 1, 10),
-        clock = 500, # MHz
-        energy = 16*10*compute_op_power,
+        name = "FCUnit",
+        domain = ProcessDomain.DIGITAL,
+        location = ProcessorLocation.COMPUTE_LAYER,
+        input_per_cycle = [(1, 1, 16)],
+        output_per_cycle = (1, 1, 10),
+        energy_per_cycle = 16*10*compute_op_power,
         area = 10,
-        initial_delay = 0,
-        delay = 1,
+        num_of_stages = 16
     )
     fc_unit.set_input_buffer(fifo_buffer1)
     fc_unit.set_output_buffer(fifo_buffer2)
