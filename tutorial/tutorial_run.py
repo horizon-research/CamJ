@@ -50,12 +50,12 @@ def main():
     mapping_dict = mapping_function()
     sw_stage_list = sw_pipeline()
 
-    # tutorial_functional_simulation(
-    #     img_name = "../test_imgs/test_img.jpeg",
-    #     hw_dict = hw_dict,
-    #     mapping_dict = mapping_dict,
-    #     sw_stage_list = sw_stage_list
-    # )
+    tutorial_functional_simulation(
+        img_name = "../test_imgs/test_img.jpeg",
+        hw_dict = hw_dict,
+        mapping_dict = mapping_dict,
+        sw_stage_list = sw_stage_list
+    )
     
     launch_simulation(
         hw_dict = hw_dict,
