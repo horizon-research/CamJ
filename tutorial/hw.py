@@ -19,13 +19,12 @@ def hw_config():
  
     line_buffer = LineBuffer(
         name="LineBuffer",
-        hw_impl = "sram",
-        size = (32, 32),
-        clock = 500,    # MHz
-        write_energy = 3,
-        read_energy = 1,
+        size = (3, 32),  # can 3x 32 number of pixels
         location = ProcessorLocation.COMPUTE_LAYER,
-        duplication = 1,
+        write_energy_per_word = 3,  # 3pJ to write a word
+        read_energy_per_word = 1,   # 1pJ to read a word
+        write_word_length = 1,      # the word length or #pixel per write access
+        read_word_length = 1,       # the word length or #pixel per read access
         write_unit = "ADC",
         read_unit = "ConvUnit"
     )
@@ -33,13 +32,12 @@ def hw_config():
 
     fifo_buffer1 = FIFO(
         name="FIFO-1",
-        hw_impl = "sram",
-        count = 3*32,
-        clock = 500,    # MHz
-        write_energy = 3,
-        read_energy = 1,
+        size = 32,
         location = ProcessorLocation.COMPUTE_LAYER,
-        duplication = 1,
+        write_energy_per_word = 3,  # 3pJ to write a word
+        read_energy_per_word = 1,   # 1pJ to read a word
+        write_word_length = 1,      # the word length or #pixel per write access
+        read_word_length = 1,       # the word length or #pixel per read access
         write_unit = "ConvUnit",
         read_unit = "AbsUnit"
     )
@@ -47,13 +45,12 @@ def hw_config():
 
     fifo_buffer2 = FIFO(
         name="FIFO-2",
-        hw_impl = "sram",
-        count = 32*32,
-        clock = 500,    # MHz
-        write_energy = 3,
-        read_energy = 1,
+        size = 32*32,
         location = ProcessorLocation.COMPUTE_LAYER,
-        duplication = 1,
+        write_energy_per_word = 3,  # 3pJ to write a word
+        read_energy_per_word = 1,   # 1pJ to read a word
+        write_word_length = 1,      # the word length or #pixel per write access
+        read_word_length = 1,       # the word length or #pixel per read access 
         write_unit = "AbsUnit",
         read_unit = "AbsUnit"
     )
@@ -61,7 +58,7 @@ def hw_config():
 
     adc = ADC(
         name = "ADC",
-        output_throughput = (32, 1, 1),
+        output_per_cycle = (32, 1, 1),
         location = ProcessorLocation.SENSOR_LAYER,
     )
     adc.set_output_buffer(line_buffer)
@@ -71,13 +68,11 @@ def hw_config():
         name="ConvUnit",
         domain=ProcessDomain.DIGITAL,
         location=ProcessorLocation.SENSOR_LAYER,
-        input_throughput = [(32, 3, 1)],
-        output_throughput = (32, 1, 1), 
-        clock = 500, # MHz
-        energy = 32*9*compute_op_power,
-        area = 30,
-        initial_delay = 0,
-        delay = 3,
+        input_per_cycle = [(1, 3, 1)],
+        output_per_cycle = (1, 1, 1), 
+        energy_per_cycle = 9*compute_op_power,
+        num_of_stages = 3,
+        area = 30
     )
     hw_dict["compute"].append(conv_unit)
 
@@ -88,13 +83,11 @@ def hw_config():
         name="AbsUnit",
         domain=ProcessDomain.DIGITAL,
         location=ProcessorLocation.SENSOR_LAYER,
-        input_throughput = [(32, 1, 1)],
-        output_throughput = (32, 1, 1), 
-        clock = 500, # MHz
-        energy = 32*1*compute_op_power,
-        area = 10,
-        initial_delay = 0,
-        delay = 3,
+        input_per_cycle = [(1, 1, 1)],
+        output_per_cycle = (1, 1, 1), 
+        energy_per_cycle = 1*compute_op_power,
+        num_of_stages = 1,
+        area = 10
     )
     hw_dict["compute"].append(abs_unit)
 
