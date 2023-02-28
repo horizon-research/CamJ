@@ -11,36 +11,49 @@ def sw_pipeline():
 
     sw_stage_list = []
     # define input data
-    input_data = PixelInput((32, 32, 1), name="Input")
+    input_data = PixelInput((36, 36, 1), name="Input")
     
-    # define a 3x3 convolution stage
-    conv_stage = ProcessStage(
-        name = "Conv",
-        input_size = [(32, 32, 1)],
-        kernel_size = [(3, 3, 1)],
+    # define a 3x3 convolution stage with stride of 1
+    conv1_stage = ProcessStage(
+        name = "Conv1",
+        input_size = [(36, 36, 1)], # (H, W, C)
+        kernel_size = [(3, 3, 1)],  # (K_h, K_w, K_c)
         num_kernels = [1],
-        stride = [(1, 1, 1)],
-        output_size = (32, 32, 1),
-        padding = [True]
+        stride = [(1, 1, 1)],       # (H, W, C)
+        output_size = (36, 36, 1),  # with padding and stride of 1
+        padding = [True]            # output size is the same as input
+    )
+
+    # define a 3x3 convolution stage with stride of 3
+    conv2_stage = ProcessStage(
+        name = "Conv2",
+        input_size = [(36, 36, 1)], # (H, W, C)
+        kernel_size = [(3, 3, 1)],  # (K_h, K_w, K_c) 
+        num_kernels = [1],
+        stride = [(3, 3, 1)],       # (H, W, C)
+        output_size = (12, 12, 1),  # with no padding and stride of 3
+        padding = [False]           # output size becomes (12, 12, 1)
     )
     
     # define a 1x1 absolution stage
     abs_stage = ProcessStage(
         name = "Abs",
-        input_size = [(32, 32, 1)],
+        input_size = [(12, 12, 1)],
         kernel_size = [(1, 1, 1)],
         num_kernels = [1],
         stride = [(1, 1, 1)],
-        output_size = (32, 32, 1),
+        output_size = (12, 12, 1),
         padding = [False]
     )
 
     # set data dependency
-    conv_stage.set_input_stage(input_data)
-    abs_stage.set_input_stage(conv_stage)
+    conv1_stage.set_input_stage(input_data)
+    conv2_stage.set_input_stage(conv1_stage)
+    abs_stage.set_input_stage(conv2_stage)
 
     sw_stage_list.append(input_data)
-    sw_stage_list.append(conv_stage)
+    sw_stage_list.append(conv1_stage)
+    sw_stage_list.append(conv2_stage)
     sw_stage_list.append(abs_stage)
 
     return sw_stage_list

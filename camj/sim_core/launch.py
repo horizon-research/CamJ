@@ -237,7 +237,7 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
                 else:
                     if cycle % PRINT_CYCLE == 0:
                         print("[WRITE]", output_buffer, "have no space to write")
-
+                        exit()
 
                 if check_stage_finish(hw_unit, sw_stage, hw2sw):
                     if cycle % PRINT_CYCLE == 0:
@@ -324,7 +324,7 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
             print("[End] Digitial Simulation is DONE!")
 
             for mem_unit in hw_dict["memory"]:
-                print(mem_unit, "total_memory_energy:, ", mem_unit.total_memory_access_energy())
+                print(mem_unit, "total memory energy: %d pJ" % mem_unit.total_memory_access_energy())
 
             return ret_dict
             
