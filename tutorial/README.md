@@ -19,17 +19,17 @@ The terminal will show the following statistics, which is a component-level brea
 
 ```
 [Summary]
-Overall system cycle count:  1354
-[Cycle distribution] {Input: 96, Conv: 896, Abs: 448}
-ADC total_cycle:  32 total_write:  1024 total_read:  0 total_compute_energy: 19200 pJ total_comm_energy: 4198 pJ
-ConvUnit total_cycle:  768 total_write:  8192 total_read:  3072 total_compute_energy: 36864 pJ total_comm_energy: 46182 pJ
-AbsUnit total_cycle:  256 total_write:  8192 total_read:  8192 total_compute_energy: 4096 pJ total_comm_energy: 67174 pJ
+Overall system cycle count:  5761
+[Cycle distribution] {Input: 2591, Conv1: 5039, Conv2: 2731, Abs: 573}
+ADC total compute cycle:  1296 total compute energy: 777600 pJ
+ConvUnit-1 total compute cycle:  1298 total compute energy: 5841 pJ
+ConvUnit-2 total compute cycle:  146 total compute energy: 657 pJ
+AbsUnit total compute cycle:  144 total compute energy: 72 pJ
 [End] Digitial Simulation is DONE!
-(181574.38905275147,
- {'PixelArray': 3860.3890527514923,
-  'ADC': 23398,
-  'ConvUnit': 83046,
-  'AbsUnit': 71270})
+LineBuffer total memory energy: 5182 pJ
+FIFO-1 total memory energy: 5184 pJ
+FIFO-2 total memory energy: 576 pJ
+FIFO-3 total memory energy: 432 pJ
 ```
 
 ## Code Walk-Through
@@ -42,40 +42,66 @@ launch_simulation(hw_dict, mapping_dict, sw_stage_list)
 
 ### Software Description
 
-This CIS executes a simple software pipeline, which is described in `sw.py` and has three stages:
+This CIS executes a simple software pipeline, which is described in `sw.py` and has four stages:
 
 | Stage Name | Description                                   |
 |------------|-----------------------------------------------|
-| Input      | defines a 32x32x1 pixel input                 |
-| Conv       | defines a 3x3x1 convolution with stride of 1  |
+| Input      | defines a 36x36x1 pixel input                 |
+| Conv-1     | defines a 3x3x1 convolution with stride of 1  |
+| Conv-2     | defines a 3x3x1 convolution with stride of 3  |
 | Abs        | defines a element-wise absolute               |
 
-In CamJ, any software pipeline starts with an input image, which is created by instaitiating a [`PixelInput`]() object in CamJ below, which says the pixel array captures a 32x32 image.
+In CamJ, any software pipeline starts with an input image, which is created by instaitiating a [`PixelInput`](https://github.com/horizon-research/CamJ/blob/main/camj/sim_core/sw_interface.py#L3) object in CamJ below, which says the pixel array captures a 36x36 image.
 The naming convention in CamJ is that all the natively-supported hardware structures (compute and memory, analog and digital) are defined as UpperCamelCase-named classes.
 
 ```python
-input_data = PixelInput((32, 32, 1), name="Input")
+input_data = PixelInput((36, 36, 1), name="Input")
 ```
 
-This raw pixel array is then sent through two sequential processing stages, one performing a simple 3x3 convolution and the other performing an element-wise absolute operation. We observe that image processing algorithms can be abstracted as stencil operations
-that operate on a local window of pixels at a time.
+This raw pixel array is then sent through three sequential processing stages (using [`ProcessStage`](https://github.com/horizon-research/CamJ/blob/main/camj/sim_core/sw_interface.py#L31)). First one performs a simple 3x3 convolution with stride of 1, second one performs 3x3 convolutation with stride of 3, and the last performs an element-wise absolute operation.
+We observe that image processing algorithms can be abstracted as stencil operations that operate on a local window of pixels at a time.
 An element-wise stage is nothing more than a 1x1 stencil stage.
 
 Therefore, users express only the input/output image dimensions (`input_size`, `output_size`) along with the
 stencil window (`kernel_size`) and stride size (`stride`).
+`num_kernels` is used to define when multiple kernels operates in one processing stages.
 Given the regular computation and data access pattern of stencil operations, CamJ could accurately estimate the access
 counts to different hardware structures for energy estimations.
 
 For instance, the convolution stage is described as:
 
 ```python
-conv_stage = ProcessStage(
-    name = "Conv",
-    input_size = [(32, 32, 1)],
-    kernel_size = [(3, 3, 1)],
-    stride = [(1, 1, 1)],
-    output_size = (32, 32, 1),
-    padding = [Padding.ZEROS]
+# define a 3x3 convolution stage with stride of 1
+conv1_stage = ProcessStage(
+    name = "Conv1",
+    input_size = [(36, 36, 1)], # (H, W, C)
+    kernel_size = [(3, 3, 1)],  # (K_h, K_w, K_c)
+    num_kernels = [1],
+    stride = [(1, 1, 1)],       # (H, W, C)
+    output_size = (36, 36, 1),  # with padding and stride of 1
+    padding = [True]            # output size is the same as input
+)
+
+# define a 3x3 convolution stage with stride of 3
+conv2_stage = ProcessStage(
+    name = "Conv2",
+    input_size = [(36, 36, 1)], # (H, W, C)
+    kernel_size = [(3, 3, 1)],  # (K_h, K_w, K_c) 
+    num_kernels = [1],
+    stride = [(3, 3, 1)],       # (H, W, C)
+    output_size = (12, 12, 1),  # with no padding and stride of 3
+    padding = [False]           # output size becomes (12, 12, 1)
+)
+
+# define a 1x1 absolution stage
+abs_stage = ProcessStage(
+    name = "Abs",
+    input_size = [(12, 12, 1)], # (H, W, C)
+    kernel_size = [(1, 1, 1)],  # (K_h, K_w, K_c) 
+    num_kernels = [1],
+    stride = [(1, 1, 1)],       # (H, W, C)
+    output_size = (12, 12, 1),  # same as input size
+    padding = [False]
 )
 ```
 
@@ -84,15 +110,17 @@ The `abs_stage` is similarly defined, but note that the `stride` is `[(1, 1, 1)]
 We connect the software stages together:
 
 ```python
-conv_stage.set_input_stage(input_data)
-abs_stage.set_input_stage(conv_stage)
+conv1_stage.set_input_stage(input_data)
+conv2_stage.set_input_stage(conv1_stage)
+abs_stage.set_input_stage(conv2_stage)
 ```
 
 In the end, we need to put every stage into a single list used by `launch_simulation()`:
 
 ```python
 sw_stage_list.append(input_data)
-sw_stage_list.append(conv_stage)
+sw_stage_list.append(conv1_stage)
+sw_stage_list.append(conv2_stage)
 sw_stage_list.append(abs_stage)
 
 return sw_stage_list
@@ -114,96 +142,114 @@ The three members represent the digital memory structures, digital compute units
 
 #### Digital Compute Units
 
-Our CIS needs three digital units, starting with an ADC created as an CamJ `ADC` object, and two compute units for the convolution and absolute operations in the software pipeline.
-The two compute units are instantiated as two CamJ [`ComputeUnit`]() objects.
+Our CIS needs four digital units, starting with an ADC created as an CamJ `ADC` object, and three compute units for two convolution operations and one absolute operation in the software pipeline.
+The three compute units are instantiated as three CamJ [`ComputeUnit`](https://github.com/horizon-research/CamJ/blob/main/camj/sim_core/digital_compute.py#L191) objects.
 
 ```python
-conv_unit = ComputeUnit(
-    name="ConvUnit",
+conv1_unit = ComputeUnit(
+    name="ConvUnit-1",
     domain=ProcessDomain.DIGITAL,
     location=ProcessorLocation.SENSOR_LAYER,
-    input_throughput = [(32, 3, 1)],
-    output_throughput = (32, 1, 1), 
-    clock = 500, # MHz
-    energy = 32*9*compute_op_power,
-    area = 30,
-    initial_delay = 0,
-    delay = 3,
+    input_per_cycle = [(3, 1, 1)],          # take (3, 1, 1) of pixel per cycle
+    output_per_cycle = (1, 1, 1),           # output (1, 1, 1) of pixel per cycle
+    energy_per_cycle = 9*compute_op_power,  # the average energy per cycle
+    num_of_stages = 3,                      # num of stages to output result, latency
+    area = 30
+)
+
+conv2_unit = ComputeUnit(
+    name="ConvUnit-2",
+    domain=ProcessDomain.DIGITAL,
+    location=ProcessorLocation.SENSOR_LAYER,
+    input_per_cycle = [(3, 3, 1)],          # take (3, 3, 1) of pixel per cycle
+    output_per_cycle = (1, 1, 1),           # output (1, 1, 1) of pixel per cycle
+    energy_per_cycle = 9*compute_op_power,  # average energy per cycle
+    num_of_stages = 3,                      # num of stage to output result. latency 
+    area = 30
 )
 
 abs_unit = ComputeUnit(
     name="AbsUnit",
     domain=ProcessDomain.DIGITAL,
     location=ProcessorLocation.SENSOR_LAYER,
-    input_throughput = [(32, 1, 1)],
-    output_throughput = (32, 1, 1), 
-    clock = 500, # MHz
-    energy = 32*compute_op_power,
-    area = 10,
-    initial_delay = 0,
-    delay = 3,
+    input_per_cycle = [(1, 1, 1)],          # take (1, 1, 1) of pixel per cycle
+    output_per_cycle = (1, 1, 1),           # output (1, 1, 1) of pixel per cycle
+    energy_per_cycle = 1*compute_op_power,  # average energy per cycle
+    num_of_stages = 1,                      # num of stage to output result. latency 
+    area = 10
 )
 ```
 
-In `ComputeUnit`, we need to define the input and output throughput of that unit. The input throughput means the number of elements that must be ready before the unit can start processing. The output throughput is the number of output elements generated given that many input elements.
-We also need to specify a `delay` attribute, which indicates the number of cycles it takes to process that many input elements.
+In `ComputeUnit`, we need to define the input and output per cycle of that unit. The input per cycle means the number of input elements needs to be read per cycle. The output per cycle is the number of output elements generated per cycle after fully pipelined.
+We also need to specify a `num_of_stages` attribute, which indicates the number of stages in this compute unit.
 
-For instance, `ConvUnit` has an input throughput of `32x3x1` and an output throughput of `32x1x1`.
-It takes 3 cycles to finish processing that many elements.
+For instance, `ConvUnit-1` has an input per cycle of `3x1x1` and the output per cycle is `1x1x1`. It has three stages. 
+So the latency of `ConvUnit-1` is 3 cycles, but it generates (1, 1, 1) of element per cycle after it is fully pipelined.
 
-In addition, CamJ also requires programmers to specify the clock rate and the per operation energy of each compute unit. The `location` attribute is used to define where this compute unit is.
+In addition, CamJ also requires programmers to specify the per operation energy of each compute unit. 
+The `location` attribute is used to define where this compute unit is.
 
 #### Digital Memory Units
 
-In this example, we will need three line bufferes as the digital memories. We create them by instantiating three CamJ [`LineBuffer`]() objects.
+In this example, we will need one line buffer and three FIFOs as the digital memories. We create them by instantiating CamJ [`LineBuffer`](https://github.com/horizon-research/CamJ/blob/main/camj/sim_core/digital_memory.py#L71) and [`FIFO`](https://github.com/horizon-research/CamJ/blob/main/camj/sim_core/digital_memory.py#L166) objects.
 
-The first line buffer is used between pixel sensor readout and `ConvUnit`.
-The second line buffer is used to save the result from `ConvUnit` and read by `AbsUnit`.
-The last line buffer is used to save the result from `Absunit` and will eventually be transferred out of the CIS.
+The line buffer is used between pixel sensor readout and `ConvUnit-1`.
+The first FIFO is used to save the result from `ConvUnit-1` and read by `ConvUnit-2`.
+The second FIFO is used to save the result from `ConvUnit-2` and read by `AbsUnit`.
+The last FIFO is used to save the result from `Absunit` and will eventually be transferred out of the CIS.
 
-Here is the  definition of these three memory structures:
+Here is the definition of these three memory structures:
 ```python
 line_buffer = LineBuffer(
-    name="LineBuffer",
-    hw_impl = "sram",
-    size = (3, 32),
-    clock = 500,    # MHz
-    write_energy = 3,
-    read_energy = 1,
-    location = ProcessorLocation.COMPUTE_LAYER,
-    duplication = 1,
-    write_unit = "ADC",
-    read_unit = "ConvUnit"
-)
+        name="LineBuffer",
+        size = (3, 36),  # can 3x 32 number of pixels
+        location = ProcessorLocation.COMPUTE_LAYER,
+        write_energy_per_word = 3,  # 3pJ to write a word
+        read_energy_per_word = 1,   # 1pJ to read a word
+        write_word_length = 1,      # the word length or #pixel per write access
+        read_word_length = 3,       # the word length or #pixel per read access
+        write_unit = "ADC",
+        read_unit = "ConvUnit-1"
+    )
 
-fifo_buffer1 = FIFO(
-    name="FIFO-1",
-    hw_impl = "sram",
-    count = 3*32,
-    clock = 500,    # MHz
-    write_energy = 3,
-    read_energy = 1,
-    location = ProcessorLocation.COMPUTE_LAYER,
-    duplication = 8,
-    write_unit = "ConvUnit",
-    read_unit = "AbsUnit"
-)
+    fifo_buffer1 = FIFO(
+        name="FIFO-1",
+        size = 36*3,
+        location = ProcessorLocation.COMPUTE_LAYER,
+        write_energy_per_word = 3,  # 3pJ to write a word
+        read_energy_per_word = 1,   # 1pJ to read a word
+        write_word_length = 1,      # the word length or #pixel per write access
+        read_word_length = 1,       # the word length or #pixel per read access
+        write_unit = "ConvUnit-1",
+        read_unit = "ConvUnit-2"
+    )
 
-fifo_buffer2 = FIFO(
-    name="FIFO-2",
-    hw_impl = "sram",
-    count = 3*32,
-    clock = 500,    # MHz
-    write_energy = 3,
-    read_energy = 1,
-    location = ProcessorLocation.COMPUTE_LAYER,
-    duplication = 8,
-    write_unit = "AbsUnit",
-    read_unit = "AbsUnit"
-)
+    fifo_buffer2 = FIFO(
+        name="FIFO-2",
+        size = 12,
+        location = ProcessorLocation.COMPUTE_LAYER,
+        write_energy_per_word = 3,  # 3pJ to write a word
+        read_energy_per_word = 1,   # 1pJ to read a word
+        write_word_length = 1,      # the word length or #pixel per write access
+        read_word_length = 1,       # the word length or #pixel per read access
+        write_unit = "ConvUnit-2",
+        read_unit = "AbsUnit"
+    )
+
+    fifo_buffer3 = FIFO(
+        name="FIFO-3",
+        size = 12*12,
+        location = ProcessorLocation.COMPUTE_LAYER,
+        write_energy_per_word = 3,  # 3pJ to write a word
+        read_energy_per_word = 1,   # 1pJ to read a word
+        write_word_length = 1,      # the word length or #pixel per write access
+        read_word_length = 1,       # the word length or #pixel per read access 
+        write_unit = "AbsUnit",
+        read_unit = "AbsUnit"
+    )
 ```
 
-All three line buffers have a size of `32x3`, that is, 3 lines each storing 32 pixels.
+All four memory structures have different memory sizes as specified by `size` attribute.
 The per-read and per-write energy consumption is 1 pJ and 3 pJ, respectively.
 
 Also, we need to define the access unit for each line buffer. The compute unit that does not have the 
@@ -215,11 +261,14 @@ and `set_output_buffer`:
 ```python
 adc.set_output_buffer(line_buffer)
 
-conv_unit.set_input_buffer(line_buffer)
-conv_unit.set_output_buffer(fifo_buffer1)
+conv1_unit.set_input_buffer(line_buffer)
+conv1_unit.set_output_buffer(fifo_buffer1)
 
-abs_unit.set_input_buffer(fifo_buffer1)
-abs_unit.set_output_buffer(fifo_buffer2)
+conv2_unit.set_input_buffer(fifo_buffer1)
+conv2_unit.set_output_buffer(fifo_buffer2)
+
+abs_unit.set_input_buffer(fifo_buffer2)
+abs_unit.set_output_buffer(fifo_buffer3)
 ```
 
 #### Analog Hardware (Compute and Memory)

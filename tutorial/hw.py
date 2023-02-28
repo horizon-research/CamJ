@@ -45,7 +45,7 @@ def hw_config():
 
     fifo_buffer2 = FIFO(
         name="FIFO-2",
-        size = 36,
+        size = 12,
         location = ProcessorLocation.COMPUTE_LAYER,
         write_energy_per_word = 3,  # 3pJ to write a word
         read_energy_per_word = 1,   # 1pJ to read a word
