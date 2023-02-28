@@ -99,9 +99,10 @@ class ProcessStage(object):
 
             if extrapolated_size[i] != self.output_size:
                 raise Exception(
-                    "Size doesn't match, output size[%d] should be: (%d, %d, %d), but is (%d, %d, %d)" % \
+                    "'%s' Size doesn't match, output size[%d] should be: (%d, %d, %d), but is (%d, %d, %d)" % \
                     (
-                        i, extrapolated_size[i][0], extrapolated_size[i][1], extrapolated_size[i][2],
+                        self.name, i, 
+                        extrapolated_size[i][0], extrapolated_size[i][1], extrapolated_size[i][2],
                         self.output_size[0], self.output_size[1], self.output_size[2]
                     )
                 )
