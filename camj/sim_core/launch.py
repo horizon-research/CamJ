@@ -317,14 +317,14 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
             print("[Cycle distribution]", reserved_cycle_cnt)
             ret_dict = {}
             for hw_unit in hw_list:
-                ret_dict[hw_unit.name] = hw_unit.compute_energy() + hw_unit.communication_energy()
+                ret_dict[hw_unit.name] = hw_unit.compute_energy()
                 print(hw_unit, 
-                    "total_cycle: ", hw_unit.sys_all_compute_cycle, 
-                    "total_write: ", hw_unit.sys_all_write_cnt,
-                    "total_read: ", hw_unit.sys_all_read_cnt,
-                    "total_compute_energy: %d pJ" % hw_unit.compute_energy(),
-                    "total_comm_energy: %d pJ" % hw_unit.communication_energy())
+                    "total compute cycle: ", hw_unit.sys_all_compute_cycle,
+                    "total compute energy: %d pJ" % hw_unit.compute_energy())
             print("[End] Digitial Simulation is DONE!")
+
+            for mem_unit in hw_dict["memory"]:
+                print(mem_unit, "total_memory_energy:, ", mem_unit.total_memory_access_energy())
 
             return ret_dict
             

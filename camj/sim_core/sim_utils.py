@@ -423,10 +423,7 @@ def check_input_buffer(dst_hw_unit, sw_stage):
         dst_input_index = dst_hw_unit.input_index_list[src_hw_unit, input_sw_stage]
 
         if not check_input_buffer_data_ready(dst_input_buffer, dst_input_throughput, dst_input_index):
-            # print("[check_input_buffer]", dst_hw_unit, "-> input sw_stage: ", input_sw_stage, "not ready")
             return False
-
-        # print("[check_input_buffer]", dst_hw_unit, ", input sw_stage: ", input_sw_stage, "ready")
 
     return True
 

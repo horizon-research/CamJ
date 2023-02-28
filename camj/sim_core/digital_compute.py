@@ -2,9 +2,6 @@
 import numpy as np
 from camj.sim_core.flags import *
 
-R_W_ENERGY = 4.1 # pJ
-
-
 '''
     TODO: For now, just consider ADC as a compute unit, can be modified it later.
 '''
@@ -40,8 +37,6 @@ class ADC(object):
 
         # performance counter
         self.sys_all_compute_cycle = 0
-        self.sys_all_write_cnt = 0
-        self.sys_all_read_cnt = 0
 
     def set_input_buffer(self, input_buffer):
         self.input_buffer = input_buffer
@@ -121,7 +116,6 @@ class ADC(object):
         if self.read_cnt == -1:
             self.read_cnt = 0
         self.read_cnt += read_cnt
-        self.sys_all_read_cnt += read_cnt
 
     # check if current reading stage is finished
     def check_read_finish(self):
@@ -163,7 +157,6 @@ class ADC(object):
             self.write_cnt = 0
         prev_write_cnt = self.write_cnt
         self.write_cnt += write_cnt
-        self.sys_all_write_cnt += write_cnt
         return prev_write_cnt
 
     # check if current writing stage is finished
@@ -177,9 +170,6 @@ class ADC(object):
 
     def compute_energy(self):
         return self.energy_per_pixel * self.sys_all_compute_cycle
-
-    def communication_energy(self):
-        return int(R_W_ENERGY * (self.sys_all_write_cnt + self.sys_all_read_cnt))
 
     def __str__(self):
         return self.name
@@ -241,8 +231,6 @@ class ComputeUnit(object):
 
         # performance counter
         self.sys_all_compute_cycle = 0
-        self.sys_all_write_cnt = 0
-        self.sys_all_read_cnt = 0
 
     '''
         # Input/output Data Dependency Configuration 
@@ -335,9 +323,6 @@ class ComputeUnit(object):
         # print(self.name, self.energy, self.sys_all_compute_cycle, self.delay)
         return int(self.energy * self.sys_all_compute_cycle / self.delay)
 
-    def communication_energy(self):
-        return int(R_W_ENERGY * (self.sys_all_read_cnt + self.sys_all_write_cnt))
-
     '''
         Functions related to reading stage
     '''
@@ -374,7 +359,6 @@ class ComputeUnit(object):
         if self.read_cnt == -1:
             self.read_cnt = 0
         self.read_cnt += read_cnt
-        self.sys_all_read_cnt += read_cnt
 
     # check if current reading stage is finished
     def check_read_finish(self):
@@ -419,7 +403,6 @@ class ComputeUnit(object):
 
         prev_write_cnt = self.write_cnt
         self.write_cnt += write_cnt
-        self.sys_all_write_cnt += write_cnt
         return prev_write_cnt
 
     # check if current writing stage is finished
@@ -481,8 +464,6 @@ class SystolicArray(object):
 
         # performance counter
         self.sys_all_compute_cycle = 0
-        self.sys_all_write_cnt = 0
-        self.sys_all_read_cnt = 0
 
 
     # needs to set the input and output buffer
@@ -512,14 +493,18 @@ class SystolicArray(object):
 
             # compute the input throughput, the input dependency for computing ofmap
             self.input_throughput = [
-                (throughput_dimension_x*stride, throughput_dimension_y*stride, input_size[-1])
+                (
+                    throughput_dimension_x * stride, 
+                    throughput_dimension_y * stride, 
+                    input_size[-1] * output_size[-1]
+                )
             ]
             
             # compute the output throughput
             self.output_throughput = (throughput_dimension_x, throughput_dimension_y, output_size[-1])
 
             # calculate the delay for one compute batch
-            self.delay = kernel_size*kernel_size*input_size[-1]*output_size[-1]
+            self.delay = kernel_size * kernel_size * input_size[-1] * output_size[-1]
         elif op_type == "DWConv2D":
             # compute throughput dimension
             # when the input size is smaller than size_dimension, we should take input_size as throughput
@@ -530,14 +515,18 @@ class SystolicArray(object):
 
             # compute the input throughput, the input dependency for computing ofmap
             self.input_throughput = [
-                (throughput_dimension_x*stride, throughput_dimension_y*stride, input_size[-1])
+                (
+                    throughput_dimension_x * stride, 
+                    throughput_dimension_y * stride, 
+                    input_size[-1] * output_size[-1]
+                )
             ]
             
             # compute the output throughput
             self.output_throughput = (throughput_dimension_x, throughput_dimension_y, output_size[-1])
 
             # calculate the delay for one compute batch
-            self.delay = kernel_size*kernel_size*output_size[-1]
+            self.delay = kernel_size * kernel_size * output_size[-1]
         elif op_type == "FC":
             self.input_throughput = [input_size]
             
@@ -631,8 +620,6 @@ class SystolicArray(object):
     def compute_energy(self):
         return int(self.energy * self.sys_all_compute_cycle)
 
-    def communication_energy(self):
-        return int(R_W_ENERGY*(self.sys_all_read_cnt+self.sys_all_write_cnt))
     '''
         Functions related to reading stage
     '''
@@ -666,7 +653,6 @@ class SystolicArray(object):
         if self.read_cnt == -1:
             self.read_cnt = 0
         self.read_cnt += read_cnt
-        self.sys_all_read_cnt += read_cnt
 
     # check if current reading stage is finished
     def check_read_finish(self):
@@ -710,7 +696,6 @@ class SystolicArray(object):
             self.write_cnt = 0
         prev_write_cnt = self.write_cnt
         self.write_cnt += write_cnt
-        self.sys_all_write_cnt += write_cnt
         return prev_write_cnt
 
     # check if current writing stage is finished

@@ -34,7 +34,6 @@ def sw_pipeline():
         output_size = (32, 32, 1),
         padding = [False]
     )
-    
 
     # set data dependency
     conv_stage.set_input_stage(input_data)

@@ -68,65 +68,6 @@ class DigitalStorage(object):
     def __repr__(self):
         return self.name
 
-class DoubleBuffer(DigitalStorage):
-    """docstring for SRAM"""
-    def __init__(
-        self, 
-        name: str,
-        size: tuple,        # This defines one buffer size. 
-                            # (a, b, c) a: # of sram, b: # of bank, c: the size of each bank
-        clock: int,         # clock frequency
-        read_port: int,     # num of read ports for one buffer, total should be doubled
-        write_port: int,    # num of write ports for one buffer, total should be doubled
-        read_write_port: int,   # num of read&write ports for one buffer, total should be doubled
-        write_energy: int,      # energy cost for each write
-        read_energy: int,       # energy cost for each read 
-        access_units: list,     # a list of hardware units that access this storage
-        location: int,          # location of this unit
-    ):
-        super(DoubleBuffer, self).__init__(
-            name = name,
-            access_units = access_units,
-            location = location
-        )
-        self.stored_data = 0
-        self.size = size
-        self.clock = clock
-        self.read_port = read_port
-        self.write_port = write_port
-        self.read_write_port = read_write_port
-        self.write_energy = write_energy
-        self.read_energy = read_energy
-
-    """
-        Check if there is enough space to store the data
-    """
-    def have_space_to_write(self, num_write):
-        return True
-
-    """
-        This function writes num of writes to the line buffer,
-        use function 'have_space_to_write' before calling this function
-    """
-    def write_data(self, num_write):
-        self.stored_data += num_write
-
-
-    """
-        Check if there is enough data can be read from line buffer
-    """
-    def have_data_read(self, num_read):
-        return True
-
-    """
-        This function record the number of reads from the FIFO,
-        it also pops the number of no-longer-use data out of FIFO.
-        In FIFO, every time you read a number, that number is no longer useful.
-    """
-    def read_data(self, num_read):
-        self.stored_data -= num_read
-
-
 class LineBuffer(DigitalStorage):
     """
         Line buffer class, extended from DigitalStorage base class
@@ -158,6 +99,8 @@ class LineBuffer(DigitalStorage):
         self.read_energy_per_word = read_energy_per_word
         self.write_word_length = write_word_length
         self.read_word_length = read_word_length
+        self.total_write_cnt = 0
+        self.total_read_cnt = 0
 
     """
         Check if there is enough space to store the data
@@ -178,9 +121,9 @@ class LineBuffer(DigitalStorage):
             "This line buffer '%s' exceeds its own capacity!" % self.name
 
         self.stored_data += num_write
+        self.total_write_cnt += num_write
         if ENABLE_DEBUG:
             print("[MEMORY] WRITE", self.name, "has %d of data" % self.stored_data)
-
 
     """
         Check if there is enough data can be read from line buffer
@@ -201,8 +144,24 @@ class LineBuffer(DigitalStorage):
             "Line buffer '%s' the number of data read is greater than stored data!" % self.name
 
         self.stored_data -= self.write_word_length
+        self.total_read_cnt += num_read
         if ENABLE_DEBUG:
             print("[MEMORY] READ", self.name, "has %d of data" % self.stored_data)
+
+    """
+        Calculate the total memory access energy
+    """
+    def total_memory_access_energy(self):
+        # number of write access = number of written pixel / write word length
+        total_write_access = self.total_write_cnt / self.write_word_length
+        # number of read access = number of read pixel / read word length
+        total_read_access = self.total_read_cnt / self.read_word_length
+        # total write memory energy
+        write_mem_energy = self.write_energy_per_word * total_write_access
+        # total read memory energy
+        read_mem_energy = self.read_energy_per_word * total_read_access
+        # return total memory energy
+        return write_mem_energy + read_mem_energy
 
 class FIFO(DigitalStorage):
     """
@@ -234,6 +193,8 @@ class FIFO(DigitalStorage):
         self.read_energy_per_word = read_energy_per_word
         self.write_word_length = write_word_length
         self.read_word_length = read_word_length
+        self.total_write_cnt = 0
+        self.total_read_cnt = 0
 
     """
         Check if there is enough space to store the data
@@ -247,12 +208,16 @@ class FIFO(DigitalStorage):
     """
         This function writes num of writes to this FIFO,
         use function 'have_space_to_write' before calling this function
+        num_write unit is in pixel
     """
     def write_data(self, num_write):
         assert self.stored_data + num_write <= self.capacity, \
             "FIFO '%s' exceeds its own capacity! abort!" % self.name
 
         self.stored_data += num_write
+        self.total_write_cnt += num_write
+        if ENABLE_DEBUG:
+            print("[MEMORY] WRITE", self.name, "has %d of data" % self.stored_data)
 
     """
         Check if there is enough data can be read from FIFO
@@ -273,4 +238,93 @@ class FIFO(DigitalStorage):
             "FIFO '%s': the number of read from FIFO is greater than stored data!" % self.name
 
         self.stored_data -= num_read
+        self.total_read_cnt += num_read
+        if ENABLE_DEBUG:
+            print("[MEMORY] READ", self.name, "has %d of data" % self.stored_data)
+
+    """
+        Calculate the total memory access energy
+    """
+    def total_memory_access_energy(self):
+        # number of write access = number of written pixel / write word length
+        total_write_access = self.total_write_cnt / self.write_word_length
+        # number of read access = number of read pixel / read word length
+        total_read_access = self.total_read_cnt / self.read_word_length
+        # total write memory energy
+        write_mem_energy = self.write_energy_per_word * total_write_access
+        # total read memory energy
+        read_mem_energy = self.read_energy_per_word * total_read_access
+        # return total memory energy
+        return write_mem_energy + read_mem_energy
+
+
+class DoubleBuffer(DigitalStorage):
+    """docstring for DoubleBuffer"""
+    def __init__(
+        self, 
+        name: str,
+        size: tuple,        # This defines one buffer size. 
+                            # (a, b, c) a: # of sram, b: # of bank, c: the size of each bank
+        write_energy_per_word: int,  # energy cost for each write
+        read_energy_per_word: int,   # energy cost for each read
+        write_word_length: int,      # the length of each write. Unit in pixel
+        read_word_length: int,       # the length of one read. Unit is pixel.
+        access_units: list,     # a list of hardware units that access this storage
+        location: int,          # location of this unit
+    ):
+        super(DoubleBuffer, self).__init__(
+            name = name,
+            access_units = access_units,
+            location = location
+        )
+        self.stored_data = 0
+        self.size = size
+        self.write_energy_per_word = write_energy_per_word
+        self.read_energy_per_word = read_energy_per_word
+        self.write_word_length = write_word_length
+        self.read_word_length = read_word_length
+        self.total_write_cnt = 0
+        self.total_read_cnt = 0
+
+    """
+        Check if there is enough space to store the data
+    """
+    def have_space_to_write(self, num_write):
+        return True
+
+    """
+        This function writes num of writes to the line buffer,
+        use function 'have_space_to_write' before calling this function
+    """
+    def write_data(self, num_write):
+        self.stored_data += num_write
+        self.total_write_cnt += num_write
+
+    """
+        Check if there is enough data can be read from line buffer
+    """
+    def have_data_read(self, num_read):
+        return True
+
+    """
+        This function record the number of reads from the double buffer
+    """
+    def read_data(self, num_read):
+        self.stored_data -= num_read
+        self.total_read_cnt += num_read
+
+    """
+        Calculate the total memory access energy
+    """
+    def total_memory_access_energy(self):
+        # number of write access = number of written pixel / write word length
+        total_write_access = self.total_write_cnt / self.write_word_length
+        # number of read access = number of read pixel / read word length
+        total_read_access = self.total_read_cnt / self.read_word_length
+        # total write memory energy
+        write_mem_energy = self.write_energy_per_word * total_write_access
+        # total read memory energy
+        read_mem_energy = self.read_energy_per_word * total_read_access
+        # return total memory energy
+        return write_mem_energy + read_mem_energy
 
