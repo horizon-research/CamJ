@@ -55,14 +55,6 @@ class BufferMonitor(object):
         # store the R/W port config
         self.total_read_port = {}
         self.total_write_port = {}
-        # initialize the R/W port status
-        self.occupied_read_port = {}
-        self.occupied_write_port = {}
-        for buffer in buffer_list:
-            self.total_read_port[buffer] = buffer.read_port
-            self.total_write_port[buffer] = buffer.write_port
-            self.occupied_read_port[buffer] = 0
-            self.occupied_write_port[buffer] = 0
 
     # check if there is any available read port for this buffer
     def check_buffer_available_read_port(self, buffer):

@@ -13,16 +13,16 @@ class ADC(object):
     def __init__(
         self,
         name: str, 
-        output_throughput: tuple,
+        output_per_cycle: tuple,
         location,
-        power = 600
+        energy_per_pixel = 600
     ):
         super(ADC, self).__init__()
         self.name = "ADC"
-        self.input_throughput = None
-        self.output_throughput = output_throughput
+        self.input_per_cycle = None
+        self.output_per_cycle = output_per_cycle
         self.location = location
-        self.power = 600
+        self.energy_per_pixel = energy_per_pixel
         self.input_buffer = None
         self.input_hw_units = {}
         self.output_buffer_size = {}
@@ -93,8 +93,8 @@ class ADC(object):
         # if not, calculate it before return
         if self.total_read == -1:
             total_read = 0
-            if self.input_throughput != None:
-                for throughput in self.input_throughput:
+            if self.input_per_cycle != None:
+                for throughput in self.input_per_cycle:
                     read_for_one_input = 1
                     for i in range(len(throughput)):
                         read_for_one_input *= throughput[i]
@@ -114,7 +114,6 @@ class ADC(object):
             return total_read - self.read_cnt
         else:
             return total_read
-
 
     # log num of reads happened in this reading cycle
     def read_from_input_buffer(self, read_cnt):
@@ -139,9 +138,9 @@ class ADC(object):
         # if not, calculate it before return
         if self.total_write == -1:
             total_write = 1
-            if self.output_throughput is not None:
-                for i in range(len(self.output_throughput)):
-                    total_write *= self.output_throughput[i]
+            if self.output_per_cycle is not None:
+                for i in range(len(self.output_per_cycle)):
+                    total_write *= self.output_per_cycle[i]
 
             self.total_write = total_write
 
@@ -177,10 +176,10 @@ class ADC(object):
             return False
 
     def compute_energy(self):
-        return 600*self.sys_all_compute_cycle
+        return self.energy_per_pixel * self.sys_all_compute_cycle
 
     def communication_energy(self):
-        return int(R_W_ENERGY*(self.sys_all_write_cnt+self.sys_all_read_cnt))
+        return int(R_W_ENERGY * (self.sys_all_write_cnt + self.sys_all_read_cnt))
 
     def __str__(self):
         return self.name
@@ -206,13 +205,11 @@ class ComputeUnit(object):
         name: str,
         domain: int,    # whether is digital or analog
         location: int,  # location of this unit
-        input_throughput: list,     # This is the input requirement in order to perform compute on this unit
-        output_throughput: list,    # the number of element can be written out once one batch of compute is finished.
-        clock: int,     # clock frequency
-        energy: float,
+        input_per_cycle: list,     # This is the input requirement in order to perform compute on this unit
+        output_per_cycle: list,    # the number of element can be written out once one batch of compute is finished.
+        energy_per_cycle: float,   # the average energy per cycle
+        num_of_stages: int,        # number of stage in the pipeline.
         area: float,
-        initial_delay: int, # # of clock cycles to propogate data before starting the first computation
-        delay: int  # # of clock cycles to finish one computation process when fully pipelined.
     ):
         super(ComputeUnit, self).__init__()
         # assign variables
@@ -220,16 +217,15 @@ class ComputeUnit(object):
         self.domain = domain
         self.location = location
 
-        self.input_throughput = input_throughput
-        self.output_throughput = output_throughput
+        self.input_per_cycle = input_per_cycle
+        self.output_per_cycle = output_per_cycle
 
-        self.clock_frequency = clock
-        self.energy = energy
+        self.energy = energy_per_cycle
         self.area = area
         # setup the delay for the entire compute
         self.add_init_delay = False
-        self.initial_delay = initial_delay
-        self.delay = delay
+        self.initial_delay = num_of_stages - 1
+        self.delay = 1
         self.elapse_cycle = -1
         # parameters for reading stage
         self.read_cnt = -1 # num of input already being read for one compute
@@ -340,7 +336,7 @@ class ComputeUnit(object):
         return int(self.energy * self.sys_all_compute_cycle / self.delay)
 
     def communication_energy(self):
-        return int(R_W_ENERGY*(self.sys_all_read_cnt+self.sys_all_write_cnt))
+        return int(R_W_ENERGY * (self.sys_all_read_cnt + self.sys_all_write_cnt))
 
     '''
         Functions related to reading stage
@@ -350,8 +346,8 @@ class ComputeUnit(object):
         # if not, calculate it before return
         if self.total_read == -1:
             total_read = 0
-            if self.input_throughput != None:
-                for throughput in self.input_throughput:
+            if self.input_per_cycle != None:
+                for throughput in self.input_per_cycle:
                     read_for_one_input = 1
                     for i in range(len(throughput)):
                         read_for_one_input *= throughput[i]
@@ -397,9 +393,9 @@ class ComputeUnit(object):
         # if not, calculate it before return
         if self.total_write == -1:
             total_write = 1
-            if self.output_throughput is not None:
-                for i in range(len(self.output_throughput)):
-                    total_write *= self.output_throughput[i]
+            if self.output_per_cycle is not None:
+                for i in range(len(self.output_per_cycle)):
+                    total_write *= self.output_per_cycle[i]
 
             self.total_write = total_write
 

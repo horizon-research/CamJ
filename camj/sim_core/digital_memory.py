@@ -133,22 +133,18 @@ class LineBuffer(DigitalStorage):
         size (a, b) will define the number of rows and the size of each row in line buffer,
         the number of row also defines the number of write port.
         Here, a is the number of read port, the number of write port is always 1.
-        use 'duplication' parameter to define multiple instances.
     """
     def __init__(
         self,
         name: str,
-        size: tuple,        # (a, b) a: # of row, b: the size of each row
-        hw_impl: str,       # "ff" or "sram"
-        clock: int,         # clock frequency
+        size: tuple,        # (a, b) a: # of row, b: the size of each row, unit in pixel
         location: int,      # location of this unit
-        write_energy: int,  # energy cost for each write
-        read_energy: int,   # energy cost for each read
-        duplication: int,   # the number of duplicates for the same FIFO configurations.
+        write_energy_per_word: int,  # energy cost for each write
+        read_energy_per_word: int,   # energy cost for each read
+        write_word_length: int,      # the length of each write. Unit in pixel
+        read_word_length: int,       # the length of one read. Unit is pixel.
         write_unit: str,    # HW compute unit that writes to this line buffer
         read_unit: str,     # HW compute unit that reads from this line buffer
-        # access_units: list,   # a list of hardware units that access this storage
-        
     ):
         super(LineBuffer, self).__init__(
             name = name,
@@ -156,24 +152,17 @@ class LineBuffer(DigitalStorage):
             location = location
         )
         self.stored_data = 0
-        self.size = (duplication, size[0], size[1])
-        self.capacity = duplication * size[0] * size[1]
-        self.clock = clock
-        self.hw_impl = hw_impl
-        self.write_port = 1 * duplication
-        self.read_port = size[0] * duplication
-        self.write_energy = write_energy * duplication
-        self.read_energy = read_energy * duplication
-        self.duplication = duplication
-
-        self.init_read = True
+        self.size = (size[0], size[1]) # size in unit of pixel
+        self.capacity = size[0] * size[1]
+        self.write_energy_per_word = write_energy_per_word
+        self.read_energy_per_word = read_energy_per_word
+        self.write_word_length = write_word_length
+        self.read_word_length = read_word_length
 
     """
         Check if there is enough space to store the data
     """
     def have_space_to_write(self, num_write):
-        assert num_write == self.write_port, \
-            "number of write should be equal to the write port number in line buffer!"
 
         if self.stored_data + num_write > self.capacity:
             return False
@@ -186,7 +175,7 @@ class LineBuffer(DigitalStorage):
     """
     def write_data(self, num_write):
         assert self.stored_data + num_write <= self.capacity, \
-            "FIFO exceeds its own capacity! abort!"
+            "This line buffer '%s' exceeds its own capacity!" % self.name
 
         self.stored_data += num_write
         if ENABLE_DEBUG:
@@ -197,13 +186,7 @@ class LineBuffer(DigitalStorage):
         Check if there is enough data can be read from line buffer
     """
     def have_data_read(self, num_read):
-        assert num_read == self.read_port, \
-            "number of read should be equal to the read port number in line buffer!"
-        
-        if self.init_read and num_read > self.stored_data - self.size[0] * (self.size[1] - 1) * self.size[2]:
-            self.init_read = False
-            return False
-        elif not self.init_read and num_read > self.stored_data:
+        if num_read > self.stored_data:
             return False
         else:
             return True
@@ -215,9 +198,9 @@ class LineBuffer(DigitalStorage):
     """
     def read_data(self, num_read):
         assert num_read <= self.stored_data, \
-            "the number of data reading from FIFO cannot be greater than the numnber of stored data!"
+            "Line buffer '%s' the number of data read is greater than stored data!" % self.name
 
-        self.stored_data -= self.duplication
+        self.stored_data -= self.write_word_length
         if ENABLE_DEBUG:
             print("[MEMORY] READ", self.name, "has %d of data" % self.stored_data)
 
@@ -230,33 +213,27 @@ class FIFO(DigitalStorage):
     def __init__(
         self,
         name: str,          # user-defined name
-        hw_impl: str,       # "flip-flop" or "sram"
-        count: tuple,       # num of register in each FIFO struct
-        clock: int,         # clock frequency
-        write_energy: int,  # energy cost for each write
-        read_energy: int,   # energy cost for each read 
+        size: int,          # size of FIFO struct, unit in pixel
         location: int,      # location of this unit
-        duplication: int,   # the number of duplicates for the same FIFO configurations.
+        write_energy_per_word: int,  # energy cost for each write
+        read_energy_per_word: int,   # energy cost for each read
+        write_word_length: int,      # the size of each write, unit in pixel
+        read_word_length: int,       # the size of each read, unit in pixel
         write_unit,         # HW compute unit that writes to this FIFO
         read_unit,          # HW compute unit that reads from this FIFO
-        # access_units: list, # a list of hardware units that access this storage
-        
     ):
         super(FIFO, self).__init__(
             name = name,
             access_units = [read_unit, write_unit],
             location = location
         )
-        self.hw_impl = hw_impl
         self.stored_data = 0
-        self.capacity = duplication * count
-        self.size = (duplication, count)
-        self.clock = clock
-        self.write_port = duplication
-        self.read_port = duplication
-        self.write_energy = write_energy * duplication
-        self.read_energy = read_energy * duplication
-        self.duplication = duplication
+        self.capacity = size
+        self.size = size
+        self.write_energy_per_word = write_energy_per_word
+        self.read_energy_per_word = read_energy_per_word
+        self.write_word_length = write_word_length
+        self.read_word_length = read_word_length
 
     """
         Check if there is enough space to store the data
@@ -273,10 +250,9 @@ class FIFO(DigitalStorage):
     """
     def write_data(self, num_write):
         assert self.stored_data + num_write <= self.capacity, \
-            "FIFO exceeds its own capacity! abort!"
+            "FIFO '%s' exceeds its own capacity! abort!" % self.name
 
         self.stored_data += num_write
-
 
     """
         Check if there is enough data can be read from FIFO
@@ -294,7 +270,7 @@ class FIFO(DigitalStorage):
     """
     def read_data(self, num_read):
         assert num_read <= self.stored_data, \
-            "the number of data reading from FIFO cannot be greater than the numnber of stored data!"
+            "FIFO '%s': the number of read from FIFO is greater than stored data!" % self.name
 
         self.stored_data -= num_read
 
