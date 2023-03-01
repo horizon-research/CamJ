@@ -273,22 +273,22 @@ abs_unit.set_output_buffer(fifo_buffer3)
 
 #### Analog Hardware (Compute and Memory)
 
-The analog hardware is a bit more complicated, so we create them in a separate file `analog.py`. The hardware in the analog domain consists of a set of `AnalogArray`s. In our CIS, the only analog array we need is the `PixelArray`. Its input and output throughputs are both `32x1x1`, mimicking a rolling shutter sensor.
+The analog hardware is a bit more complicated, so we create them in a separate file `analog.py`. The hardware in the analog domain consists of a set of `AnalogArray`s. In our CIS, the only analog array we need is the `PixelArray`. Its input and output throughputs are both `1x36x1`, mimicking a rolling shutter sensor.
 
 ```python
 pixel_array = AnalogArray(
     name = "PixelArray",
     layer = ProcessorLocation.SENSOR_LAYER,
-    num_input = [(32, 1, 1)],
-    num_output = (32, 1, 1),
+    num_input = [(1, 36, 1)],   # H, W, C
+    num_output = (1, 36, 1),    # H, W, C
 )
 ```
 
-Each `AnalogArray` consists of a set of [`AnalogComponent`]()s. In our CIS, the pixel array has two types of [`AnalogComponent`]()s, 32x32 `pixel`s and 1x32 `col_amp`s (column amplifiers).
+Each `AnalogArray` consists of a set of [`AnalogComponent`](https://github.com/horizon-research/CamJ/blob/main/camj/sim_core/analog_infra.py#L5)s. In our CIS, the pixel array has two types of [`AnalogComponent`](https://github.com/horizon-research/CamJ/blob/main/camj/sim_core/analog_infra.py#L5)s, 36x36 `pixel`s and 1x36 `col_amp`s (column amplifiers).
 
 The `pixel` component's input is in the `OPTICAL` domain and its output is in the `VOLTAGE` domain.
 Specifying the input and output domains allows CamJ to check if the connections between different analog components are correct.
-The specific pixel technology we want to use in this CIS is a 3T active pixel sensor (3T-APS), which is instantiated through the [`ActivePixelSensor`]() class.
+The specific pixel technology we want to use in this CIS is a 3T active pixel sensor (3T-APS), which is instantiated through the [`ActivePixelSensor`](https://github.com/horizon-research/CamJ/blob/main/camj/sim_core/pixel_libs.py#L10) class.
 The 3T-APS is then added to the `component_list`, which is an array, indicating that there could be multiple sub-components in a component.
 Each sub-component is a tuple, where the second element indicates the number of sub-components in a component. For instance, `1` here means we have only one 3T-APS inside a pixel.
 
@@ -333,8 +333,8 @@ col_amp = AnalogComponent(
 The two types of components are added to the pixel array, which is then added to the analog hardware description, which is eventually returned.
 
 ```python
-pixel_array.add_component(pixel, (32, 32, 1))
-pixel_array.add_component(col_amp, (32, 1, 1))
+pixel_array.add_component(pixel, (36, 36, 1))   # H, W, C
+pixel_array.add_component(col_amp, (1, 36, 1))  # H, W, C
 
 analog_arrays.append(pixel_array)
 ```
@@ -349,7 +349,8 @@ In our example, the mapping is defined in `mapping_file.py`:
 ```python
 mapping = {
     "Input" : "PixelArray",
-    "Conv" : "ConvUnit",
+    "Conv1" : "ConvUnit-1",
+    "Conv2" : "ConvUnit-2",
     "Abs" : "AbsUnit",
 }
 ```
