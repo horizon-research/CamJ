@@ -63,7 +63,7 @@ def hw_config():
         location = ProcessorLocation.COMPUTE_LAYER,
         input_per_cycle = [(1, 1, 16)],
         output_per_cycle = (1, 1, 10),
-        energy_per_cycle = 16*10*compute_op_power,
+        energy_per_cycle = 10*compute_op_power,
         area = 10,
         num_of_stages = 16
     )
