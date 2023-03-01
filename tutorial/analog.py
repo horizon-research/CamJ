@@ -24,8 +24,8 @@ def analog_config():
     pixel_array = AnalogArray(
         name = "PixelArray",
         layer = ProcessorLocation.SENSOR_LAYER,
-        num_input = [(32, 1, 1)],
-        num_output = (32, 1, 1),
+        num_input = [(36, 1, 1)],
+        num_output = (36, 1, 1),
     )
     pixel = AnalogComponent(
         name = "Pixel",
@@ -58,7 +58,7 @@ def analog_config():
         num_input = [(1, 1)],
         num_output = (1, 1)
     )
-    pixel_array.add_component(pixel, (32, 32, 1))
+    pixel_array.add_component(pixel, (36, 36, 1))
     
     col_amp = AnalogComponent(
         name = "ColumnAmplifier",
@@ -84,7 +84,7 @@ def analog_config():
         num_input = [(1, 1)],
         num_output = (1, 1)
     )
-    pixel_array.add_component(col_amp, (32, 1, 1))
+    pixel_array.add_component(col_amp, (36, 1, 1))
 
     analog_arrays.append(pixel_array)
 
