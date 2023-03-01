@@ -156,6 +156,7 @@ class DNNProcessStage(object):
         ifmap_size: list,
         kernel_size: list,
         stride: int,
+        padding = True
     ):
         super(DNNProcessStage, self).__init__()
         self.name = name
@@ -170,18 +171,19 @@ class DNNProcessStage(object):
         self.ready_board = {}
         self.needs_flatten = False
 
-        if op_type == "Conv2D":
-            self.output_size = (
-                int(self.ifmap_size[0]/stride), 
-                int(self.ifmap_size[1]/stride), 
-                int(self.kernel_size[0][-1])
-            )
-        elif op_type == "DWConv2D":
-            self.output_size = (
-                int(self.ifmap_size[0]/stride), 
-                int(self.ifmap_size[1]/stride), 
-                int(self.kernel_size[0][-1])
-            )
+        if op_type == "Conv2D" or op_type == "DWConv2D":
+            if padding:
+                self.output_size = (
+                    int(self.ifmap_size[0] / stride), 
+                    int(self.ifmap_size[1] / stride), 
+                    int(self.kernel_size[0][-1])
+                )
+            else:
+                self.output_size = (
+                    int((self.ifmap_size[0] - self.kernel_size[0] + 1) / stride), 
+                    int((self.ifmap_size[1] - self.kernel_size[1] + 1) / stride), 
+                    int(self.kernel_size[0][-1])
+                )
         elif op_type == "FC":
             self.output_size = (
                 int(self.kernel_size[0][1]),

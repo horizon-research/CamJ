@@ -431,8 +431,7 @@ class SystolicArray(object):
         domain,
         location,
         size_dimension,
-        clock,
-        energy,
+        energy_per_cycle,
         area
     ):
         super(SystolicArray, self).__init__()
@@ -440,8 +439,7 @@ class SystolicArray(object):
         self.domain = domain
         self.location = location
         self.size_dimension = size_dimension
-        self.clock_frequency = clock
-        self.energy = energy
+        self.energy_per_cycle = energy_per_cycle
         self.area = area
         self.input_hw_units = {}
         self.input_index_list = {}
@@ -492,19 +490,19 @@ class SystolicArray(object):
             # print("[SYSTOLIC]", throughput_dimension_x, throughput_dimension_y, self.size_dimension)
 
             # compute the input throughput, the input dependency for computing ofmap
-            self.input_throughput = [
+            self.input_per_cycle = [
                 (
                     throughput_dimension_x * stride, 
                     throughput_dimension_y * stride, 
-                    input_size[-1] * output_size[-1]
+                    input_size[-1] * 1
                 )
             ]
             
             # compute the output throughput
-            self.output_throughput = (throughput_dimension_x, throughput_dimension_y, output_size[-1])
+            self.output_per_cycle = (throughput_dimension_x, throughput_dimension_y, 1)
 
             # calculate the delay for one compute batch
-            self.delay = kernel_size * kernel_size * input_size[-1] * output_size[-1]
+            self.delay = kernel_size * kernel_size * input_size[-1] * 1
         elif op_type == "DWConv2D":
             # compute throughput dimension
             # when the input size is smaller than size_dimension, we should take input_size as throughput
@@ -514,24 +512,24 @@ class SystolicArray(object):
             # print("[SYSTOLIC]", throughput_dimension_x, throughput_dimension_y, self.size_dimension)
 
             # compute the input throughput, the input dependency for computing ofmap
-            self.input_throughput = [
+            self.input_per_cycle = [
                 (
                     throughput_dimension_x * stride, 
                     throughput_dimension_y * stride, 
-                    input_size[-1] * output_size[-1]
+                    input_size[-1] * 1
                 )
             ]
             
             # compute the output throughput
-            self.output_throughput = (throughput_dimension_x, throughput_dimension_y, output_size[-1])
+            self.output_per_cycle = (throughput_dimension_x, throughput_dimension_y, 1)
 
             # calculate the delay for one compute batch
-            self.delay = kernel_size * kernel_size * output_size[-1]
+            self.delay = kernel_size * kernel_size * 1
         elif op_type == "FC":
-            self.input_throughput = [input_size]
+            self.input_per_cycle = [input_size]
             
             # compute the output throughput
-            self.output_throughput = output_size
+            self.output_per_cycle = output_size
 
             fc_mac_cnt = input_size[0] * output_size[0]
             # calculate the delay for one compute batch
@@ -542,8 +540,8 @@ class SystolicArray(object):
 
         if ENABLE_DEBUG:
             print(
-                "[SYSTOLIC] input throughput: ", self.input_throughput,
-                "output throughput: ", self.output_throughput,
+                "[SYSTOLIC] input throughput: ", self.input_per_cycle,
+                "output throughput: ", self.output_per_cycle,
                 "compute delay: ", self.delay 
             )
 
@@ -618,7 +616,7 @@ class SystolicArray(object):
             return False
 
     def compute_energy(self):
-        return int(self.energy * self.sys_all_compute_cycle)
+        return int(self.energy_per_cycle * self.sys_all_compute_cycle)
 
     '''
         Functions related to reading stage

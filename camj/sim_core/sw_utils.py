@@ -61,7 +61,7 @@ def build_sw_graph(sw_stage_list):
 
     # output data dependency
     for sw_stage in sw_stage_list:
-        print(sw_stage, "output stages:", sw_stage.output_stages)
+        print("'%s' output stages:" % sw_stage, sw_stage.output_stages)
 
     root_src_stage = find_src_stages(sw_stage_list)
     root_dst_stage = find_dst_stages(sw_stage_list)
