@@ -10,13 +10,21 @@ class AnalogComponent(object):
         input_domain: list,
         output_domain: int,
         component_list = None,
-        num_input: list = [(1, 1)], 
-        num_output: tuple = (1, 1)
+        num_input: list = [(1, 1, 1)],  # (H, W, C)
+        num_output: tuple = (1, 1, 1),  # (H, W, C)
     ):
         super(AnalogComponent, self).__init__()
+
+        assert len(num_output) == 3, "'%s' num_output needs to be a size of 3." % name
+
         self.name = name
-        self.num_input = num_input
-        self.num_output = num_output
+        # covert (h, w, c) to internal representation (x, y, z)
+        self.num_input = _convert_hwc_to_xyz(name, num_input)
+        self.num_output = (
+            num_output[1],
+            num_output[0],
+            num_output[2]
+        ) # covert (h, w, c) to internal representation (x, y, z)
         self.input_domain = input_domain
         self.output_domain = output_domain
         self.component_list = component_list
@@ -65,9 +73,20 @@ class AnalogArray(object):
         num_output: tuple,
     ):
         super(AnalogArray, self).__init__()
+
+        assert len(num_output) == 3, "'%s' num_output needs to be a size of 3." % name
+
         self.name = name
-        self.num_input = num_input
-        self.num_output = num_output
+        # covert (h, w, c) to internal representation (x, y, z)
+        if num_input is not None:
+            self.num_input = _convert_hwc_to_xyz(name, num_input)
+        else:
+            self.num_input = None
+        self.num_output = (
+            num_output[1],
+            num_output[0],
+            num_output[2]
+        ) # covert (h, w, c) to internal representation (x, y, z)
         self.layer = layer
         self.components = []
         self.input_domain = []
@@ -81,6 +100,8 @@ class AnalogArray(object):
         Key function to add components attributes to array
     """
     def add_component(self, component: AnalogComponent, component_size: tuple):
+
+        assert len(component_size) == 3, "'%s' component size needs to be a size of 3." % self.name
 
         self.components.append(component)
         self.num_component[component] = component_size
@@ -168,4 +189,12 @@ class AnalogArray(object):
     def __repr__(self):
         return self.name
 
-        
+# this function is used to convert size (H, W, C) to (X, Y, Z)
+# it is hard to change the internal simulation code, this is an easy fix!
+def _convert_hwc_to_xyz(name, size_list):
+    new_size_list = []
+    for size in size_list:
+        assert len(size) == 3, "In %s, defined size needs to a size of 3!" % name
+        new_size_list.append((size[1], size[0], size[2]))
+
+    return new_size_list     
