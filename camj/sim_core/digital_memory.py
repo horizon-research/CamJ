@@ -304,7 +304,10 @@ class DoubleBuffer(DigitalStorage):
         Check if there is enough data can be read from line buffer
     """
     def have_data_read(self, num_read):
-        return True
+        if self.stored_data > 0:
+            return True
+        else:
+            return False
 
     """
         This function record the number of reads from the double buffer

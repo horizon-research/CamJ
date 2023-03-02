@@ -3,13 +3,14 @@ from copy import deepcopy
 class PixelInput(object):
     def __init__(
         self,
-        size,
+        size, # (H, W, C)
         name,
     ):
+        assert len(size) == 3, "PixelInput size should be a tuple of length 3!"
 
-        self.size = size
+        self.size = (size[1], size[0], size[2]) # covert to internal representation (x, y, z)
         self.input_size = []
-        self.output_size = size
+        self.output_size = (size[1], size[0], size[2]) # covert to internal representation (x, y, z)
         self.input_stages = []
         self.name = name
         self.output_stages = []
@@ -41,12 +42,15 @@ class ProcessStage(object):
         padding: list,
     ):
         super(ProcessStage, self).__init__()
+
+        assert len(output_size) == 3, "ProcessStage output_size needs to be a size of 3!"
+
         self.name = name
-        self.input_size = input_size
-        self.stride = stride
-        self.kernel_size = kernel_size
+        self.input_size = _convert_hwc_to_xyz(name, input_size) # covert to internal representation (x, y, z)
+        self.kernel_size = _convert_hwc_to_xyz(name, kernel_size) # covert to internal representation (x, y, z)
+        self.stride = _convert_hwc_to_xyz(name, stride) # covert to internal representation (x, y, z)
         self.num_kernels = num_kernels
-        self.output_size = output_size
+        self.output_size = (output_size[1], output_size[0], output_size[2]) # covert to internal representation (x, y, z)
         self.input_stages = []
         self.output_stages = []
         self.ready_board = {}
@@ -160,11 +164,22 @@ class DNNProcessStage(object):
     ):
         super(DNNProcessStage, self).__init__()
         self.name = name
-        self.op_type = op_type 
-        self.input_size = [ifmap_size]
-        self.ifmap_size = ifmap_size
-        self.kernel_size = [kernel_size]
-        self.stride = [(stride, stride, 1)]
+        self.op_type = op_type
+
+        assert len(ifmap_size) == 3, "In '%s', ifmap should be a size of 3 (H, W, C)" % name
+        assert len(kernel_size) == 4, "In '%s', kernel_size should be a size of 4 (H, W, C_in, C_out)" % name
+
+        self.input_size = _convert_hwc_to_xyz(name, [ifmap_size]) # covert to internal representation (x, y, z)
+        self.ifmap_size = (ifmap_size[1], ifmap_size[0], ifmap_size[2]) # covert to internal representation (x, y, z)
+        self.kernel_size = [
+            (
+                kernel_size[1],
+                kernel_size[0],
+                kernel_size[2],
+                kernel_size[3]
+            )
+        ] # covert (H, W, C_in, C_out) to internal representation (x, y, z1, z2)
+        self.stride = _convert_hwc_to_xyz(name, [(stride, stride, 1)])# covert to internal representation (x, y, z)
         self.input_stages = []
         self.input_reuse = [(1, 1, 1)]
         self.output_stages = []
@@ -234,3 +249,13 @@ class DNNProcessStage(object):
 
     def __repr__(self):
         return self.name
+
+# this function is used to convert size (H, W, C) to (X, Y, Z)
+# it is hard to change the internal simulation code, this is an easy fix!
+def _convert_hwc_to_xyz(name, size_list):
+    new_size_list = []
+    for size in size_list:
+        assert len(size) == 3, "In %s, defined size needs to a size of 3!" % name
+        new_size_list.append((size[1], size[0], size[2]))
+
+    return new_size_list

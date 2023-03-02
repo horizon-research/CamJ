@@ -17,7 +17,12 @@ class ADC(object):
         super(ADC, self).__init__()
         self.name = "ADC"
         self.input_per_cycle = None
-        self.output_per_cycle = output_per_cycle
+        self.output_per_cycle = (
+            output_per_cycle[1],
+            output_per_cycle[0],
+            output_per_cycle[2]
+        ) # covert (h, w, c) to internal representation (x, y, z)
+
         self.location = location
         self.energy_per_pixel = energy_per_pixel
         self.input_buffer = None
@@ -207,8 +212,13 @@ class ComputeUnit(object):
         self.domain = domain
         self.location = location
 
-        self.input_per_cycle = input_per_cycle
-        self.output_per_cycle = output_per_cycle
+        # covert (h, w, c) to internal representation (x, y, z)
+        self.input_per_cycle = _convert_hwc_to_xyz(name, input_per_cycle)
+        self.output_per_cycle = (
+            output_per_cycle[1],
+            output_per_cycle[0],
+            output_per_cycle[2]
+        ) # covert (h, w, c) to internal representation (x, y, z)
 
         self.energy = energy_per_cycle
         self.area = area
@@ -443,9 +453,7 @@ class SystolicArray(object):
         self.area = area
         self.input_hw_units = {}
         self.input_index_list = {}
-        self.input_throughput = [
-            (size_dimension[0], 1, 1)
-        ]
+
         self.output_buffer_size = {}
         self.output_index_list = {}
 
@@ -475,25 +483,25 @@ class SystolicArray(object):
         if ENABLE_DEBUG:
             print(
                 "[SYSTOLIC] config: ", 
-                "ifmap size: ", input_size, 
-                "ofmap size: ", output_size, 
-                "stride: ", stride, 
-                "kernel size: ", kernel_size
+                "ifmap size (x, y, z): ", input_size, 
+                "ofmap size (x, y, z): ", output_size, 
+                "stride (x, y, z): ", stride, 
+                "kernel size (x, y, z): ", kernel_size
             )
 
         if op_type == "Conv2D":
             # compute throughput dimension
             # when the input size is smaller than size_dimension, we should take input_size as throughput
-            throughput_dimension_x = min(input_size[0]//stride, self.size_dimension[0])
+            throughput_dimension_x = min(input_size[0]//stride[0], self.size_dimension[0])
             # same as throughput_dimension_x.
-            throughput_dimension_y = min(input_size[1]//stride, self.size_dimension[1])
+            throughput_dimension_y = min(input_size[1]//stride[1], self.size_dimension[1])
             # print("[SYSTOLIC]", throughput_dimension_x, throughput_dimension_y, self.size_dimension)
 
             # compute the input throughput, the input dependency for computing ofmap
             self.input_per_cycle = [
                 (
-                    throughput_dimension_x * stride, 
-                    throughput_dimension_y * stride, 
+                    throughput_dimension_x * stride[0], 
+                    throughput_dimension_y * stride[1], 
                     input_size[-1] * 1
                 )
             ]
@@ -502,20 +510,20 @@ class SystolicArray(object):
             self.output_per_cycle = (throughput_dimension_x, throughput_dimension_y, 1)
 
             # calculate the delay for one compute batch
-            self.delay = kernel_size * kernel_size * input_size[-1] * 1
+            self.delay = kernel_size[0] * kernel_size[1] * input_size[-1] * 1
         elif op_type == "DWConv2D":
             # compute throughput dimension
             # when the input size is smaller than size_dimension, we should take input_size as throughput
-            throughput_dimension_x = min(input_size[0]//stride, self.size_dimension[0])
+            throughput_dimension_x = min(input_size[0]//stride[0], self.size_dimension[0])
             # same as throughput_dimension_x.
-            throughput_dimension_y = min(input_size[1]//stride, self.size_dimension[1])
+            throughput_dimension_y = min(input_size[1]//stride[1], self.size_dimension[1])
             # print("[SYSTOLIC]", throughput_dimension_x, throughput_dimension_y, self.size_dimension)
 
             # compute the input throughput, the input dependency for computing ofmap
             self.input_per_cycle = [
                 (
-                    throughput_dimension_x * stride, 
-                    throughput_dimension_y * stride, 
+                    throughput_dimension_x * stride[0], 
+                    throughput_dimension_y * stride[1], 
                     input_size[-1] * 1
                 )
             ]
@@ -524,7 +532,7 @@ class SystolicArray(object):
             self.output_per_cycle = (throughput_dimension_x, throughput_dimension_y, 1)
 
             # calculate the delay for one compute batch
-            self.delay = kernel_size * kernel_size * 1
+            self.delay = kernel_size[0] * kernel_size[1] * 1
         elif op_type == "FC":
             self.input_per_cycle = [input_size]
             
@@ -571,8 +579,8 @@ class SystolicArray(object):
     # because we consider only one output buffer
     def init_output_buffer_index(self, sw_stage, buffer_size):
         
-        self.output_throughput = np.ones_like(buffer_size)
-        self.output_throughput[0] = self.size_dimension[0]
+        self.output_per_cycle = np.ones_like(buffer_size)
+        self.output_per_cycle[0] = self.size_dimension[0]
 
         self.output_buffer_size[sw_stage] = buffer_size
         
@@ -623,8 +631,8 @@ class SystolicArray(object):
     '''
     def get_total_read(self):
         total_read = 0
-        if self.input_throughput != None:
-            for throughput in self.input_throughput:
+        if self.input_per_cycle != None:
+            for throughput in self.input_per_cycle:
                 read_for_one_input = 1
                 for i in range(len(throughput)):
                     read_for_one_input *= throughput[i]
@@ -669,9 +677,9 @@ class SystolicArray(object):
         # if not, calculate it before return
         # if self.total_write == -1:
         total_write = 1
-        if self.output_throughput is not None:
-            for i in range(len(self.output_throughput)):
-                total_write *= self.output_throughput[i]
+        if self.output_per_cycle is not None:
+            for i in range(len(self.output_per_cycle)):
+                total_write *= self.output_per_cycle[i]
 
         self.total_write = total_write
 
@@ -739,9 +747,6 @@ class NeuralProcessor(object):
         self.area = area
         self.input_hw_units = {}
         self.input_index_list = {}
-        self.input_throughput = [
-            (size_dimension[0], 1, 1)
-        ]
         self.output_buffer_size = {}
         self.output_index_list = {}
 
@@ -857,18 +862,18 @@ class NeuralProcessor(object):
     def set_input_buffer_index(self, src_hw_unit, sw_stage, input_buffer_index):
         self.input_index_list[src_hw_unit, sw_stage] = input_buffer_index
 
-    # initial output buffer index, here only sw stage is used as index,
-    # because we consider only one output buffer
-    def init_output_buffer_index(self, sw_stage, buffer_size):
+    # # initial output buffer index, here only sw stage is used as index,
+    # # because we consider only one output buffer
+    # def init_output_buffer_index(self, sw_stage, buffer_size):
         
-        self.output_throughput = np.ones_like(buffer_size)
-        self.output_throughput[0] = self.size_dimension[0]
+    #     self.output_throughput = np.ones_like(buffer_size)
+    #     self.output_throughput[0] = self.size_dimension[0]
 
-        self.output_buffer_size[sw_stage] = buffer_size
+    #     self.output_buffer_size[sw_stage] = buffer_size
         
-        self.output_index_list[sw_stage] = []
-        for i in buffer_size:
-            self.output_index_list[sw_stage].append(0)
+    #     self.output_index_list[sw_stage] = []
+    #     for i in buffer_size:
+    #         self.output_index_list[sw_stage].append(0)
 
     def get_output_buffer_size(self, sw_stage):
         return self.output_buffer_size[sw_stage]
@@ -949,6 +954,7 @@ class NeuralProcessor(object):
 
     # check if current reading stage is finished
     def check_read_finish(self):
+        print("[SYSTOLIC]", self.read_cnt, self.get_total_read())
         if self.read_cnt == self.get_total_read():
             # reset num_read before return
             self.read_cnt = -1
@@ -1006,3 +1012,14 @@ class NeuralProcessor(object):
 
     def __repr__(self):
         return self.name
+
+
+# this function is used to convert size (H, W, C) to (X, Y, Z)
+# it is hard to change the internal simulation code, this is an easy fix!
+def _convert_hwc_to_xyz(name, size_list):
+    new_size_list = []
+    for size in size_list:
+        assert len(size) == 3, "In %s, defined size needs to a size of 3!" % name
+        new_size_list.append((size[1], size[0], size[2]))
+
+    return new_size_list
