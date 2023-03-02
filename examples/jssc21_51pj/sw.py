@@ -14,16 +14,16 @@ def sw_pipeline():
 	sw_stage_list = []
 	cs_stage = ProcessStage(
 		name = "CS",
-		input_size = [(640, 400, 1)],
+		input_size = [(480, 640, 1)],
         kernel_size = [(16, 16, 1)],
         num_kernels = [64],
         stride = [(16, 16, 1)],
-		output_size = (40, 25, 64),
+		output_size = (30, 40, 64),
         padding = [False]
 	)
 	sw_stage_list.append(cs_stage)
 
-	input_data = PixelInput((640, 400, 1), name="Input")
+	input_data = PixelInput((480, 640, 1), name="Input")
 	sw_stage_list.append(input_data)
 	cs_stage.set_input_stage(input_data)
 

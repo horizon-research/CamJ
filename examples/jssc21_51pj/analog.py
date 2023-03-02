@@ -19,36 +19,39 @@ from examples.jssc21_51pj.sw import sw_pipeline
 
 def analog_config():
 
-    full_scale_input_voltage = 1.8 # V
-    pixel_full_well_capacity = 10000 # e
-    conversion_gain = full_scale_input_voltage/pixel_full_well_capacity
     analog_arrays = []
 
     pixel_array = AnalogArray(
         name = "PixelArray",
         layer = ProcessorLocation.SENSOR_LAYER,
-        num_input = [(16, 16)],
-        num_output = (16, 16)
+        num_input = [(16, 16, 1)],
+        num_output = (16, 16, 1)
     )
     pixel = AnalogComponent(
-        name = "PWMPixel",
+        name = "APSPixel",
         input_domain =[ProcessDomain.OPTICAL],
         output_domain = ProcessDomain.TIME,
         component_list = [
             (
                 ActivePixelSensor(
                     # performance parameters
-                    pd_capacitance = 1e-12,
-                    pd_supply = 1.8, # V
-                    output_vs = 1, #  
-                    enable_cds = False,
+                    pd_capacitance = 100e-15, # F
+                    pd_supply = 2.5, # V
+                    dynamic_sf = True,
+                    output_vs = 1.1, # V 
                     num_transistor = 4,
+                    enable_cds = True,
+                    fd_capacitance = 10e-15,  # [F]
+                    load_capacitance = 0,  # [F]
+                    tech_node = 110,  # [um]
+                    pitch = 4,  # [um]
+                    array_vsize = 480,
                     # noise model parameters
                     dark_current_noise = 0.005,
                     enable_dcnu = True,
                     enable_prnu = True,
                     dcnu_std = 0.001,
-                    fd_gain = conversion_gain,
+                    fd_gain = 1.0,
                     fd_noise = 0.005,
                     fd_prnu_std = 0.001,
                     sf_gain = 1.0,
@@ -58,17 +61,17 @@ def analog_config():
                 1
             )
         ],
-        num_input = [(1, 1)],
-        num_output = (1, 1)
+        num_input = [(1, 1, 1)],
+        num_output = (1, 1, 1)
     )
 
-    pixel_array.add_component(pixel, (640, 400))
+    pixel_array.add_component(pixel, (480, 640, 1))
 
     cs_array = AnalogArray(
         name = "CSArray",
         layer = ProcessorLocation.SENSOR_LAYER,
-        num_input = [(16, 16)],
-        num_output = (1, 64)
+        num_input = [(1, 16, 1)],
+        num_output = (1, 4, 1)
     )
 
     cs = AnalogComponent(
@@ -78,17 +81,17 @@ def analog_config():
         component_list = [
             (
                 PassiveSwitchedCapacitorArray(
-                    capacitance_array = [1e-12],
-                    vs_array = [1],
+                    capacitance_array = [1.059e-12, 1.059e-12], # F
+                    vs_array = [1.1, 1.5], # V
                 ),
-                1
+                16+16 # need to double, because of CDS.
             )
         ],
-        num_input = [(16, 16)],
-        num_output = (1, 64)
+        num_input = [(1, 16, 1)],
+        num_output = (1, 4, 1)
     )
 
-    cs_array.add_component(cs, (1, 1))
+    cs_array.add_component(cs, (1, 1, 1))
 
     cs_array.add_input_array(pixel_array)
 
