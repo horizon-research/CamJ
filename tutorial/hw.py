@@ -81,7 +81,7 @@ def hw_config():
         name="ConvUnit-1",
         domain=ProcessDomain.DIGITAL,
         location=ProcessorLocation.SENSOR_LAYER,
-        input_per_cycle = [(3, 1, 1)],          # take (1, 3, 1) of pixel per cycle
+        input_per_cycle = [(3, 1, 1)],          # take (3, 1, 1) of pixel per cycle
         output_per_cycle = (1, 1, 1),           # output (1, 1, 1) of pixel per cycle
         energy_per_cycle = 9*compute_op_power,  # the average energy per cycle
         num_of_stages = 3,                      # num of stages to output result, latency

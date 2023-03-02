@@ -35,11 +35,17 @@ def analog_config():
             (
                 ActivePixelSensor(
                     # performance parameters
-                    pd_capacitance = 1e-12,
+                    pd_capacitance = 100e-15, # F
                     pd_supply = 1.8, # V
-                    output_vs = 1, #  
-                    enable_cds = False,
+                    dynamic_sf = True,
+                    output_vs = 1.1, # V 
                     num_transistor = 3,
+                    enable_cds = False,
+                    fd_capacitance = 10e-15,  # [F]
+                    load_capacitance = 0,  # [F]
+                    tech_node = 110,  # [um]
+                    pitch = 4,  # [um]
+                    array_vsize = 480,
                     # noise model parameters
                     dark_current_noise = 0.005,
                     enable_dcnu = True,
@@ -55,8 +61,8 @@ def analog_config():
                 1
             )
         ],
-        num_input = [(1, 1)],
-        num_output = (1, 1)
+        num_input = [(1, 1, 1)],
+        num_output = (1, 1, 1)
     )
     pixel_array.add_component(pixel, (36, 36, 1))   # H, W, C
     
@@ -67,8 +73,8 @@ def analog_config():
         component_list = [
             (
                 ColumnAmplifier(
-                    load_capacitance = 1e-12,  # [F]
-                    input_capacitance = 1e-12,  # [F]
+                    load_capacitance = 1e-23,  # [F]
+                    input_capacitance = 1e-15,  # [F]
                     t_sample = 2e-6,  # [s]
                     t_frame = 10e-3,  # [s]
                     supply = 1.8,  # [V]
@@ -81,8 +87,8 @@ def analog_config():
                 1
             )
         ],
-        num_input = [(1, 1)],
-        num_output = (1, 1)
+        num_input = [(1, 1, 1)],
+        num_output = (1, 1, 1)
     )
     pixel_array.add_component(col_amp, (1, 36, 1))  # H, W, C
 
