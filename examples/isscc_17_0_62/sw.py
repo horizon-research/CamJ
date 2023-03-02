@@ -14,24 +14,15 @@ def sw_pipeline():
     scaler = 4
 
     sw_stage_list = []
-    conv2d_1_1_stage = DNNProcessStage(
-        name = "Conv2D-1-1",
+
+    conv2d_1_stage = DNNProcessStage(
+        name = "Conv2D-1",
         op_type = "Conv2D",
         ifmap_size = [128, 128, 1],
-        kernel_size = [9, 1, 1, 1],
-        stride = 1,
-
-    )
-    sw_stage_list.append(conv2d_1_1_stage)
-
-    conv2d_1_2_stage = DNNProcessStage(
-        name = "Conv2D-1-2",
-        op_type = "Conv2D",
-        ifmap_size = [120, 128, 1],
-        kernel_size = [1, 9, 1, 12*scaler],
+        kernel_size = [9, 9, 1, 12*scaler],
         stride = 1
     )
-    sw_stage_list.append(conv2d_1_2_stage)
+    sw_stage_list.append(conv2d_1_stage)
 
     mp1_stage = ProcessStage(
         name = "MaxPool-1",
@@ -73,26 +64,17 @@ def sw_pipeline():
     )
     sw_stage_list.append(mp2_stage)
 
-    conv2d_3_1_stage = DNNProcessStage(
-        name = "Conv2D-3-1",
+    conv2d_3_stage = DNNProcessStage(
+        name = "Conv2D-3",
         op_type = "Conv2D",
         ifmap_size = [28, 28, 24*scaler],
-        kernel_size = [5, 1, 24*scaler, 24*scaler],
+        kernel_size = [5, 5, 24*scaler, 36*scaler],
         stride = 1
     )
-    sw_stage_list.append(conv2d_3_1_stage)
-
-    conv2d_3_2_stage = DNNProcessStage(
-        name = "Conv2D-3-2",
-        op_type = "Conv2D",
-        ifmap_size = [24, 28, 24*scaler],
-        kernel_size = [1, 5, 24*scaler, 36*scaler],
-        stride = 1
-    )
-    sw_stage_list.append(conv2d_3_2_stage)
+    sw_stage_list.append(conv2d_3_stage)
 
     mp3_stage = ProcessStage(
-        name = "MaxPool3",
+        name = "MaxPool-3",
         input_size = [(24, 24, 36*scaler)],
         kernel_size = [(2, 2, 1)],
         num_kernels = [1],
@@ -102,23 +84,14 @@ def sw_pipeline():
     )
     sw_stage_list.append(mp3_stage)
 
-    conv2d_4_1_stage = DNNProcessStage(
-        name = "Conv2D-4-1",
+    conv2d_4_stage = DNNProcessStage(
+        name = "Conv2D-4",
         op_type = "Conv2D",
         ifmap_size = [12, 12, 36*scaler],
-        kernel_size = [3, 1, 36*scaler, 36*scaler],
+        kernel_size = [3, 3, 36*scaler, 48*scaler],
         stride = 1
     )
-    sw_stage_list.append(conv2d_4_1_stage)
-
-    conv2d_4_2_stage = DNNProcessStage(
-        name = "Conv2D-4-2",
-        op_type = "Conv2D",
-        ifmap_size = [12, 12, 36*scaler],
-        kernel_size = [1, 3, 36*scaler, 48*scaler],
-        stride = 1
-    )
-    sw_stage_list.append(conv2d_4_2_stage)
+    sw_stage_list.append(conv2d_4_stage)
 
     mp4_stage = ProcessStage(
         name = "MaxPool-4",
@@ -134,8 +107,8 @@ def sw_pipeline():
     fc_1_stage = DNNProcessStage(
         name = "FC-1",
         op_type = "FC",
-        ifmap_size = [1200*scaler, 1, 1],
-        kernel_size = [1200*scaler, 256],
+        ifmap_size = [1, 1, 1200*scaler],
+        kernel_size = [1, 1, 1200*scaler, 256],
         stride = 1
     )
     sw_stage_list.append(fc_1_stage)
@@ -143,21 +116,18 @@ def sw_pipeline():
     input_data = PixelInput((128, 128, 1), name="Input")
     sw_stage_list.append(input_data)
 
-    conv2d_1_1_stage.set_input_stage(input_data)
-    conv2d_1_2_stage.set_input_stage(conv2d_1_1_stage)
-    mp1_stage.set_input_stage(conv2d_1_2_stage)
+    conv2d_1_stage.set_input_stage(input_data)
+    mp1_stage.set_input_stage(conv2d_1_stage)
 
     conv2d_2_1_stage.set_input_stage(mp1_stage)
     conv2d_2_2_stage.set_input_stage(conv2d_2_1_stage)
     mp2_stage.set_input_stage(conv2d_2_2_stage)
 
-    conv2d_3_1_stage.set_input_stage(mp2_stage)
-    conv2d_3_2_stage.set_input_stage(conv2d_3_1_stage)
-    mp3_stage.set_input_stage(conv2d_3_2_stage)
+    conv2d_3_stage.set_input_stage(mp2_stage)
+    mp3_stage.set_input_stage(conv2d_3_stage)
 
-    conv2d_4_1_stage.set_input_stage(mp3_stage)
-    conv2d_4_2_stage.set_input_stage(conv2d_4_1_stage)
-    mp4_stage.set_input_stage(conv2d_4_2_stage)
+    conv2d_4_stage.set_input_stage(mp3_stage)
+    mp4_stage.set_input_stage(conv2d_4_stage)
 
     fc_1_stage.set_input_stage(mp4_stage)
 
