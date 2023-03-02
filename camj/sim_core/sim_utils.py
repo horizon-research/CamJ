@@ -287,7 +287,7 @@ def write_output_throughput(src_hw_unit, sw_stage, hw2sw, write_index, write_cnt
                 "new_src_index: ", new_buffer_index, 
                 "src_output_per_cycle: ", src_output_throughput
             )
-            
+
         # set the new buffer index.
         src_hw_unit.set_output_buffer_index(sw_stage, new_buffer_index)
 
@@ -423,13 +423,6 @@ def check_input_buffer(dst_hw_unit, sw_stage):
         dst_input_index = dst_hw_unit.input_index_list[src_hw_unit, input_sw_stage]
 
         if not check_input_buffer_data_ready(dst_input_buffer, dst_input_throughput, dst_input_index):
-            return False
-
-    return True
-
-def check_fc_input_ready(sw_stage, finished_stage):
-    for input_stage in sw_stage.input_stages:
-        if not input_stage in finished_stage:
             return False
 
     return True

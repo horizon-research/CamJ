@@ -7,8 +7,7 @@ from camj.sim_core.digital_compute import SystolicArray, NeuralProcessor
 from camj.sim_core.sim_utils import map_sw_hw, check_buffer_consistency, build_buffer_edges, allocate_output_buffer, \
                       increment_buffer_index, check_stage_finish, write_output_throughput, \
                       check_input_buffer_data_ready, increment_input_buffer_index, check_input_buffer, \
-                      check_finish_data_dependency, check_fc_input_ready, check_input_stage_finish, \
-                      find_digital_sw_stages
+                      check_finish_data_dependency, check_input_stage_finish, find_digital_sw_stages
 from camj.sim_core.sim_infra import ReservationBoard, BufferMonitor
 from camj.sim_core.analog_utils import launch_analog_simulation
 from camj.sim_core.sw_interface import PixelInput
@@ -165,6 +164,7 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
                 # check if there is any data can be read from buffer
                 elif input_buffer.have_data_read(remain_read_cnt):
                     input_buffer.read_data(remain_read_cnt)
+                    hw_unit.read_from_input_buffer(remain_read_cnt)
                     if hw_unit.check_read_finish():
                         if cycle % PRINT_CYCLE == 0:
                             print("[READ]", hw_unit, "is ready to compute")
@@ -177,7 +177,7 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
                     hw_unit.read_from_input_buffer(remain_read_cnt)
                     if hw_unit.check_read_finish():
                         if cycle % PRINT_CYCLE == 0:
-                            print("[READ]", hw_unit, "is ready to compute")
+                            print("[READ]", hw_unit, "is ready to compute, previous stage is finished.")
                         # refresh the compute status in hw_unit
                         hw_unit.init_elapse_cycle()
                         processing_stage[sw_stage] = True
@@ -252,7 +252,7 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
 
 
             # check if the sw stage is in idle phase
-            elif sw_stage in idle_stage:
+            if sw_stage in idle_stage:
                 # this check is to help to config the systolic array into correct configuration
                 # before checking the data readiness.
                 # Otherwise, there can be some infinite checkings in the program due to incorrect
@@ -264,8 +264,8 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
                         hw_unit.config_throughput(
                             sw_stage.ifmap_size, 
                             sw_stage.output_size,
-                            sw_stage.stride[0][0],
-                            sw_stage.kernel_size[0][0],
+                            sw_stage.stride[0],
+                            sw_stage.kernel_size[0],
                             sw_stage.op_type
                         )
                     # same for neural processor instance
@@ -273,13 +273,13 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
                         hw_unit.config_throughput(
                             sw_stage.ifmap_size, 
                             sw_stage.output_size,
-                            sw_stage.stride[0][0],
-                            sw_stage.kernel_size[0][0],
+                            sw_stage.stride[0],
+                            sw_stage.kernel_size[0],
                             sw_stage.op_type
                         )
 
                 # first to check if the input buffer contains the data
-                if check_input_buffer(hw_unit, sw_stage) or check_fc_input_ready(sw_stage, finished_stage):
+                if check_input_buffer(hw_unit, sw_stage) or check_input_stage_finish(sw_stage, finished_stage):
                     if cycle % PRINT_CYCLE == 0:
                         print("[IDLE]", sw_stage, "in idle stage, input data ready")
                     # if the hw unit is not occupied by any sw stage, reserve the hw unit
@@ -330,6 +330,8 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
             
 
     print("\nSimulation is not finished, increase your cycle counts or debug your code.")
+
+
 
 
 # def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
