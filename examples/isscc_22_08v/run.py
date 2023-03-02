@@ -24,7 +24,7 @@ def run_energy_simulation(hw_dict, mapping_dict, sw_stage_list):
     )
 
     print("Total energy: ", total_energy)
-    print("Energy breakdown:")
+    print("Energy breakdown (pJ):")
     pprint(energy_breakdown)
 
 

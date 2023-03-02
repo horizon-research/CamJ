@@ -90,7 +90,7 @@ def hw_config():
         location=ProcessorLocation.COMPUTE_LAYER,
         input_per_cycle = [(21, 21, 8)],
         output_per_cycle = (1, 1, 1),
-        energy_per_cycle = 21 * 21 * 8 * compute_op_power,
+        energy_per_cycle = 1 * compute_op_power,
         num_of_stages = 21 * 21 * 8,
         area = 10,
     )
