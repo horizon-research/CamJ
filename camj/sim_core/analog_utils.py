@@ -134,8 +134,8 @@ def compute_total_energy(analog_arrays, analog_sw_stages, mapping_dict):
             sw_size = output_stage.output_size
             hw_size = analog_array.num_output
             cnt = (sw_size[0] * sw_size[1] * sw_size[2]) / (hw_size[0] * hw_size[1])
-            ret_dict[analog_array.name] = cnt * analog_array.energy()
-            print("[Energy]", analog_array.name, cnt * analog_array.energy())
+            ret_dict[analog_array.name] = int(cnt * analog_array.energy() * 1e12) # concert J to pJ
+            print("[Energy]", analog_array.name, int(cnt * analog_array.energy() * 1e12), "pJ")
 
     return ret_dict
 

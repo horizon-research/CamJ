@@ -34,6 +34,7 @@ class ActivePixelSensor(object):
         # performance parameters
         pd_capacitance = 100e-15, # [F]
         pd_supply = 1.8, # [V]
+        dynamic_sf = False,
         output_vs = 1,  # output voltage swing [V]
         num_transistor = 3,
         enable_cds = False,
@@ -64,9 +65,11 @@ class ActivePixelSensor(object):
         self.perf_model = ActivePixelSensorPerf(
             pd_capacitance = pd_capacitance,
             pd_supply = pd_supply,
+            dynamic_sf = dynamic_sf,
             output_vs = output_vs,
             num_transistor = num_transistor,
             fd_capacitance = fd_capacitance,
+            num_readout = self.num_readout,
             load_capacitance = load_capacitance,
             tech_node = tech_node,
             pitch = pitch,
@@ -118,14 +121,14 @@ class DigitalPixelSensor(object):
 
         Input parameters:
             pd_capacitance: the capacitance of PD.
-            pd_supply: TODO???
-            output_vs: output voltage swing, the typical value range is [?, ?].
+            pd_supply: voltage supply of PD.
+            output_vs: output voltage swing.
             num_transistor: this parameters define 3T or 4T APS.
-            num_readout: ???
-            load_capacitance: ???
+            num_readout: number of pixel readout times.
+            load_capacitance: load capacitance
             tech_node: the technology process node.
-            pitch: pitch size??
-            array_vsize: ????,
+            pitch: pixel pitch
+            array_vsize: pixel array vertical size,
             adc_type: the actual ADC type. Please check ADC class for more details.
             adc_fom: ???
             adc_resolution: the resolution of ADC. typical value range is from XX to XX.
@@ -142,7 +145,7 @@ class DigitalPixelSensor(object):
         load_capacitance = 1e-12,  # [F]
         tech_node = 130,  # [um]
         pitch = 4,  # [um]
-        array_vsize = 128,
+        array_vsize = 128, # pixel array vertical size
         # ADC performance parameters
         adc_type='SS',
         adc_fom=100e-15,  # [J/conversion]
@@ -257,6 +260,7 @@ class PulseWidthModulationPixel(object):
         self,
         pd_capacitance = 100e-15, # [F]
         pd_supply = 1.8, # [V]
+        array_vsize = 126, # pixel array vertical size
         ramp_capacitance = 1e-12,  # [F]
         gate_capacitance = 10e-15,  # [F]
         num_readout = 1
@@ -264,6 +268,7 @@ class PulseWidthModulationPixel(object):
         self.perf_model = PulseWidthModulationPixelPerf(
             pd_capacitance = pd_capacitance,
             pd_supply = pd_supply,
+            array_vsize = array_vsize,
             ramp_capacitance = ramp_capacitance,
             gate_capacitance = gate_capacitance,
             num_readout = num_readout
