@@ -23,8 +23,8 @@ def run_energy_simulation(hw_dict, mapping_dict, sw_stage_list):
         sw_stage_list = sw_stage_list
     )
 
-    print("Total energy: ", total_energy)
-    print("Energy breakdown:")
+    print("Total energy: ", total_energy, "pJ")
+    print("Energy breakdown (pJ):")
     pprint(energy_breakdown)
 
 if __name__ == '__main__':
