@@ -18,9 +18,8 @@ You will see two things: a new window showing an image and a bunch of statistics
 The terminal will show the following statistics, which is a component-level breakdown of the energy consumption per pixel.
 
 ```
-[Summary]
-Overall system cycle count:  5761
-[Cycle distribution] {Input: 2591, Conv1: 5039, Conv2: 2731, Abs: 573}
+Overall system cycle count:  1374
+[Cycle distribution] {Input: 1296, Conv1: 1298, Conv2: 1222, Abs: 1220}
 ADC total compute cycle:  1296 total compute energy: 777600 pJ
 ConvUnit-1 total compute cycle:  1298 total compute energy: 5841 pJ
 ConvUnit-2 total compute cycle:  146 total compute energy: 657 pJ
@@ -29,7 +28,6 @@ LineBuffer total memory energy: 5182 pJ
 FIFO-1 total memory energy: 5184 pJ
 FIFO-2 total memory energy: 576 pJ
 FIFO-3 total memory energy: 432 pJ
-[End] Digitial Simulation is DONE!
 ```
 
 ## Code Walk-Through
@@ -305,8 +303,8 @@ pixel = AnalogComponent(
             1
         )
     ],
-    num_input = [(1, 1)],
-    num_output = (1, 1)
+    num_input = [(1, 1, 1)],
+    num_output = (1, 1, 1)
 )
 ```
 
@@ -325,8 +323,8 @@ col_amp = AnalogComponent(
             1
         )
     ],
-    num_input = [(1, 1)],
-    num_output = (1, 1)
+    num_input = [(1, 1, 1)],
+    num_output = (1, 1, 1)
 )
 ```
 
@@ -412,12 +410,18 @@ CamJ allows programmers to specify a set of noise-related attributes when creati
 
 ```python
 ActivePixelSensor(
-    # latency and performance parameters
-    pd_capacitance = 1e-12,
+    # performance parameters
+    pd_capacitance = 100e-15, # F
     pd_supply = 1.8, # V
-    output_vs = 1, #  
-    enable_cds = False,
+    dynamic_sf = True,
+    output_vs = 1.1, # V 
     num_transistor = 3,
+    enable_cds = False,
+    fd_capacitance = 10e-15,  # [F]
+    load_capacitance = 0,  # [F]
+    tech_node = 110,  # [um]
+    pitch = 4,  # [um]
+    array_vsize = 480,
     # noise parameters
     dark_current_noise = 0.005, # mean dark current distribution (Poisson); unit: number of electrons
     enable_dcnu = True,
@@ -435,8 +439,8 @@ ActivePixelSensor(
 ```python
 ColumnAmplifier(
     # latency and performance parameters
-    load_capacitance = 1e-12,  # [F]
-    input_capacitance = 1e-12,  # [F]
+    load_capacitance = 1e-23,  # [F]
+    input_capacitance = 1e-15,  # [F]
     t_sample = 2e-6,  # [s]
     t_frame = 10e-3,  # [s]
     supply = 1.8,  # [V]
