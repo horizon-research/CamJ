@@ -47,16 +47,16 @@ def analog_config():
                     pitch = 4,  # [um]
                     array_vsize = 480,
                     # noise model parameters
-                    dark_current_noise = 0.005,
+                    dark_current_noise = 0.05,
                     enable_dcnu = True,
                     enable_prnu = True,
-                    dcnu_std = 0.001,
+                    dcnu_std = 0.01,
                     fd_gain = conversion_gain,
-                    fd_noise = 0.005,
-                    fd_prnu_std = 0.001,
+                    fd_noise = 0.05,
+                    fd_prnu_std = 0.01,
                     sf_gain = 1.0,
-                    sf_noise = 0.005,
-                    sf_prnu_std = 0.001
+                    sf_noise = 0.05,
+                    sf_prnu_std = 0.01
                 ),
                 1
             )
@@ -80,9 +80,9 @@ def analog_config():
                     supply = 1.8,  # [V]
                     gain = 1,
                     # noise parameters
-                    noise = 0.005,
+                    noise = 0.05,
                     enable_prnu = True,
-                    prnu_std = 0.001,
+                    prnu_std = 0.01,
                 ),
                 1
             )
