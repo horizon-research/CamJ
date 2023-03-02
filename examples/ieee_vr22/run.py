@@ -12,9 +12,13 @@ sys.path.append(os.path.dirname(os.path.dirname(os.getcwd())))
 from camj.sim_core.launch import launch_simulation
 from camj.functional_core.launch import launch_functional_simulation
 
-from examples.ieee_vr22.mapping import mapping_function, mapping_function_w_analog
-from examples.ieee_vr22.sw import sw_pipeline, sw_pipeline_w_analog
-from examples.ieee_vr22.hw import hw_config, hw_config_w_analog
+# from examples.ieee_vr22.mapping import mapping_function, mapping_function_w_analog
+# from examples.ieee_vr22.sw import sw_pipeline, sw_pipeline_w_analog
+# from examples.ieee_vr22.hw import hw_config, hw_config_w_analog
+
+from examples.ieee_vr22.mapping import mapping_function
+from examples.ieee_vr22.sw import sw_pipeline
+from examples.ieee_vr22.hw import hw_config
 
 def eventification_noise_simulation_example(
     prev_img_name,
@@ -66,25 +70,25 @@ def run_energy_simulation(hw_dict, mapping_dict, sw_stage_list):
 
 if __name__ == '__main__':
     
-    hw_dict = hw_config_w_analog()
-    mapping_dict = mapping_function_w_analog()
-    sw_stage_list = sw_pipeline_w_analog()
+    # hw_dict = hw_config_w_analog()
+    # mapping_dict = mapping_function_w_analog()
+    # sw_stage_list = sw_pipeline_w_analog()
 
 
     # uncomment these to simulate the eventification in digital domain,
     # HOWEVER, this cannot operate noise simulation!
-    # hw_dict = hw_config()
-    # mapping_dict = mapping_function()
-    # sw_stage_list = sw_pipeline()
+    hw_dict = hw_config()
+    mapping_dict = mapping_function()
+    sw_stage_list = sw_pipeline()
 
     # eventification simulation
-    eventification_noise_simulation_example(
-        prev_img_name = "../../test_imgs/test_eye1.png",
-        curr_img_name = "../../test_imgs/test_eye2.png",
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
-    )
+    # eventification_noise_simulation_example(
+    #     prev_img_name = "../../test_imgs/test_eye1.png",
+    #     curr_img_name = "../../test_imgs/test_eye2.png",
+    #     hw_dict = hw_dict,
+    #     mapping_dict = mapping_dict,
+    #     sw_stage_list = sw_stage_list
+    # )
     
     run_energy_simulation(
         hw_dict = hw_dict,

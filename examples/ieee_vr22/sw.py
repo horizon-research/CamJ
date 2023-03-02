@@ -25,43 +25,43 @@ def sw_pipeline():
 
     curr_resize_stage = ProcessStage(
         name = "CurrResize",
-        input_size = [(640, 400, 1)],
+        input_size = [(400, 640, 1)],
         kernel_size = [(2, 2, 1)],
         num_kernels = [1],
         stride = [(2, 2, 1)],
-        output_size = (320, 200, 1),
+        output_size = (200, 320, 1),
         padding =[False]
     )
     sw_stage_list.append(curr_resize_stage)
 
     prev_resize_stage = ProcessStage(
         name = "PrevResize",
-        input_size = [(640, 400, 1)],
+        input_size = [(400, 640, 1)],
         kernel_size = [(2, 2, 1)],
         num_kernels = [1],
         stride = [(2, 2, 1)],
-        output_size = (320, 200, 1),
+        output_size = (200, 320, 1),
         padding = [False]
     )
     sw_stage_list.append(prev_resize_stage)
 
     eventification_stage = ProcessStage(
         name = "Eventification",
-        input_size = [(320, 200, 1), (320, 200, 1)],
+        input_size = [(200, 320, 1), (200, 320, 1)],
         kernel_size = [(1, 1, 1), (1, 1, 1)],
         num_kernels = [1, 1],
         stride = [(1, 1, 1), (1, 1, 1)],
-        output_size = (320, 200, 1),
+        output_size = (200, 320, 1),
         padding = [False, False]
     )
     sw_stage_list.append(eventification_stage)
 
     thresholding_stage = ProcessStage(
         name = "Thresholding",
-        input_size = [(4, 1, 1), (320, 200, 1)],
-        kernel_size = [(4, 1, 1), (320, 200, 1)],
+        input_size = [(1, 4, 1), (200, 320, 1)],
+        kernel_size = [(1, 4, 1), (200, 320, 1)],
         num_kernels = [1, 1],
-        stride = [(4, 1, 1), (320, 200, 1)],
+        stride = [(1, 4, 1), (200, 320, 1)],
         output_size = (1, 1, 1),
         padding = [False, False]
     )
@@ -70,7 +70,7 @@ def sw_pipeline():
     conv2d_1_stage = DNNProcessStage(
         name = "Conv2D_1",
         op_type = "Conv2D",
-        ifmap_size = [320, 200, 1],
+        ifmap_size = [200, 320, 1],
         kernel_size = [3, 3, 1, 32],
         stride = 2
     )
@@ -79,7 +79,7 @@ def sw_pipeline():
     conv2d_2_stage = DNNProcessStage(
         name = "Conv2D_2",
         op_type = "Conv2D",
-        ifmap_size = [160, 100, 32],
+        ifmap_size = [100, 160, 32],
         kernel_size = [3, 3, 32, 32],
         stride = 2
     )
@@ -88,7 +88,7 @@ def sw_pipeline():
     conv2d_3_stage = DNNProcessStage(
         name = "Conv2D_3",
         op_type = "Conv2D",
-        ifmap_size = [80, 50, 32],
+        ifmap_size = [50, 80, 32],
         kernel_size = [3, 3, 32, 32],
         stride = 2
     )
@@ -97,8 +97,8 @@ def sw_pipeline():
     fc_1_stage = DNNProcessStage(
         name = "FC_1",
         op_type = "FC",
-        ifmap_size = [1000, 1, 1],
-        kernel_size = [1000, 32],
+        ifmap_size = [1, 1, 1000],
+        kernel_size = [1, 1, 1000, 32],
         stride = 1
     )
     sw_stage_list.append(fc_1_stage)
@@ -106,8 +106,8 @@ def sw_pipeline():
     fc_2_stage = DNNProcessStage(
         name = "FC_2",
         op_type = "FC",
-        ifmap_size = [32, 1, 1],
-        kernel_size = [32, 4],
+        ifmap_size = [1, 1, 32],
+        kernel_size = [1, 1, 32, 4],
         stride = 1
     )
     sw_stage_list.append(fc_2_stage)
@@ -152,32 +152,32 @@ def sw_pipeline_w_analog():
 
     curr_resize_stage = ProcessStage(
         name = "CurrResize",
-        input_size = [(640, 400, 1)],
+        input_size = [(400, 640, 1)],
         kernel_size = [(2, 2, 1)],
         num_kernels = [1],
         stride = [(2, 2, 1)],
-        output_size = (320, 200, 1),
+        output_size = (200, 320, 1),
         padding =[False]
     )
     sw_stage_list.append(curr_resize_stage)
 
     eventification_stage = ProcessStage(
         name = "Eventification",
-        input_size = [(320, 200, 1), (320, 200, 1)],
+        input_size = [(200, 320, 1), (200, 320, 1)],
         kernel_size = [(1, 1, 1), (1, 1, 1)],
         num_kernels = [1, 1],
         stride = [(1, 1, 1), (1, 1, 1)],
-        output_size = (320, 200, 1),
+        output_size = (200, 320, 1),
         padding = [False, False],
     )
     sw_stage_list.append(eventification_stage)
 
     thresholding_stage = ProcessStage(
         name = "Thresholding",
-        input_size = [(4, 1, 1), (320, 200, 1)],
-        kernel_size = [(4, 1, 1), (320, 200, 1)],
+        input_size = [(1, 4, 1), (200, 320, 1)],
+        kernel_size = [(1, 4, 1), (200, 320, 1)],
         num_kernels = [1, 1],
-        stride = [(4, 1, 1), (320, 200, 1)],
+        stride = [(1, 4, 1), (200, 320, 1)],
         output_size = (1, 1, 1),
         padding = [False, False]
     )
@@ -186,7 +186,7 @@ def sw_pipeline_w_analog():
     conv2d_1_stage = DNNProcessStage(
         name = "Conv2D_1",
         op_type = "Conv2D",
-        ifmap_size = [320, 200, 1],
+        ifmap_size = [200, 320, 1],
         kernel_size = [3, 3, 1, 32],
         stride = 2
     )
@@ -195,7 +195,7 @@ def sw_pipeline_w_analog():
     conv2d_2_stage = DNNProcessStage(
         name = "Conv2D_2",
         op_type = "Conv2D",
-        ifmap_size = [160, 100, 32],
+        ifmap_size = [100, 160, 32],
         kernel_size = [3, 3, 32, 32],
         stride = 2
     )
@@ -204,7 +204,7 @@ def sw_pipeline_w_analog():
     conv2d_3_stage = DNNProcessStage(
         name = "Conv2D_3",
         op_type = "Conv2D",
-        ifmap_size = [80, 50, 32],
+        ifmap_size = [50, 80, 32],
         kernel_size = [3, 3, 32, 32],
         stride = 2
     )
@@ -213,8 +213,8 @@ def sw_pipeline_w_analog():
     fc_1_stage = DNNProcessStage(
         name = "FC_1",
         op_type = "FC",
-        ifmap_size = [1000, 1, 1],
-        kernel_size = [1000, 32],
+        ifmap_size = [1, 1, 1000],
+        kernel_size = [1, 1, 1000, 32],
         stride = 1
     )
     sw_stage_list.append(fc_1_stage)
@@ -222,8 +222,8 @@ def sw_pipeline_w_analog():
     fc_2_stage = DNNProcessStage(
         name = "FC_2",
         op_type = "FC",
-        ifmap_size = [32, 1, 1],
-        kernel_size = [32, 4],
+        ifmap_size = [1, 1, 32],
+        kernel_size = [1, 1, 32, 4],
         stride = 1
     )
     sw_stage_list.append(fc_2_stage)

@@ -30,8 +30,8 @@ def analog_config():
     pixel_array = AnalogArray(
         name = "PixelArray",
         layer = ProcessorLocation.SENSOR_LAYER,
-        num_input = [(640, 2, 1)],
-        num_output = (320, 1, 1),
+        num_input = [(2, 640, 1)],
+        num_output = (1, 320, 1),
     )
     pixel = AnalogComponent(
         name = "BinningPixel",
@@ -61,11 +61,11 @@ def analog_config():
                 4
             )
         ],
-        num_input = [(2, 2)],
-        num_output = (1, 1)
+        num_input = [(2, 2, 1)],
+        num_output = (1, 1, 1)
     )
 
-    pixel_array.add_component(pixel, (320, 200, 1))
+    pixel_array.add_component(pixel, (200, 320, 1))
 
     analog_memory_array = AnalogArray(
         name = "AnalogMemoryArray",
@@ -103,15 +103,15 @@ def analog_config():
             )
         ],
         num_input = [],
-        num_output = (1, 1)
+        num_output = (1, 1, 1)
     )
-    analog_memory_array.add_component(analog_memory_unit, (320, 201))
+    analog_memory_array.add_component(analog_memory_unit, (201, 320, 1))
 
     eventification_array = AnalogArray(
         name = "EventificationArray",
         layer = ProcessorLocation.SENSOR_LAYER,
-        num_input = [(320, 1), (320, 1)],
-        num_output = (320, 1),
+        num_input = [(1, 320, 1), (1, 320, 1)],
+        num_output = (1, 320, 1),
     )
     eventification_pe = AnalogComponent(
         name = "EventificationPE",
@@ -170,10 +170,10 @@ def analog_config():
             )
 
         ],
-        num_input = [(1, 1), (1, 1)],
-        num_output = (1, 1)
+        num_input = [(1, 1, 1), (1, 1, 1)],
+        num_output = (1, 1, 1)
     )
-    eventification_array.add_component(eventification_pe, (320, 1))
+    eventification_array.add_component(eventification_pe, (1, 320, 1))
 
     pixel_array.add_output_array(eventification_array)
     eventification_array.add_input_array(pixel_array)
