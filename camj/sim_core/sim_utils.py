@@ -287,7 +287,7 @@ def write_output_throughput(src_hw_unit, sw_stage, hw2sw, write_index, write_cnt
                 "new_src_index: ", new_buffer_index, 
                 "src_output_per_cycle: ", src_output_throughput
             )
-        # print(output_buffer)
+            
         # set the new buffer index.
         src_hw_unit.set_output_buffer_index(sw_stage, new_buffer_index)
 
@@ -371,7 +371,7 @@ def increment_input_buffer_index(dst_hw_unit, sw_stage):
         if ENABLE_DEBUG:
             print("[increment_input_buffer_index] src hw unit: ", src_hw_unit, "dst_input_buffer: ", dst_input_buffer.shape)
             print("[increment_input_buffer_index] dst_input_throughput: ", dst_input_throughput, "dst_input_index: ", dst_input_index)
-        # exit()
+        
         if is_line_buffer:
             dst_input_throughput = scale_input_throughput(
                 dst_input_throughput, 
