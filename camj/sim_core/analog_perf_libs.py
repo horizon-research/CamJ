@@ -22,6 +22,7 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
         self,
         pd_capacitance,
         pd_supply,
+        dynamic_sf = False,
         output_vs=1,  # output voltage swing [V]
         num_transistor=4,
         fd_capacitance=10e-15,  # [F]
@@ -32,6 +33,7 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
         array_vsize=128
     ):
         super().__init__(pd_capacitance, pd_supply)
+        self.dynamic_sf = dynamic_sf
         self.num_transistor = num_transistor
         self.num_readout = num_readout
         self.fd_capacitance = fd_capacitance
@@ -53,13 +55,18 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
         else:
             raise Exception("Defined APS is not supported.")
 
-        energy_sf = (
-            self.load_capacitance + 
-            get_pixel_parasitic(self.array_vsize, self.tech_node, self.pitch)
-        ) * self.pd_supply * self.output_vs
+        if self.dynamic_sf:
+            energy_sf = (
+                self.load_capacitance + 
+                get_pixel_parasitic(self.array_vsize, self.tech_node, self.pitch)
+            ) * self.output_vs**2
+        else:
+            energy_sf = (
+                self.load_capacitance + 
+                get_pixel_parasitic(self.array_vsize, self.tech_node, self.pitch)
+            ) * self.pd_supply * self.output_vs
 
         energy_pd = super(ActivePixelSensorPerf, self).energy()
-
         energy = energy_pd + energy_fd + self.num_readout * energy_sf
         return energy
 
@@ -138,6 +145,7 @@ class PulseWidthModulationPixelPerf(PinnedPhotodiodePerf):
         self,
         pd_capacitance,
         pd_supply,
+        array_vsize,
         ramp_capacitance=1e-12,  # [F]
         gate_capacitance=10e-15,  # [F]
         num_readout=1
@@ -146,12 +154,16 @@ class PulseWidthModulationPixelPerf(PinnedPhotodiodePerf):
         self.ramp_capacitance = ramp_capacitance
         self.num_readout = num_readout
         self.gate_capacitance = gate_capacitance
+        self.array_vsize = array_vsize
 
     def energy(self):
+        energy_parasitics = self.array_vsize/3*10e-15*(self.pd_supply**2)
+
         energy_ramp = self.ramp_capacitance * (self.pd_supply ** 2)
         energy_comparator = self.gate_capacitance * (self.pd_supply ** 2)
         energy_pd = super(PulseWidthModulationPixelPerf, self).energy()
-        energy = energy_pd + self.num_readout * (energy_ramp + energy_comparator)
+        energy = energy_pd + self.num_readout * (energy_ramp * 2 + energy_comparator + energy_parasitics)
+        
         return energy
 
 
