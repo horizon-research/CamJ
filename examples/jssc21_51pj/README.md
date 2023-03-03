@@ -7,7 +7,7 @@ main innovation in this paper.
 
 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/21286132/221304849-63eface9-9341-4fee-844d-b096ed53aa67.png">
+  <img src="https://user-images.githubusercontent.com/21286132/222620862-1d839fc6-588f-4d87-9775-0a10fe4a6c7d.png">
 </p>
 
 # How to run
