@@ -138,6 +138,7 @@ class DigitalPixelSensor(object):
         # performance parameters
         pd_capacitance = 100e-15, # [F]
         pd_supply = 1.8, # [V]
+        dynamic_sf = False, 
         output_vs = 1,  # output voltage swing [V]
         num_transistor = 3,
         enable_cds = False,
@@ -147,9 +148,9 @@ class DigitalPixelSensor(object):
         pitch = 4,  # [um]
         array_vsize = 128, # pixel array vertical size
         # ADC performance parameters
-        adc_type='SS',
-        adc_fom=100e-15,  # [J/conversion]
-        adc_reso=8,
+        adc_type = 'SS',
+        adc_fom = 100e-15,  # [J/conversion]
+        adc_reso = 8,
         # noise parameters
         dark_current_noise = 0.,
         enable_dcnu = False,
@@ -179,6 +180,7 @@ class DigitalPixelSensor(object):
         self.perf_model = DigitalPixelSensorPerf(
             pd_capacitance = pd_capacitance,
             pd_supply = pd_supply,
+            dynamic_sf = dynamic_sf,
             output_vs = output_vs,
             num_transistor = num_transistor,
             fd_capacitance = fd_capacitance,

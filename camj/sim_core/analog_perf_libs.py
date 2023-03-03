@@ -23,14 +23,14 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
         pd_capacitance,
         pd_supply,
         dynamic_sf = False,
-        output_vs=1,  # output voltage swing [V]
-        num_transistor=4,
-        fd_capacitance=10e-15,  # [F]
-        num_readout=2,
-        load_capacitance=1e-12,  # [F]
-        tech_node=130,  # [um]
-        pitch=4,  # [um]
-        array_vsize=128
+        output_vs = 1,  # output voltage swing [V]
+        num_transistor = 4,
+        fd_capacitance = 10e-15,  # [F]
+        num_readout = 2,
+        load_capacitance = 1e-12,  # [F]
+        tech_node = 130,  # [um]
+        pitch = 4,  # [um]
+        array_vsize = 128
     ):
         super().__init__(pd_capacitance, pd_supply)
         self.dynamic_sf = dynamic_sf
@@ -47,7 +47,6 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
             self.output_vs = output_vs
 
     def energy(self):
-        
         if self.num_transistor == 3:
             energy_fd = 0
         elif self.num_transistor == 4:
@@ -92,6 +91,7 @@ class DigitalPixelSensorPerf(ActivePixelSensorPerf):
         self,
         pd_capacitance,
         pd_supply,
+        dynamic_sf,
         output_vs,
         num_transistor,
         fd_capacitance,
@@ -105,16 +105,16 @@ class DigitalPixelSensorPerf(ActivePixelSensorPerf):
         adc_reso=8,
     ):
         super().__init__(
-            pd_capacitance,
-            pd_supply,
-            output_vs,
-            num_transistor,
-            fd_capacitance,
-            num_readout,
-            load_capacitance,
-            tech_node,
-            pitch,
-            array_vsize
+            pd_capacitance = pd_capacitance,
+            pd_supply = pd_supply,
+            output_vs = output_vs,
+            num_transistor = num_transistor,
+            fd_capacitance = fd_capacitance,
+            num_readout = num_readout,
+            load_capacitance = load_capacitance,
+            tech_node = tech_node,
+            pitch = pitch,
+            array_vsize = array_vsize
         )
         self.adc_type = adc_type
         self.adc_fom = adc_fom
