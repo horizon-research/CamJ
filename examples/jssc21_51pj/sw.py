@@ -11,32 +11,25 @@ from camj.sim_core.sw_utils import build_sw_graph
 
 def sw_pipeline():
 
-	sw_stage_list = []
-	cs_stage = ProcessStage(
-		name = "CS",
-		input_size = [(480, 640, 1)],
+    sw_stage_list = []
+    cs_stage = ProcessStage(
+        name = "CS",
+        input_size = [(480, 640, 1)],
         kernel_size = [(16, 16, 1)],
         num_kernels = [64],
         stride = [(16, 16, 1)],
-		output_size = (30, 40, 64),
+        output_size = (30, 40, 64),
         padding = [False]
-	)
-	sw_stage_list.append(cs_stage)
+    )
+    sw_stage_list.append(cs_stage)
 
-	input_data = PixelInput((480, 640, 1), name="Input")
-	sw_stage_list.append(input_data)
-	cs_stage.set_input_stage(input_data)
+    input_data = PixelInput((480, 640, 1), name="Input")
+    sw_stage_list.append(input_data)
+    cs_stage.set_input_stage(input_data)
 
-	return sw_stage_list
+    return sw_stage_list
 
 if __name__ == '__main__':
 
-	sw_stage_list = sw_pipeline()
-	build_sw_graph(sw_stage_list)
-
-
-
-
-
-
-
+    sw_stage_list = sw_pipeline()
+    build_sw_graph(sw_stage_list)
