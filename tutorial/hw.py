@@ -23,10 +23,8 @@ def hw_config():
         location = ProcessorLocation.COMPUTE_LAYER,
         write_energy_per_word = 3,  # 3pJ to write a word
         read_energy_per_word = 1,   # 1pJ to read a word
-        write_word_length = 1,      # the word length or #pixel per write access
-        read_word_length = 3,       # the word length or #pixel per read access
-        write_unit = "ADC",
-        read_unit = "ConvUnit-1"
+        pixel_per_write = 1,      # the word length or #pixel per write access
+        pixel_per_read = 3,       # the word length or #pixel per read access
     )
     hw_dict["memory"].append(line_buffer)
 
@@ -36,10 +34,8 @@ def hw_config():
         location = ProcessorLocation.COMPUTE_LAYER,
         write_energy_per_word = 3,  # 3pJ to write a word
         read_energy_per_word = 1,   # 1pJ to read a word
-        write_word_length = 1,      # the word length or #pixel per write access
-        read_word_length = 1,       # the word length or #pixel per read access
-        write_unit = "ConvUnit-1",
-        read_unit = "ConvUnit-2"
+        pixel_per_write = 1,      # the word length or #pixel per write access
+        pixel_per_read = 1,       # the word length or #pixel per read access
     )
     hw_dict["memory"].append(fifo_buffer1)
 
@@ -49,10 +45,8 @@ def hw_config():
         location = ProcessorLocation.COMPUTE_LAYER,
         write_energy_per_word = 3,  # 3pJ to write a word
         read_energy_per_word = 1,   # 1pJ to read a word
-        write_word_length = 1,      # the word length or #pixel per write access
-        read_word_length = 1,       # the word length or #pixel per read access
-        write_unit = "ConvUnit-2",
-        read_unit = "AbsUnit"
+        pixel_per_write = 1,      # the word length or #pixel per write access
+        pixel_per_read = 1,       # the word length or #pixel per read access
     )
     hw_dict["memory"].append(fifo_buffer2)
 
@@ -62,10 +56,8 @@ def hw_config():
         location = ProcessorLocation.COMPUTE_LAYER,
         write_energy_per_word = 3,  # 3pJ to write a word
         read_energy_per_word = 1,   # 1pJ to read a word
-        write_word_length = 1,      # the word length or #pixel per write access
-        read_word_length = 1,       # the word length or #pixel per read access 
-        write_unit = "AbsUnit",
-        read_unit = "AbsUnit"
+        pixel_per_write = 1,      # the word length or #pixel per write access
+        pixel_per_read = 1,       # the word length or #pixel per read access 
     )
     hw_dict["memory"].append(fifo_buffer3)
 
