@@ -3,13 +3,19 @@
 This directory lists all the examples that we use in our paper validation and evaluation. Please 
 check each subdirectory for more details.
 
-Here are the directory names with corresponding papers.
+Here are the directory names with corresponding papers. The first nine papers are used for validation 
+and the last two are for evaluation.
 
-* [`ieee_vr22`](https://github.com/horizon-research/CamJ/tree/main/examples/ieee_vr22): Real-Time Gaze Tracking with Event-Driven Eye Segmentation. [(Link)](https://arxiv.org/abs/2201.07367)
-* [`isscc_22_08v`](https://github.com/horizon-research/CamJ/tree/main/examples/isscc_22_08v): A 0.8V Intelligent Vision Sensor with Tiny Convolutional Neural Network and Programmable Weights Using Mixed-Mode Processing-in-Sensor Technique for Image Classification. [(Link)](https://ieeexplore.ieee.org/document/9731675)
+* [`isscc_17_0_62`](https://github.com/horizon-research/CamJ/tree/main/examples/isscc_17_0_62):  A 0.62mW Ultra-Low-Power Convolutional-NeuralNetwork Face-Recognition Processor and a CIS Integrated with Always-On Haar-Like Face Detector. [(Link)](https://ieeexplore.ieee.org/abstract/document/7870354)
+* [`jssc_19`](https://github.com/horizon-research/CamJ/tree/main/examples/jssc_19):  A Data-Compressive 1.5/2.75-bit Log-Gradient QVGA Image Sensor With Multi-Scale Readout for Always-On Object Detection. [(Link)](https://ieeexplore.ieee.org/document/8844721)
+* [`sensors_20`](https://github.com/horizon-research/CamJ/tree/main/examples/sensors_20):  Design of an Always-On Image Sensor Using an Analog Lightweight Convolutional Neural Network. [(Link)](https://www.mdpi.com/1424-8220/20/11/3101)
+* [`isscc_21_back_illuminated`](https://github.com/horizon-research/CamJ/tree/main/examples/isscc_21_back_illuminated): A 1/2.3inch 12.3Mpixel with On-Chip 4.97TOPS/W CNN Processor Back-Illuminated Stacked CMOS Image Sensor. [(Link)](https://ieeexplore.ieee.org/document/9365965)
 * [`jssc21_05v`](https://github.com/horizon-research/CamJ/tree/main/examples/jssc21_05v): A 0.5-V Real-Time Computational CMOS Image Sensor With Programmable Kernel for Feature Extraction. [(Link)](https://ieeexplore.ieee.org/document/9250500)
 * [`jssc21_51pj`](https://github.com/horizon-research/CamJ/tree/main/examples/jssc21_51pj): A 51-pJ/Pixel 33.7-dB PSNR 4× Compressive CMOS Image Sensor With Column-Parallel Single-Shot Compressive Sensing. [(Link)](https://ieeexplore.ieee.org/document/9424987)
+* [`vlsi_21`](https://github.com/horizon-research/CamJ/tree/main/examples/vlsi_21): A 2.6 e-rms Low-Random-Noise, 116.2 mW Low-Power 2-Mp Global Shutter CMOS Image Sensor with Pixel-Level ADC and In-Pixel Memory. [(Link)](https://ieeexplore.ieee.org/document/9492357)
+* [`isscc_22_08v`](https://github.com/horizon-research/CamJ/tree/main/examples/isscc_22_08v): A 0.8V Intelligent Vision Sensor with Tiny Convolutional Neural Network and Programmable Weights Using Mixed-Mode Processing-in-Sensor Technique for Image Classification. [(Link)](https://ieeexplore.ieee.org/document/9731675)
 * [`tcas_i22`](https://github.com/horizon-research/CamJ/tree/main/examples/tcas_i22): Senputing: An Ultra-Low-Power Always-On Vision Perception Chip Featuring the Deep Fusion of Sensing and Computing. [(Link)](https://ieeexplore.ieee.org/document/9464962)
+* [`ieee_vr22`](https://github.com/horizon-research/CamJ/tree/main/examples/ieee_vr22): Real-Time Gaze Tracking with Event-Driven Eye Segmentation. [(Link)](https://arxiv.org/abs/2201.07367)
 
 The following table shows what computing domain each paper involves and what kind of simulation each
 case has:
@@ -92,15 +98,18 @@ To know different run options, run `--help` options, you will see different opti
 ```
  $ python example_run.py --help
 
-usage: example_run.py [-h] [--ieee_vr22] [--isscc_22_08v] [--jssc21_05v] [--tcas_i22]
-
 optional arguments:
-  -h, --help      show this help message and exit
-  --ieee_vr22     Run IEEE VR22 example
-  --isscc_22_08v  Run ISSCC 22 0.8V example
-  --jssc21_05v    Run JSSC 21 0.5V example
-  --jssc21_51pj   Run JSSC 21 51pJ example
-  --tcas_i22      Run TCAS-I 22 example
+  -h, --help       show this help message and exit
+  --isscc_17_0_62  Run ISSCC 17 0.62V example
+  --jssc_19        Run JSSC 19 example
+  --sensors_20     Run Sensors 20 example
+  --isscc_21       Run ISSCC 21 Back-illuminated example
+  --jssc21_05v     Run JSSC 21 0.5V example
+  --jssc21_51pj    Run JSSC 21 51pJ example
+  --vlsi_21        Run VLSI 21 example
+  --isscc_22_08v   Run ISSCC 22 0.8V example
+  --tcas_i22       Run TCAS-I 22 example
+  --ieee_vr22      Run IEEE VR22 example
   ...
   
 ```
