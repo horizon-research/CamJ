@@ -1,4 +1,4 @@
-# ISSCC 22 0.8V
+# ISSCC 17 0.62V
 
 This example describes the sensor design from paper: [A 0.62mW Ultra-Low-Power Convolutional-NeuralNetwork Face-Recognition Processor and a CIS Integrated with Always-On Haar-Like Face Detector](https://ieeexplore.ieee.org/abstract/document/7870354).
 
