@@ -11,6 +11,7 @@ from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
 from camj.sim_core.analog_utils import check_analog_connect_consistency, compute_total_energy,\
                                   check_analog_pipeline, launch_analog_simulation
 from camj.sim_core.pixel_libs import DigitalPixelSensor
+from camj.sim_core.analog_libs import GeneralCircuit
 from camj.sim_core.sw_utils import build_sw_graph
 
 from examples.vlsi_21.mapping import mapping_function
@@ -35,20 +36,20 @@ def analog_config():
                 DigitalPixelSensor(
                     # performance parameters
                     pd_capacitance = 100e-15, # [F]
-                    pd_supply = 1.8, # [V]
+                    pd_supply = 2.8, # [V]
                     dynamic_sf = False,
-                    output_vs = 1,  # output voltage swing [V]
+                    output_vs = 2.4,  # output voltage swing [V]
                     num_transistor = 4,
                     enable_cds = True,
                     fd_capacitance = 10e-15,  # [F]
-                    load_capacitance = 1e-12,  # [F]
+                    load_capacitance = 200e-15,  # [F]
                     tech_node = 130,  # [um]
                     pitch = 4,  # [um]
-                    array_vsize = 128, # pixel array vertical size
+                    array_vsize = 0, # pixel array vertical size
                     # ADC performance parameters
-                    adc_type =' SS',
-                    adc_fom = 100e-15,  # [J/conversion]
-                    adc_reso = 8,
+                    adc_type = 'SS',
+                    adc_fom = 4300e-15,  # [J/conversion]
+                    adc_reso = 10,
                     # noise parameters
                     dark_current_noise = 0.,
                     enable_dcnu = False,
@@ -70,7 +71,15 @@ def analog_config():
                     adc_noise = 0.,
                 ),
                 1
-            )
+            ),
+            (
+                GeneralCircuit(
+                    supply = 2.8,  # [V]
+                    t_operation = 1.04e-3,  # [s]
+                    i_dc = 20e-9,  # [s]
+                ),
+                2*2*2
+            ),
         ],
         num_input = [(1, 1, 1)],
         num_output = (1, 1, 1)
