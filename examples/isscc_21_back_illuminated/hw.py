@@ -24,7 +24,6 @@ def hw_config():
         read_energy_per_word = 1,
         pixel_per_write = 1,
         pixel_per_read = 1,
-        access_units = ["MPUnit", "InSensorSystolicArray", "ADC"],
         location = ProcessorLocation.COMPUTE_LAYER,
     )
     hw_dict["memory"].append(double_buffer)

@@ -31,8 +31,6 @@ def hw_config():
         read_energy_per_word = 1,
         pixel_per_write = 1,
         pixel_per_read = 1, 
-        write_unit = "ADC",
-        read_unit = "FCUnit"
     )
     hw_dict["memory"].append(fifo_buffer1)
 
@@ -44,8 +42,6 @@ def hw_config():
         read_energy_per_word = 1,
         pixel_per_write = 1,
         pixel_per_read = 1,
-        write_unit = "FCUnit",
-        read_unit = "FCUnit",
     )
     hw_dict["memory"].append(fifo_buffer2)
 

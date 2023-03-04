@@ -25,8 +25,6 @@ def hw_config():
         read_energy_per_word = 1*4, # read energy per word 
         pixel_per_write = 1,      # write word length, here is one pixel
         pixel_per_read = 4,       # read word length, here is 4 pixels
-        write_unit = "ADC",
-        read_unit = "ResizeUnit"
     )
     hw_dict["memory"].append(fifo_buffer1)
  
@@ -38,8 +36,6 @@ def hw_config():
         read_energy_per_word = 1,   # read energy per word
         pixel_per_write = 1,      # write word length, one pixel per word
         pixel_per_read = 1,       # read word length, one pixel per word
-        write_unit = "ResizeUnit",
-        read_unit = "Eventification"
     )
     hw_dict["memory"].append(fifo_buffer2)
 
@@ -50,7 +46,6 @@ def hw_config():
         read_energy_per_word = 1,
         pixel_per_write = 1,
         pixel_per_read = 1,
-        access_units = ["ConvUnit", "InSensorSystolicArray"],
         location = ProcessorLocation.COMPUTE_LAYER,
     )
     hw_dict["memory"].append(double_buffer)
@@ -145,7 +140,6 @@ def hw_config_w_analog():
         read_write_port = 16,
         write_energy = 3,
         read_energy = 1,
-        access_units = ["ConvUnit", "InSensorSystolicArray", "ThresholdingUnit", "ADC"],
         location = ProcessorLocation.COMPUTE_LAYER,
     )
     hw_dict["memory"].append(double_buffer)
