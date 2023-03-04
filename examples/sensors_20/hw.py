@@ -29,8 +29,8 @@ def hw_config():
         location = ProcessorLocation.COMPUTE_LAYER,
         write_energy_per_word = 3,
         read_energy_per_word = 1,
-        write_word_length = 1,
-        read_word_length = 1, 
+        pixel_per_write = 1,
+        pixel_per_read = 1, 
         write_unit = "ADC",
         read_unit = "FCUnit"
     )
@@ -42,8 +42,8 @@ def hw_config():
         location = ProcessorLocation.COMPUTE_LAYER,
         write_energy_per_word = 3,
         read_energy_per_word = 1,
-        write_word_length = 1,
-        read_word_length = 1,
+        pixel_per_write = 1,
+        pixel_per_read = 1,
         write_unit = "FCUnit",
         read_unit = "FCUnit",
     )

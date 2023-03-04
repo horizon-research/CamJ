@@ -23,8 +23,8 @@ def hw_config():
         location = ProcessorLocation.COMPUTE_LAYER,
         write_energy_per_word = 3,  # write energy per word
         read_energy_per_word = 1*4, # read energy per word 
-        write_word_length = 1,      # write word length, here is one pixel
-        read_word_length = 4,       # read word length, here is 4 pixels
+        pixel_per_write = 1,      # write word length, here is one pixel
+        pixel_per_read = 4,       # read word length, here is 4 pixels
         write_unit = "ADC",
         read_unit = "ResizeUnit"
     )
@@ -36,8 +36,8 @@ def hw_config():
         location = ProcessorLocation.COMPUTE_LAYER,
         write_energy_per_word = 3,  # write energy per word
         read_energy_per_word = 1,   # read energy per word
-        write_word_length = 1,      # write word length, one pixel per word
-        read_word_length = 1,       # read word length, one pixel per word
+        pixel_per_write = 1,      # write word length, one pixel per word
+        pixel_per_read = 1,       # read word length, one pixel per word
         write_unit = "ResizeUnit",
         read_unit = "Eventification"
     )
@@ -48,8 +48,8 @@ def hw_config():
         size = (4, 4, 4096),
         write_energy_per_word = 3,
         read_energy_per_word = 1,
-        write_word_length = 1,
-        read_word_length = 1,
+        pixel_per_write = 1,
+        pixel_per_read = 1,
         access_units = ["ConvUnit", "InSensorSystolicArray"],
         location = ProcessorLocation.COMPUTE_LAYER,
     )
@@ -57,7 +57,7 @@ def hw_config():
 
     adc = ADC(
         name = "ADC",
-        output_per_cycle = (4, 1, 1),
+        output_per_cycle = (1, 4, 1),
         location = ProcessorLocation.SENSOR_LAYER,
         energy_per_pixel = 600,
     )
