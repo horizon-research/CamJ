@@ -15,6 +15,38 @@ def sw_pipeline():
 
     sw_stage_list = []
 
+    # NOTE: because this paper use two different image sizes to run digital 
+    # and analog simulation, here, we define them separately.
+    # this part is the sw definition to run analog simulation
+    analog_input_data = PixelInput((240, 320, 1), name="AnalogInput")
+    sw_stage_list.append(analog_input_data)
+
+    binning_stage = ProcessStage(
+        name = "Binning",
+        input_size = [(240, 320, 1)],
+        kernel_size = [(1, 4, 1)],
+        num_kernels = [1],
+        stride = [(1, 4, 1)],
+        output_size = (240, 80, 1),
+        padding = [False]
+    )
+    sw_stage_list.append(binning_stage)
+
+    haar_stage = ProcessStage(
+        name = "Haar",
+        input_size = [(240, 80, 1)],
+        kernel_size = [(20, 20, 1)],
+        num_kernels = [10],
+        stride = [(1, 11, 1)],
+        output_size = (221, 6, 10),
+        padding = [False]
+    )
+    sw_stage_list.append(haar_stage)
+
+    binning_stage.set_input_stage(analog_input_data)
+    haar_stage.set_input_stage(binning_stage)    
+
+    # this part is the sw definition to run digital simulation
     conv2d_1_stage = DNNProcessStage(
         name = "Conv2D-1",
         op_type = "Conv2D",

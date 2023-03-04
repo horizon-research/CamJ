@@ -1,6 +1,11 @@
 
 def mapping_function():
     mapping = {
+        # analog simulation
+        "AnalogInput" : "PixelArray",
+        "Binning" : "BinningArray",
+        "Haar" : "HaarArray",
+        # digital simulation
         "Input" : "ADC",
         "Conv2D-1" : "InSensorSystolicArray",
         "Conv2D-2-1" : "InSensorSystolicArray",
