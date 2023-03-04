@@ -27,7 +27,3 @@ if __name__ == '__main__':
     sw_stage_list = sw_pipeline()
     build_sw_graph(sw_stage_list)
 
-
-
-
-
