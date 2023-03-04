@@ -8,7 +8,7 @@ from camj.sim_core.analog_infra import AnalogArray, AnalogComponent
 from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
 from camj.sim_core.analog_utils import launch_analog_simulation
 from camj.sim_core.pixel_libs import ActivePixelSensor
-from camj.sim_core.analog_libs import ColumnAmplifier
+from camj.sim_core.analog_libs import ColumnAmplifier, AnalogToDigitalConverter
 
 from tutorial.mapping import mapping_function
 from tutorial.sw import sw_pipeline
@@ -36,7 +36,7 @@ def analog_config():
                 ActivePixelSensor(
                     # performance parameters
                     pd_capacitance = 100e-15, # F
-                    pd_supply = 1.8, # V
+                    pd_supply = full_scale_input_voltage, # V
                     dynamic_sf = True,
                     output_vs = 1.1, # V 
                     num_transistor = 3,
@@ -77,7 +77,7 @@ def analog_config():
                     input_capacitance = 1e-15,  # [F]
                     t_sample = 2e-6,  # [s]
                     t_frame = 10e-3,  # [s]
-                    supply = 1.8,  # [V]
+                    supply = full_scale_input_voltage,  # [V]
                     gain = 1,
                     # noise parameters
                     noise = 0.05,
@@ -85,7 +85,19 @@ def analog_config():
                     prnu_std = 0.01,
                 ),
                 1
-            )
+            ),
+            (
+                AnalogToDigitalConverter(
+                    # performance parameters
+                    supply = full_scale_input_voltage,  # [V]
+                    type = 'SS',
+                    fom = 100e-15,  # [J/conversion]
+                    resolution = 8,
+                    # noise parameters
+                    adc_noise = 0.001,
+                ),
+                1
+            ),
         ],
         num_input = [(1, 1, 1)],
         num_output = (1, 1, 1)
