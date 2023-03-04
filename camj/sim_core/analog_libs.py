@@ -4,7 +4,8 @@ from camj.sim_core.analog_perf_libs import ColumnAmplifierPerf, SourceFollowerPe
                                       ActiveAnalogMemoryPerf, PassiveAnalogMemoryPerf,\
                                       DigitalToCurrentConverterPerf, CurrentMirrorPerf,\
                                       ComparatorPerf, PassiveSwitchedCapacitorArrayPerf,\
-                                      AnalogToDigitalConverterPerf, DigitalToCurrentConverterPerf
+                                      AnalogToDigitalConverterPerf, DigitalToCurrentConverterPerf,\
+                                      MaximumVoltagePerf, GeneralCircuitPerf
 from camj.functional_core.noise_model import ColumnwiseNoise, PixelwiseNoise, FloatingDiffusionNoise,\
                                         CurrentMirrorNoise, ComparatorNoise,\
                                         PassiveSwitchedCapacitorArrayNoise, AnalogToDigitalConverterNoise
@@ -34,6 +35,8 @@ class ColumnAmplifier(object):
         t_frame = 10e-3,  # [s]
         supply = 1.8,  # [V]
         gain = 2,
+        gain_open = 256,
+        differential = False,
         # noise parameters
         noise = 0.,
         enable_prnu = False,
@@ -48,7 +51,9 @@ class ColumnAmplifier(object):
             t_sample = t_sample,
             t_frame = t_frame,
             supply = supply,
-            gain = gain
+            gain = gain,
+            gain_open = gain_open,
+            differential = differential
         )
 
         self.noise_model = ColumnwiseNoise(
@@ -409,6 +414,55 @@ class DigitalToCurrentConverter(object):
                 )
             )
         return output_signal_list
+
+
+class MaximumVoltage(object):
+    """docstring for MaximumVoltage"""
+    def __init__(
+        self, 
+        supply = 1.8,  # [V]
+        t_frame = 30e-3,  # [s]
+        t_acomp = 1e-6,  # [s]
+        load_capacitance = 1e-12,  # [F]
+        gain = 10
+    ):
+        super(MaximumVoltage, self).__init__()
+
+        self.perf_model = MaximumVoltagePerf(
+            supply = supply,  # [V]
+            t_frame = t_frame,  # [s]
+            t_acomp = t_acomp,  # [s]
+            load_capacitance = load_capacitance,  # [F]
+            gain = gain
+        )
+        
+    def energy(self):
+        return self.perf_model.energy()
+
+    def noise(self, input_signal_list):
+        raise Exception("noise function in MaximumVoltage has not been implemented yet!")
+
+
+class GeneralCircuit(object):
+    """docstring for MaximumVoltage"""
+    def __init__(
+        self, 
+        supply = 1.8,  # [V]
+        t_operation = 30e-3,  # [s]
+        i_dc = 1e-6,  # [s]
+    ):
+    
+        self.perf_model = GeneralCircuitPerf(
+            supply = supply,  # [V]
+            i_dc = i_dc,  # [A]
+            t_operation = t_operation  # [s]
+        )
+        
+    def energy(self):
+        return self.perf_model.energy()
+
+    def noise(self, input_signal_list):
+        raise Exception("noise function in MaximumVoltage has not been implemented yet!")
 
 
 

@@ -67,6 +67,7 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
 
         energy_pd = super(ActivePixelSensorPerf, self).energy()
         energy = energy_pd + energy_fd + self.num_readout * energy_sf
+
         return energy
 
     def impedance(
@@ -124,6 +125,7 @@ class DigitalPixelSensorPerf(ActivePixelSensorPerf):
         energy_aps = super(DigitalPixelSensorPerf, self).energy()
         energy_adc = AnalogToDigitalConverterPerf(self.pd_supply, self.adc_type, self.adc_fom, self.adc_reso).energy()
         energy = energy_aps + energy_adc
+        
         return energy
 
 
@@ -191,7 +193,9 @@ class ColumnAmplifierPerf(object):
         t_sample=2e-6,  # [s]
         t_frame=10e-3,  # [s]
         supply=1.8,  # [V]
-        gain=2
+        gain=2,
+        gain_open=256,
+        differential = False,
     ):
         self.load_capacitance = load_capacitance
         self.input_capacitance = input_capacitance
@@ -199,12 +203,13 @@ class ColumnAmplifierPerf(object):
         self.t_frame = t_frame
         self.supply = supply
         self.gain = gain
+        self.gain_open = gain_open
         self.fb_capacitance = self.input_capacitance / self.gain
         [self.i_opamp, self.gm] = gm_id(
             load_capacitance=self.load_capacitance,
-            gain=self.gain,
+            gain=self.gain_open,
             bandwidth=1 / self.t_sample,
-            differential=False,
+            differential=differential,
             inversion_level='moderate'
         )
         self.gd = self.gm / 100  # gd<<gm
@@ -213,6 +218,7 @@ class ColumnAmplifierPerf(object):
         energy_opamp = self.supply * self.i_opamp * self.t_frame
         energy = energy_opamp + (self.input_capacitance + self.fb_capacitance + self.load_capacitance) \
                  * (self.supply ** 2)
+        # print(self.i_opamp, energy_opamp)
         return energy
 
     def impedance(self):
@@ -299,7 +305,7 @@ class ActiveAnalogMemoryPerf(object):
         # self.opamp_dcgain = opamp_dcgain
         [self.i_opamp, self.gm] = gm_id(
             load_capacitance=self.comp_capacitance,
-            gain=1,
+            gain=300,
             bandwidth=1 / self.t_sample,
             differential=True,
             inversion_level='moderate'
@@ -427,12 +433,12 @@ class MaximumVoltagePerf(object):
         self.gain = gain
 
     def energy(self):
-        i_bias = gm_id(
+        i_bias, _ = gm_id(
             self.load_capacitance, 
             gain = self.gain, 
             bandwidth = 1 / self.t_acomp, 
-            differential = False,
-            inversion_level='strong'
+            differential = True,
+            inversion_level = 'moderate'
         )
         energy_bias = self.supply * (0.5 * i_bias) * self.t_frame
         energy_amplifier = self.supply * i_bias * self.t_acomp
@@ -482,5 +488,23 @@ class AnalogToDigitalConverterPerf(object):
     def quantization_noise(self):  # [unit: V]
         LSB = self.supply / 2 ** (self.resolution - 1)
         return 1 / 12 * LSB ** 2
+
+
+
+class GeneralCircuitPerf(object):
+    def __init__(
+        self,
+        supply=1.8,  # [V]
+        i_dc=10e-6,  # [A]
+        t_operation=1e-9  # [s]
+    ):
+        self.supply = supply
+        self.i_dc = i_dc
+        self.t_operation = t_operation
+
+    def energy(self):
+        energy = self.supply * self.i_dc * self.t_operation
+        return energy
+
 
 ########################################################################################################################
