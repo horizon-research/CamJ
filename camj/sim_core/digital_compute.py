@@ -45,9 +45,11 @@ class ADC(object):
 
     def set_input_buffer(self, input_buffer):
         self.input_buffer = input_buffer
+        input_buffer.add_access_unit(self.name)
 
     def set_output_buffer(self, output_buffer):
         self.output_buffer = output_buffer
+        output_buffer.add_access_unit(self.name)
 
     def init_output_buffer_index(self, sw_stage, buffer_size):
         self.output_buffer_size[sw_stage] = buffer_size
@@ -252,9 +254,11 @@ class ComputeUnit(object):
     # needs to set the input and output buffer
     def set_input_buffer(self, input_buffer):
         self.input_buffer = input_buffer
+        input_buffer.add_access_unit(self.name)
 
     def set_output_buffer(self, output_buffer):
         self.output_buffer = output_buffer
+        output_buffer.add_access_unit(self.name)
 
     # set the input hw units, the final input hw units is a list,
     # we assume multiple hw units as input
@@ -475,9 +479,11 @@ class SystolicArray(object):
     # needs to set the input and output buffer
     def set_input_buffer(self, input_buffer):
         self.input_buffer = input_buffer
+        input_buffer.add_access_unit(self.name)
 
     def set_output_buffer(self, output_buffer):
         self.output_buffer = output_buffer
+        output_buffer.add_access_unit(self.name)
 
     def config_throughput(self, input_size, output_size, stride, kernel_size, op_type):
         if ENABLE_DEBUG:
@@ -770,9 +776,11 @@ class NeuralProcessor(object):
     # needs to set the input and output buffer
     def set_input_buffer(self, input_buffer):
         self.input_buffer = input_buffer
+        input_buffer.add_access_unit(self.name)
 
     def set_output_buffer(self, output_buffer):
         self.output_buffer = output_buffer
+        output_buffer.add_access_unit(self.name)
 
     def config_throughput(self, input_size, output_size, stride, kernel_size, op_type):
         if ENABLE_DEBUG:

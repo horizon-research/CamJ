@@ -62,6 +62,9 @@ class DigitalStorage(object):
 
         src_hw_unit.init_output_buffer_index(sw_stage, buffer_size)
 
+    def add_access_unit(self, unit_name):
+        self.access_units.append(unit_name)
+
     def __str__(self):
         return self.name
 
@@ -83,13 +86,11 @@ class LineBuffer(DigitalStorage):
         write_energy_per_word: int,  # energy cost for each write
         read_energy_per_word: int,   # energy cost for each read
         pixel_per_write: int,      # the length of each write. Unit in pixel
-        pixel_per_read: int,       # the length of one read. Unit is pixel.
-        write_unit: str,    # HW compute unit that writes to this line buffer
-        read_unit: str,     # HW compute unit that reads from this line buffer
+        pixel_per_read: int,       # the length of one read. Unit is pixel
     ):
         super(LineBuffer, self).__init__(
             name = name,
-            access_units = [read_unit, write_unit],
+            access_units = [],
             location = location
         )
         self.stored_data = 0
@@ -178,12 +179,10 @@ class FIFO(DigitalStorage):
         read_energy_per_word: int,   # energy cost for each read
         pixel_per_write: int,      # the size of each write, unit in pixel
         pixel_per_read: int,       # the size of each read, unit in pixel
-        write_unit,         # HW compute unit that writes to this FIFO
-        read_unit,          # HW compute unit that reads from this FIFO
     ):
         super(FIFO, self).__init__(
             name = name,
-            access_units = [read_unit, write_unit],
+            access_units = [],
             location = location
         )
         self.stored_data = 0
@@ -268,13 +267,12 @@ class DoubleBuffer(DigitalStorage):
         write_energy_per_word: int,  # energy cost for each write
         read_energy_per_word: int,   # energy cost for each read
         pixel_per_write: int,      # the length of each write. Unit in pixel
-        pixel_per_read: int,       # the length of one read. Unit is pixel.
-        access_units: list,     # a list of hardware units that access this storage
+        pixel_per_read: int,       # the length of one read. Unit is pixel
         location: int,          # location of this unit
     ):
         super(DoubleBuffer, self).__init__(
             name = name,
-            access_units = access_units,
+            access_units = [],
             location = location
         )
         self.stored_data = 0
