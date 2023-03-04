@@ -73,6 +73,7 @@ def check_analog_connect_consistency(analog_arrays):
             check_input_output_requirement_consistency(analog_array)
             for output_array in analog_array.output_arrays:
                 if analog_array.output_domain not in output_array.input_domain:
+                    print(analog_array.output_domain, output_array.input_domain)
                     raise Exception(
                         "Analog connection consistency failed. %s's output domain and %s's input domain mismatch." \
                         % (analog_array.name, output_array.name)
@@ -133,9 +134,11 @@ def compute_total_energy(analog_arrays, analog_sw_stages, mapping_dict):
         for output_stage in output_stages:
             sw_size = output_stage.output_size
             hw_size = analog_array.num_output
-            cnt = (sw_size[0] * sw_size[1] * sw_size[2]) / (hw_size[0] * hw_size[1])
-            ret_dict[analog_array.name] = int(cnt * analog_array.energy() * 1e12) # concert J to pJ
-            print("[Energy]", analog_array.name, int(cnt * analog_array.energy() * 1e12), "pJ")
+            cnt = (sw_size[0] * sw_size[1] * sw_size[2]) / (hw_size[0] * hw_size[1] * hw_size[2])
+            analog_array_energy = analog_array.energy()
+            ret_dict[analog_array.name] = int(cnt * analog_array_energy * 1e12) # concert J to pJ
+            print(cnt, sw_size, hw_size)
+            print("[Energy]", analog_array.name, int(cnt * analog_array_energy * 1e12), "pJ")
 
     return ret_dict
 
@@ -203,9 +206,9 @@ def launch_analog_simulation(analog_arrays, sw_stages, mapping_dict):
     # check analog pipeline correctness
     check_analog_pipeline(analog_arrays)
     # compute analog computing energy
-    total_energy = compute_total_energy(analog_arrays, analog_sw_stages, mapping_dict)
+    energy_dict = compute_total_energy(analog_arrays, analog_sw_stages, mapping_dict)
     
-    return total_energy
+    return energy_dict
 
 
 def gm_id(
@@ -218,12 +221,12 @@ def gm_id(
     if inversion_level == 'strong':
         gm_id_ratio = 10
     elif inversion_level == 'moderate':
-        gm_id_ratio = 15
+        gm_id_ratio = 16
     elif inversion_level == 'weak':
         gm_id_ratio = 20
     num_branch = np.where(differential, 2, 1)
     gm = 2 * np.pi * load_capacitance * gain * bandwidth
-    id = gm / gm_id_ratio * num_branch * 1e9  # [nA]
+    id = gm / gm_id_ratio * num_branch  # [A]
 
     return [id, gm]
 
