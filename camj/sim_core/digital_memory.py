@@ -82,8 +82,8 @@ class LineBuffer(DigitalStorage):
         location: int,      # location of this unit
         write_energy_per_word: int,  # energy cost for each write
         read_energy_per_word: int,   # energy cost for each read
-        write_word_length: int,      # the length of each write. Unit in pixel
-        read_word_length: int,       # the length of one read. Unit is pixel.
+        pixel_per_write: int,      # the length of each write. Unit in pixel
+        pixel_per_read: int,       # the length of one read. Unit is pixel.
         write_unit: str,    # HW compute unit that writes to this line buffer
         read_unit: str,     # HW compute unit that reads from this line buffer
     ):
@@ -97,8 +97,8 @@ class LineBuffer(DigitalStorage):
         self.capacity = size[0] * size[1]
         self.write_energy_per_word = write_energy_per_word
         self.read_energy_per_word = read_energy_per_word
-        self.write_word_length = write_word_length
-        self.read_word_length = read_word_length
+        self.pixel_per_write = pixel_per_write
+        self.pixel_per_read = pixel_per_read
         self.total_write_cnt = 0
         self.total_read_cnt = 0
 
@@ -143,7 +143,7 @@ class LineBuffer(DigitalStorage):
         assert num_read <= self.stored_data, \
             "Line buffer '%s' the number of data read is greater than stored data!" % self.name
 
-        self.stored_data -= self.write_word_length
+        self.stored_data -= self.pixel_per_write
         self.total_read_cnt += num_read
         if ENABLE_DEBUG:
             print("[MEMORY] READ", self.name, "has %d of data" % self.stored_data)
@@ -153,9 +153,9 @@ class LineBuffer(DigitalStorage):
     """
     def total_memory_access_energy(self):
         # number of write access = number of written pixel / write word length
-        total_write_access = self.total_write_cnt / self.write_word_length
+        total_write_access = self.total_write_cnt / self.pixel_per_write
         # number of read access = number of read pixel / read word length
-        total_read_access = self.total_read_cnt / self.read_word_length
+        total_read_access = self.total_read_cnt / self.pixel_per_read
         # total write memory energy
         write_mem_energy = self.write_energy_per_word * total_write_access
         # total read memory energy
@@ -176,8 +176,8 @@ class FIFO(DigitalStorage):
         location: int,      # location of this unit
         write_energy_per_word: int,  # energy cost for each write
         read_energy_per_word: int,   # energy cost for each read
-        write_word_length: int,      # the size of each write, unit in pixel
-        read_word_length: int,       # the size of each read, unit in pixel
+        pixel_per_write: int,      # the size of each write, unit in pixel
+        pixel_per_read: int,       # the size of each read, unit in pixel
         write_unit,         # HW compute unit that writes to this FIFO
         read_unit,          # HW compute unit that reads from this FIFO
     ):
@@ -191,8 +191,8 @@ class FIFO(DigitalStorage):
         self.size = size
         self.write_energy_per_word = write_energy_per_word
         self.read_energy_per_word = read_energy_per_word
-        self.write_word_length = write_word_length
-        self.read_word_length = read_word_length
+        self.pixel_per_write = pixel_per_write
+        self.pixel_per_read = pixel_per_read
         self.total_write_cnt = 0
         self.total_read_cnt = 0
 
@@ -247,9 +247,9 @@ class FIFO(DigitalStorage):
     """
     def total_memory_access_energy(self):
         # number of write access = number of written pixel / write word length
-        total_write_access = self.total_write_cnt / self.write_word_length
+        total_write_access = self.total_write_cnt / self.pixel_per_write
         # number of read access = number of read pixel / read word length
-        total_read_access = self.total_read_cnt / self.read_word_length
+        total_read_access = self.total_read_cnt / self.pixel_per_read
         # total write memory energy
         write_mem_energy = self.write_energy_per_word * total_write_access
         # total read memory energy
@@ -267,8 +267,8 @@ class DoubleBuffer(DigitalStorage):
                             # (a, b, c) a: # of sram, b: # of bank, c: the size of each bank
         write_energy_per_word: int,  # energy cost for each write
         read_energy_per_word: int,   # energy cost for each read
-        write_word_length: int,      # the length of each write. Unit in pixel
-        read_word_length: int,       # the length of one read. Unit is pixel.
+        pixel_per_write: int,      # the length of each write. Unit in pixel
+        pixel_per_read: int,       # the length of one read. Unit is pixel.
         access_units: list,     # a list of hardware units that access this storage
         location: int,          # location of this unit
     ):
@@ -281,8 +281,8 @@ class DoubleBuffer(DigitalStorage):
         self.size = size
         self.write_energy_per_word = write_energy_per_word
         self.read_energy_per_word = read_energy_per_word
-        self.write_word_length = write_word_length
-        self.read_word_length = read_word_length
+        self.pixel_per_write = pixel_per_write
+        self.pixel_per_read = pixel_per_read
         self.total_write_cnt = 0
         self.total_read_cnt = 0
 
@@ -321,9 +321,9 @@ class DoubleBuffer(DigitalStorage):
     """
     def total_memory_access_energy(self):
         # number of write access = number of written pixel / write word length
-        total_write_access = self.total_write_cnt / self.write_word_length
+        total_write_access = self.total_write_cnt / self.pixel_per_write
         # number of read access = number of read pixel / read word length
-        total_read_access = self.total_read_cnt / self.read_word_length
+        total_read_access = self.total_read_cnt / self.pixel_per_read
         # total write memory energy
         write_mem_energy = self.write_energy_per_word * total_write_access
         # total read memory energy
