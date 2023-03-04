@@ -36,24 +36,44 @@ case has:
         <td>PE Size</td>
     </tr>
     <tr>
-        <td>ieee_vr22</td>
+        <td>isscc_17_0_62</td>
         <td>3T APS</td>
-        <td>201x320</td>
-        <td>Mul. & Abs. Diff.</td>
-        <td>Column</td>
-        <td>Voltage</td>
-        <td>64K</td>
-        <td>16x16</td>
+        <td>20x80</td>
+        <td>Avg. & Add</td>
+        <td>Column & Chip</td>
+        <td>Charge & Voltage</td>
+        <td>160KB</td>
+        <td>4x4x64</td>
     </tr>
     <tr>
-        <td>isscc_22_08v</td>
-        <td>PWM</td>
+        <td>jssc_19</td>
+        <td>4T APS</td>
+        <td>4x240</td>
+        <td>Logarithmic Sub.</td>
+        <td>Column</td>
+        <td>Voltage</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>sensors_20</td>
+        <td>4T APS</td>
         <td>No</td>
         <td>MAC</td>
         <td>Column</td>
-        <td>Time & Current</td>
-        <td>256B</td>
-        <td>1</td>
+        <td>Voltage</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>isscc_21_back_illuminated</td>
+        <td>4T APS</td>
+        <td>No</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>8MB</td>
+        <td>1x2304</td>
     </tr>
     <tr>
         <td>jssc_21_05v</td>
@@ -76,6 +96,26 @@ case has:
         <td>-</td>
     </tr>
     <tr>
+        <td>vlsi_21</td>
+        <td>DPS</td>
+        <td>No</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>6MB</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>isscc_22_08v</td>
+        <td>PWM</td>
+        <td>No</td>
+        <td>MAC</td>
+        <td>Column</td>
+        <td>Time & Current</td>
+        <td>256B</td>
+        <td>1</td>
+    </tr>
+    <tr>
         <td>tcas_i22</td>
         <td>3T APS</td>
         <td>No</td>
@@ -84,6 +124,16 @@ case has:
         <td>Current</td>
         <td>-</td>
         <td>-</td>
+    </tr>
+    <tr>
+        <td>ieee_vr22</td>
+        <td>3T APS</td>
+        <td>201x320</td>
+        <td>Mul. & Abs. Diff.</td>
+        <td>Column</td>
+        <td>Voltage</td>
+        <td>64K</td>
+        <td>16x16</td>
     </tr>
 </table>
 
