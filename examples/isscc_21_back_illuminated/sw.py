@@ -263,7 +263,6 @@ def sw_pipeline():
         kernel_size = [(7, 7, 1)],
         num_kernels = [1],
         stride = [(7, 7, 1)],
-        output_size = (1, 1, 1024),
         padding = [False]
     )
     sw_stage_list.append(mp_stage)

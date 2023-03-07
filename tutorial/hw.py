@@ -23,8 +23,8 @@ def hw_config():
         location = ProcessorLocation.COMPUTE_LAYER,
         write_energy_per_word = 3,  # 3pJ to write a word
         read_energy_per_word = 1,   # 1pJ to read a word
-        pixel_per_write = 1,      # the word length or #pixel per write access
-        pixel_per_read = 3,       # the word length or #pixel per read access
+        pixel_per_write_word = 1,      # the word length or #pixel per write access
+        pixel_per_read_word = 3,       # the word length or #pixel per read access
     )
     hw_desc["memory"].append(line_buffer)
 
@@ -34,8 +34,8 @@ def hw_config():
         location = ProcessorLocation.COMPUTE_LAYER,
         write_energy_per_word = 3,  # 3pJ to write a word
         read_energy_per_word = 1,   # 1pJ to read a word
-        pixel_per_write = 1,      # the word length or #pixel per write access
-        pixel_per_read = 1,       # the word length or #pixel per read access
+        pixel_per_write_word = 1,      # the word length or #pixel per write access
+        pixel_per_read_word = 1,       # the word length or #pixel per read access
     )
     hw_desc["memory"].append(fifo_buffer1)
 
@@ -45,8 +45,8 @@ def hw_config():
         location = ProcessorLocation.COMPUTE_LAYER,
         write_energy_per_word = 3,  # 3pJ to write a word
         read_energy_per_word = 1,   # 1pJ to read a word
-        pixel_per_write = 1,      # the word length or #pixel per write access
-        pixel_per_read = 1,       # the word length or #pixel per read access
+        pixel_per_write_word = 1,      # the word length or #pixel per write access
+        pixel_per_read_word = 1,       # the word length or #pixel per read access
     )
     hw_desc["memory"].append(fifo_buffer2)
 
@@ -56,14 +56,14 @@ def hw_config():
         location = ProcessorLocation.COMPUTE_LAYER,
         write_energy_per_word = 3,  # 3pJ to write a word
         read_energy_per_word = 1,   # 1pJ to read a word
-        pixel_per_write = 1,      # the word length or #pixel per write access
-        pixel_per_read = 1,       # the word length or #pixel per read access 
+        pixel_per_write_word = 1,      # the word length or #pixel per write access
+        pixel_per_read_word = 1,       # the word length or #pixel per read access 
     )
     hw_desc["memory"].append(fifo_buffer3)
 
     adc = ADC(
         name = "ADC",
-        output_per_cycle = (1, 1, 1),
+        output_pixels_per_cycle = (1, 1, 1),
         location = ProcessorLocation.SENSOR_LAYER,
     )
     adc.set_output_buffer(line_buffer)
@@ -73,8 +73,8 @@ def hw_config():
         name="ConvUnit-1",
         domain=ProcessDomain.DIGITAL,
         location=ProcessorLocation.SENSOR_LAYER,
-        input_per_cycle = [(3, 1, 1)],          # take (3, 1, 1) of pixel per cycle
-        output_per_cycle = (1, 1, 1),           # output (1, 1, 1) of pixel per cycle
+        input_pixels_per_cycle = [(3, 1, 1)],          # take (3, 1, 1) of pixel per cycle
+        output_pixels_per_cycle = (1, 1, 1),           # output (1, 1, 1) of pixel per cycle
         energy_per_cycle = 9*compute_op_power,  # the average energy per cycle
         num_of_stages = 3,                      # num of stages to output result, latency
         area = 30
@@ -88,8 +88,8 @@ def hw_config():
         name="ConvUnit-2",
         domain=ProcessDomain.DIGITAL,
         location=ProcessorLocation.SENSOR_LAYER,
-        input_per_cycle = [(3, 3, 1)],          # take (3, 3, 1) of pixel per cycle
-        output_per_cycle = (1, 1, 1),           # output (1, 1, 1) of pixel per cycle
+        input_pixels_per_cycle = [(3, 3, 1)],          # take (3, 3, 1) of pixel per cycle
+        output_pixels_per_cycle = (1, 1, 1),           # output (1, 1, 1) of pixel per cycle
         energy_per_cycle = 9*compute_op_power,  # average energy per cycle
         num_of_stages = 3,                      # num of stage to output result. latency 
         area = 30
@@ -103,8 +103,8 @@ def hw_config():
         name="AbsUnit",
         domain=ProcessDomain.DIGITAL,
         location=ProcessorLocation.SENSOR_LAYER,
-        input_per_cycle = [(1, 1, 1)],          # take (1, 1, 1) of pixel per cycle
-        output_per_cycle = (1, 1, 1),           # output (1, 1, 1) of pixel per cycle
+        input_pixels_per_cycle = [(1, 1, 1)],          # take (1, 1, 1) of pixel per cycle
+        output_pixels_per_cycle = (1, 1, 1),           # output (1, 1, 1) of pixel per cycle
         energy_per_cycle = 1*compute_op_power,  # average energy per cycle
         num_of_stages = 1,                      # num of stage to output result. latency 
         area = 10
