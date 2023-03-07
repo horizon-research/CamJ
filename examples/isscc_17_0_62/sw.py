@@ -11,8 +11,6 @@ from camj.sim_core.sw_utils import build_sw_graph
 
 def sw_pipeline():
 
-    scaler = 4
-
     sw_stage_list = []
 
     # NOTE: because this paper use two different image sizes to run digital 
@@ -27,7 +25,6 @@ def sw_pipeline():
         kernel_size = [(1, 4, 1)],
         num_kernels = [1],
         stride = [(1, 4, 1)],
-        output_size = (240, 80, 1),
         padding = [False]
     )
     sw_stage_list.append(binning_stage)
@@ -38,7 +35,6 @@ def sw_pipeline():
         kernel_size = [(20, 20, 1)],
         num_kernels = [10],
         stride = [(1, 11, 1)],
-        output_size = (221, 6, 10),
         padding = [False]
     )
     sw_stage_list.append(haar_stage)
@@ -46,6 +42,9 @@ def sw_pipeline():
     binning_stage.set_input_stage(analog_input_data)
     haar_stage.set_input_stage(binning_stage)    
 
+
+    
+    scaler = 4
     # this part is the sw definition to run digital simulation
     conv2d_1_stage = DNNProcessStage(
         name = "Conv2D-1",
@@ -62,7 +61,6 @@ def sw_pipeline():
         kernel_size = [(2, 2, 1)],
         num_kernels = [1],
         stride = [(2, 2, 1)],
-        output_size = (60, 60, 12*scaler),
         padding = [False]
     )
     sw_stage_list.append(mp1_stage)
@@ -91,7 +89,6 @@ def sw_pipeline():
         kernel_size = [(2, 2, 1)],
         num_kernels = [1],
         stride = [(2, 2, 1)],
-        output_size = (28, 28, 24*scaler),
         padding = [False]
     )
     sw_stage_list.append(mp2_stage)
@@ -111,7 +108,6 @@ def sw_pipeline():
         kernel_size = [(2, 2, 1)],
         num_kernels = [1],
         stride = [(2, 2, 1)],
-        output_size = (12, 12, 36*scaler),
         padding = [False]
     )
     sw_stage_list.append(mp3_stage)
@@ -131,7 +127,6 @@ def sw_pipeline():
         kernel_size = [(2, 2, 1)],
         num_kernels = [1],
         stride = [(2, 2, 1)],
-        output_size = (5, 5, 48*scaler),
         padding = [False]
     )
     sw_stage_list.append(mp4_stage)

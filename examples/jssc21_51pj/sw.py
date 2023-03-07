@@ -18,7 +18,6 @@ def sw_pipeline():
         kernel_size = [(16, 16, 1)],
         num_kernels = [64],
         stride = [(16, 16, 1)],
-        output_size = (30, 40, 64),
         padding = [False]
     )
     sw_stage_list.append(cs_stage)

@@ -19,7 +19,6 @@ def sw_pipeline():
         kernel_size = [(2, 2, 1)],
         num_kernels = [1],
         stride = [(2, 2, 1)],
-        output_size = (60, 80, 1),
         padding = [False]
     )
     sw_stage_list.append(conv1_stage)
@@ -30,7 +29,6 @@ def sw_pipeline():
         kernel_size = [(2, 2, 1)],
         num_kernels = [1],
         stride = [(2, 2, 1)],
-        output_size = (30, 40, 1),
         padding = [False]
     )
     sw_stage_list.append(mp1_stage)
@@ -41,7 +39,6 @@ def sw_pipeline():
         kernel_size = [(2, 2, 1)],
         num_kernels = [1],
         stride = [(2, 2, 1)],
-        output_size = (15, 20, 1),
         padding = [False]
     )
     sw_stage_list.append(conv2_stage)
@@ -52,7 +49,6 @@ def sw_pipeline():
         kernel_size = [(2, 2, 1)],
         num_kernels = [1],
         stride = [(2, 2, 1)],
-        output_size = (8, 10, 1),
         padding = [False]
     )
     sw_stage_list.append(mp2_stage)
@@ -63,7 +59,6 @@ def sw_pipeline():
         kernel_size = [(1, 1, 80)],
         num_kernels = [1],
         stride = [(1, 1, 1)],
-        output_size = (1, 1, 1),
         padding = [False]
     )
     sw_stage_list.append(fc_stage)

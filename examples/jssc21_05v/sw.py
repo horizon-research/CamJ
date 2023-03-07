@@ -20,7 +20,6 @@ def sw_pipeline():
         kernel_size = [(3, 3, 1)],
         num_kernels = [1],
         stride = [(1, 1, 1)],
-        output_size = (128, 128, 1),
         padding = [True]
     )
     sw_stage_list.append(conv_stage)

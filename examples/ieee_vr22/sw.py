@@ -29,7 +29,6 @@ def sw_pipeline():
         kernel_size = [(2, 2, 1)],
         num_kernels = [1],
         stride = [(2, 2, 1)],
-        output_size = (200, 320, 1),
         padding =[False]
     )
     sw_stage_list.append(curr_resize_stage)
@@ -40,7 +39,6 @@ def sw_pipeline():
         kernel_size = [(2, 2, 1)],
         num_kernels = [1],
         stride = [(2, 2, 1)],
-        output_size = (200, 320, 1),
         padding = [False]
     )
     sw_stage_list.append(prev_resize_stage)
@@ -51,7 +49,6 @@ def sw_pipeline():
         kernel_size = [(1, 1, 1), (1, 1, 1)],
         num_kernels = [1, 1],
         stride = [(1, 1, 1), (1, 1, 1)],
-        output_size = (200, 320, 1),
         padding = [False, False]
     )
     sw_stage_list.append(eventification_stage)
@@ -62,7 +59,6 @@ def sw_pipeline():
         kernel_size = [(1, 4, 1), (200, 320, 1)],
         num_kernels = [1, 1],
         stride = [(1, 4, 1), (200, 320, 1)],
-        output_size = (1, 1, 1),
         padding = [False, False]
     )
     sw_stage_list.append(thresholding_stage)
