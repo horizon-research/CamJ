@@ -20,7 +20,6 @@ def sw_pipeline():
         kernel_size = [(3, 3, 1)],  # (K_h, K_w, K_c)
         num_kernels = [1],
         stride = [(1, 1, 1)],       # (H, W, C)
-        output_size = (36, 36, 1),  # with padding and stride of 1
         padding = [True]            # output size is the same as input
     )
 
@@ -31,7 +30,6 @@ def sw_pipeline():
         kernel_size = [(3, 3, 1)],  # (K_h, K_w, K_c) 
         num_kernels = [1],
         stride = [(3, 3, 1)],       # (H, W, C)
-        output_size = (12, 12, 1),  # with no padding and stride of 3
         padding = [False]           # output size becomes (12, 12, 1)
     )
     
@@ -42,7 +40,6 @@ def sw_pipeline():
         kernel_size = [(1, 1, 1)],  # (K_h, K_w, K_c) 
         num_kernels = [1],
         stride = [(1, 1, 1)],       # (H, W, C)
-        output_size = (12, 12, 1),  # same as input size
         padding = [False]
     )
 

@@ -38,19 +38,16 @@ class ProcessStage(object):
         kernel_size: list,
         num_kernels: list,
         stride: list,
-        output_size: list,
+        # output_size: list,
         padding: list,
     ):
         super(ProcessStage, self).__init__()
-
-        assert len(output_size) == 3, "ProcessStage output_size needs to be a size of 3!"
-
         self.name = name
         self.input_size = _convert_hwc_to_xyz(name, input_size) # covert to internal representation (x, y, z)
         self.kernel_size = _convert_hwc_to_xyz(name, kernel_size) # covert to internal representation (x, y, z)
         self.stride = _convert_hwc_to_xyz(name, stride) # covert to internal representation (x, y, z)
         self.num_kernels = num_kernels
-        self.output_size = (output_size[1], output_size[0], output_size[2]) # covert to internal representation (x, y, z)
+        # self.output_size = (output_size[1], output_size[0], output_size[2]) # covert to internal representation (x, y, z)
         self.input_stages = []
         self.output_stages = []
         self.ready_board = {}
@@ -94,6 +91,7 @@ class ProcessStage(object):
                     extrapolated_size[i][2]+2*(self.kernel_size[i][2]//2)
                 )
 
+        # calculate output size
         for i in range(len(extrapolated_size)):
             extrapolated_size[i] = (
                 (extrapolated_size[i][0] - (self.kernel_size[i][0] - self.stride[i][0])) // self.stride[i][0],
@@ -101,16 +99,8 @@ class ProcessStage(object):
                 (extrapolated_size[i][2] - (self.kernel_size[i][2] - self.stride[i][2])) // self.stride[i][2] * self.num_kernels[i]
             )
 
-            if extrapolated_size[i] != self.output_size:
-                raise Exception(
-                    "'%s' Size doesn't match, output size[%d] should be: (%d, %d, %d), but is (%d, %d, %d)" % \
-                    (
-                        self.name, i, 
-                        extrapolated_size[i][0], extrapolated_size[i][1], extrapolated_size[i][2],
-                        self.output_size[0], self.output_size[1], self.output_size[2]
-                    )
-                )
-
+        # pick any element in extrapolatied_size is output size
+        self.output_size = extrapolated_size[0]
 
     def set_input_stage(self, stage):
         self.input_stages.append(stage)
