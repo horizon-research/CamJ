@@ -23,9 +23,9 @@ from examples.ieee_vr22.hw import hw_config
 def eventification_noise_simulation_example(
     prev_img_name,
     curr_img_name,
-    hw_dict,
-    mapping_dict,
-    sw_stage_list
+    hw_desc,
+    mapping,
+    sw_desc
 ):
 
     # sensor specs
@@ -46,9 +46,9 @@ def eventification_noise_simulation_example(
     }
 
     simulation_res = launch_functional_simulation(
-        sw_stage_list, 
-        hw_dict, 
-        mapping_dict, 
+        sw_desc, 
+        hw_desc, 
+        mapping, 
         input_mapping
     )
 
@@ -56,12 +56,12 @@ def eventification_noise_simulation_example(
     img_res = Image.fromarray(np.uint8(img_after_adc * 255) , 'L')
     img_res.save("tmp.png")
 
-def run_energy_simulation(hw_dict, mapping_dict, sw_stage_list):
+def run_energy_simulation(hw_desc, mapping, sw_desc):
 
     total_energy, energy_breakdown = launch_simulation(
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
     )
 
     print("Total energy: ", total_energy)
@@ -70,28 +70,28 @@ def run_energy_simulation(hw_dict, mapping_dict, sw_stage_list):
 
 if __name__ == '__main__':
     
-    # hw_dict = hw_config_w_analog()
-    # mapping_dict = mapping_function_w_analog()
-    # sw_stage_list = sw_pipeline_w_analog()
+    # hw_desc = hw_config_w_analog()
+    # mapping = mapping_function_w_analog()
+    # sw_desc = sw_pipeline_w_analog()
 
 
     # uncomment these to simulate the eventification in digital domain,
     # HOWEVER, this cannot operate noise simulation!
-    hw_dict = hw_config()
-    mapping_dict = mapping_function()
-    sw_stage_list = sw_pipeline()
+    hw_desc = hw_config()
+    mapping = mapping_function()
+    sw_desc = sw_pipeline()
 
     # eventification simulation
     # eventification_noise_simulation_example(
     #     prev_img_name = "../../test_imgs/test_eye1.png",
     #     curr_img_name = "../../test_imgs/test_eye2.png",
-    #     hw_dict = hw_dict,
-    #     mapping_dict = mapping_dict,
-    #     sw_stage_list = sw_stage_list
+    #     hw_desc = hw_desc,
+    #     mapping = mapping,
+    #     sw_desc = sw_desc
     # )
     
     run_energy_simulation(
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
     )

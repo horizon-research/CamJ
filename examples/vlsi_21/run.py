@@ -15,12 +15,12 @@ from examples.vlsi_21.mapping import mapping_function
 from examples.vlsi_21.sw import sw_pipeline
 from examples.vlsi_21.hw import hw_config
 
-def run_energy_simulation(hw_dict, mapping_dict, sw_stage_list):
+def run_energy_simulation(hw_desc, mapping, sw_desc):
 
     total_energy, energy_breakdown = launch_simulation(
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
     )
 
     print("Total energy: ", total_energy, "pJ")
@@ -29,12 +29,12 @@ def run_energy_simulation(hw_dict, mapping_dict, sw_stage_list):
 
 if __name__ == '__main__':
 
-    hw_dict = hw_config()
-    mapping_dict = mapping_function()
-    sw_stage_list = sw_pipeline()
+    hw_desc = hw_config()
+    mapping = mapping_function()
+    sw_desc = sw_pipeline()
 
     run_energy_simulation(
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
     )

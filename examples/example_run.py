@@ -17,9 +17,9 @@ from examples.opt import options
 def eventification_noise_simulation_example(
     prev_img_name,
     curr_img_name,
-    hw_dict,
-    mapping_dict,
-    sw_stage_list
+    hw_desc,
+    mapping,
+    sw_desc
 ):
 
     # sensor specs
@@ -40,9 +40,9 @@ def eventification_noise_simulation_example(
     }
 
     simulation_res = launch_functional_simulation(
-        sw_stage_list, 
-        hw_dict, 
-        mapping_dict, 
+        sw_desc, 
+        hw_desc, 
+        mapping, 
         input_mapping
     )
 
@@ -50,12 +50,12 @@ def eventification_noise_simulation_example(
     img_res = Image.fromarray(np.uint8(img_after_adc * 255) , 'L')
     img_res.save("tmp.png")
 
-def run_energy_simulation(hw_dict, mapping_dict, sw_stage_list):
+def run_energy_simulation(hw_desc, mapping, sw_desc):
 
     total_energy, energy_breakdown = launch_simulation(
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
     )
 
     print("Total energy: ", total_energy)
@@ -75,14 +75,14 @@ def run_isscc_17_0_62():
     from examples.isscc_17_0_62.sw import sw_pipeline
     from examples.isscc_17_0_62.hw import hw_config
     
-    hw_dict = hw_config()
-    mapping_dict = mapping_function()
-    sw_stage_list = sw_pipeline()
+    hw_desc = hw_config()
+    mapping = mapping_function()
+    sw_desc = sw_pipeline()
 
     run_energy_simulation(
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
     )
 
 # A Data-Compressive 1.5b/2.75b Log-Gradient QVGA Image Sensor with Multi-Scale Readout
@@ -93,14 +93,14 @@ def run_jssc_19():
     from examples.jssc_19.sw import sw_pipeline
     from examples.jssc_19.hw import hw_config
     
-    hw_dict = hw_config()
-    mapping_dict = mapping_function()
-    sw_stage_list = sw_pipeline()
+    hw_desc = hw_config()
+    mapping = mapping_function()
+    sw_desc = sw_pipeline()
 
     run_energy_simulation(
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
     )
 
 # Design of an Always-On Image Sensor Using an Analog Lightweight Convolutional Neural Network
@@ -110,14 +110,14 @@ def run_sensors_20():
     from examples.sensors_20.sw import sw_pipeline
     from examples.sensors_20.hw import hw_config
     
-    hw_dict = hw_config()
-    mapping_dict = mapping_function()
-    sw_stage_list = sw_pipeline()
+    hw_desc = hw_config()
+    mapping = mapping_function()
+    sw_desc = sw_pipeline()
 
     run_energy_simulation(
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
     )
 
 # A 1/2.3inch 12.3Mpixel with On-Chip 4.97TOPS/W CNN Processor Back-Illuminated Stacked CMOS Image Sensor
@@ -127,14 +127,14 @@ def run_isscc_21():
     from examples.isscc_21_back_illuminated.sw import sw_pipeline
     from examples.isscc_21_back_illuminated.hw import hw_config
     
-    hw_dict = hw_config()
-    mapping_dict = mapping_function()
-    sw_stage_list = sw_pipeline()
+    hw_desc = hw_config()
+    mapping = mapping_function()
+    sw_desc = sw_pipeline()
 
     run_energy_simulation(
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
     )
 
 # A 0.5-V Real-Time Computational CMOS Image Sensor With Programmable Kernel for Feature Extraction
@@ -144,14 +144,14 @@ def run_jssc21_05v():
     from examples.jssc21_05v.sw import sw_pipeline
     from examples.jssc21_05v.hw import hw_config
     
-    hw_dict = hw_config()
-    mapping_dict = mapping_function()
-    sw_stage_list = sw_pipeline()
+    hw_desc = hw_config()
+    mapping = mapping_function()
+    sw_desc = sw_pipeline()
 
     run_energy_simulation(
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
     )
 
 # A 51-pJ/Pixel 33.7-dB PSNR 4× Compressive CMOS Image Sensor With 
@@ -162,14 +162,14 @@ def run_jssc21_51pj():
     from examples.jssc21_51pj.sw import sw_pipeline
     from examples.jssc21_51pj.hw import hw_config
     
-    hw_dict = hw_config()
-    mapping_dict = mapping_function()
-    sw_stage_list = sw_pipeline()
+    hw_desc = hw_config()
+    mapping = mapping_function()
+    sw_desc = sw_pipeline()
 
     run_energy_simulation(
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
     )
 
 # A 2.6 e-rms Low-Random-Noise, 116.2 mW Low-Power 2-Mp Global Shutter 
@@ -180,14 +180,14 @@ def run_vlsi_21():
     from examples.vlsi_21.sw import sw_pipeline
     from examples.vlsi_21.hw import hw_config
     
-    hw_dict = hw_config()
-    mapping_dict = mapping_function()
-    sw_stage_list = sw_pipeline()
+    hw_desc = hw_config()
+    mapping = mapping_function()
+    sw_desc = sw_pipeline()
 
     run_energy_simulation(
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
     )
 
 # A 0.8V Intelligent Vision Sensor with Tiny Convolutional Neural Network and 
@@ -198,14 +198,14 @@ def run_isscc_22_08v():
     from examples.isscc_22_08v.sw import sw_pipeline
     from examples.isscc_22_08v.hw import hw_config
     
-    hw_dict = hw_config()
-    mapping_dict = mapping_function()
-    sw_stage_list = sw_pipeline()
+    hw_desc = hw_config()
+    mapping = mapping_function()
+    sw_desc = sw_pipeline()
 
     run_energy_simulation(
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
     )
 
 # Senputing: An Ultra-Low-Power Always-On Vision Perception Chip
@@ -216,14 +216,14 @@ def run_tcas_i22():
     from examples.tcas_i22.sw import sw_pipeline
     from examples.tcas_i22.hw import hw_config
     
-    hw_dict = hw_config()
-    mapping_dict = mapping_function()
-    sw_stage_list = sw_pipeline()
+    hw_desc = hw_config()
+    mapping = mapping_function()
+    sw_desc = sw_pipeline()
 
     run_energy_simulation(
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
     )
 
 ########################################################
@@ -236,23 +236,23 @@ def run_ieee_vr22():
     from examples.ieee_vr22.sw import sw_pipeline_w_analog
     from examples.ieee_vr22.hw import hw_config_w_analog
 
-    hw_dict = hw_config_w_analog()
-    mapping_dict = mapping_function_w_analog()
-    sw_stage_list = sw_pipeline_w_analog()
+    hw_desc = hw_config_w_analog()
+    mapping = mapping_function_w_analog()
+    sw_desc = sw_pipeline_w_analog()
 
     # eventification simulation
     eventification_noise_simulation_example(
         prev_img_name = "../test_imgs/test_eye1.png",
         curr_img_name = "../test_imgs/test_eye2.png",
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
     )
     
     run_energy_simulation(
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
     )
 
 
