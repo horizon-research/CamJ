@@ -1,3 +1,4 @@
+import copy
 from pprint import pprint
 import numpy as np
 
@@ -16,7 +17,11 @@ from camj.sim_core.flags import *
 
 
 # The overall harness function to simulate analog and digital computation.
-def launch_simulation(hw_dict, mapping_dict, sw_stage_list):
+def launch_simulation(hw_desc, mapping, sw_desc):
+    # deep copy in case the function modify the orginal data
+    hw_dict = copy.deepcopy(hw_desc)
+    mapping_dict = copy.deepcopy(mapping)
+    sw_stage_list = copy.deepcopy(sw_desc)
     print("###  Launch analog simulation  ###")
     analog_energy_dict = launch_analog_simulation(hw_dict["analog"], sw_stage_list, mapping_dict)
 

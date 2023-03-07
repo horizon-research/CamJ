@@ -53,11 +53,11 @@ def default_functional_simulation(functional_pipeline_list, input_list):
 
     return curr_input
 
-def launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_mapping):
+def launch_functional_simulation(sw_desc, hw_desc, mapping, input_mapping):
     # deep copy in case the function modify the orginal data
-    hw_dict = copy.deepcopy(hw_dict)
-    mapping_dict = copy.deepcopy(mapping_dict)
-    sw_stage_list = copy.deepcopy(sw_stage_list)
+    hw_dict = copy.deepcopy(hw_desc)
+    mapping_dict = copy.deepcopy(mapping)
+    sw_stage_list = copy.deepcopy(sw_desc)
     # complete the software stages data dependency graph.
     build_sw_graph(sw_stage_list)
 
