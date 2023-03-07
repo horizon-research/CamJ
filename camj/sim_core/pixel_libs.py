@@ -78,13 +78,13 @@ class ActivePixelSensor(object):
 
         self.noise_components = [
             PhotodiodeNoise(
-                name = "PDNoise",
+                name = "Photodiode",
                 dark_current_noise = dark_current_noise,
                 enable_dcnu = enable_dcnu,
                 dcnu_std = dcnu_std
             ),
             FloatingDiffusionNoise(
-                name = "FDNoise",
+                name = "FloatingDiffusion",
                 gain = fd_gain,
                 noise = fd_noise,
                 enable_cds = enable_cds,
@@ -92,7 +92,7 @@ class ActivePixelSensor(object):
                 prnu_std = fd_prnu_std
             ),
             PixelwiseNoise(
-                name = "SFNoise",
+                name = "SourceFollower",
                 gain = sf_gain,
                 noise = sf_noise,
                 enable_prnu = enable_prnu,
@@ -107,7 +107,10 @@ class ActivePixelSensor(object):
         if not isinstance(input_signal_list, list):
             raise Exception("Input signal to APS needs to be a list of numpy array!")
 
-        return default_functional_simulation(self.noise_components, input_signal_list)
+        return (
+            "ActivePixelSensor", 
+            default_functional_simulation(self.noise_components, input_signal_list)
+        )
 
 # digital pixel sensor
 class DigitalPixelSensor(object):
@@ -196,13 +199,13 @@ class DigitalPixelSensor(object):
 
         self.noise_components = [
             PhotodiodeNoise(
-                name = "PDNoise",
+                name = "PhotodiodeNoise",
                 dark_current_noise = dark_current_noise,
                 enable_dcnu = enable_dcnu,
                 dcnu_std = dcnu_std
             ),
             FloatingDiffusionNoise(
-                name = "FDNoise",
+                name = "FloatingDiffusion",
                 gain = fd_gain,
                 noise = fd_noise,
                 enable_cds = enable_cds,
@@ -210,7 +213,7 @@ class DigitalPixelSensor(object):
                 prnu_std = fd_prnu_std
             ),
             PixelwiseNoise(
-                name = "SFNoise",
+                name = "SourceFollower",
                 gain = sf_gain,
                 noise = sf_noise,
                 enable_prnu = enable_prnu,
@@ -220,7 +223,7 @@ class DigitalPixelSensor(object):
         if self.enable_cds:
             self.noise_components.append(
                 CorrelatedDoubleSamplingNoise(
-                    name = "CDSNoise",
+                    name = "CorrelatedDoubleSampling",
                     gain = cds_gain,
                     noise = cds_noise,
                     enable_prnu = enable_prnu,
@@ -229,7 +232,7 @@ class DigitalPixelSensor(object):
             )
         self.noise_components.append(
             AnalogToDigitalConverterNoise(
-                name = "ADCNoise",
+                name = "AnalogToDigitalConverter",
                 adc_noise = adc_noise,
                 max_val = pd_supply
             )
@@ -242,7 +245,10 @@ class DigitalPixelSensor(object):
         if not isinstance(input_signal_list, list):
             raise Exception("Input signal to DPS needs to be a list of numpy array!")
 
-        return default_functional_simulation(self.noise_components, input_signal_list)
+        return (
+            "DigitalPixelSensor", 
+            default_functional_simulation(self.noise_components, input_signal_list)
+        )
 
 class PulseWidthModulationPixel(object):
     """

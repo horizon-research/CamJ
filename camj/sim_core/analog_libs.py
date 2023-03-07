@@ -57,7 +57,7 @@ class ColumnAmplifier(object):
         )
 
         self.noise_model = ColumnwiseNoise(
-            name = "ColumnAmplifierNoise",
+            name = "ColumnAmplifier",
             gain = gain,
             noise = noise,
             enable_prnu = enable_prnu,
@@ -75,7 +75,7 @@ class ColumnAmplifier(object):
                     input_signal
                 )
             )
-        return output_signal_list
+        return (self.noise_model.name, output_signal_list)
 
 class SourceFollower(object):
     """
@@ -121,7 +121,7 @@ class SourceFollower(object):
                     input_signal
                 )
             )
-        return output_signal_list
+        return (self.noise_model.name, output_signal_list)
 
 class ActiveAnalogMemory(object):
     """
@@ -164,7 +164,7 @@ class ActiveAnalogMemory(object):
         )
 
         self.noise_model = PixelwiseNoise(
-            name = "ActiveMemNoise",
+            name = "ActiveAnalogMemory",
             gain = gain,
             noise = noise,
             enable_prnu = enable_prnu,
@@ -182,7 +182,7 @@ class ActiveAnalogMemory(object):
                     input_signal
                 )
             )
-        return output_signal_list
+        return (self.noise_model.name, output_signal_list)
 
 
 class PassiveAnalogMemory(object):
@@ -204,7 +204,7 @@ class PassiveAnalogMemory(object):
         )
 
         self.noise_model = PixelwiseNoise(
-            name = "PasstiveMemNoise",
+            name = "PassiveAnalogMemory",
             gain = gain,
             noise = noise,
             enable_prnu = enable_prnu,
@@ -222,7 +222,7 @@ class PassiveAnalogMemory(object):
                     input_signal
                 )
             )
-        return output_signal_list
+        return (self.noise_model.name, output_signal_list)
 
 class CurrentMirror(object):
     def __init__(
@@ -248,7 +248,7 @@ class CurrentMirror(object):
         )
 
         self.noise_model = CurrentMirrorNoise(
-            name = "CurrentMirrorNoise",
+            name = "CurrentMirror",
             gain = gain,
             noise = noise,
             enable_compute = enable_compute,
@@ -261,9 +261,15 @@ class CurrentMirror(object):
 
     def noise(self, input_signal_list):
         if len(input_signal_list) == 2:
-            return [self.noise_model.apply_gain_and_noise(input_signal_list[0], input_signal_list[1])]
+            return (
+                self.noise_model.name, 
+                [self.noise_model.apply_gain_and_noise(input_signal_list[0], input_signal_list[1])]
+            )
         elif len(input_signal_list) == 1:
-            return [self.noise_model.apply_gain_and_noise(input_signal_list[0])]
+            return (
+                self.noise_model.name, 
+                [self.noise_model.apply_gain_and_noise(input_signal_list[0])]
+            )
         else:
             raise Exception("Input signal list to CurrentMirror can only be length of 1 or 2!")
 
@@ -283,7 +289,7 @@ class PassiveSwitchedCapacitorArray(object):
         )
 
         self.noise_model = PassiveSwitchedCapacitorArrayNoise(
-            name = "PassiveSCNoise",
+            name = "PassiveSwitchedCapacitorArray",
             num_capacitor = len(capacitance_array),
             noise = noise
         )
@@ -292,7 +298,10 @@ class PassiveSwitchedCapacitorArray(object):
         return self.perf_model.energy()
 
     def noise(self):
-        return [self.noise_model.apply_gain_and_noise(input_signal_list)]
+        return (
+            self.noise_model.name, 
+            [self.noise_model.apply_gain_and_noise(input_signal_list)]
+        )
 
 class Comparator(object):
     def __init__(
@@ -314,7 +323,7 @@ class Comparator(object):
         )
 
         self.noise_model = ComparatorNoise(
-            name = "ComparatorNoise",
+            name = "Comparator",
             gain = 1,
             noise = 0,
             enable_prnu = enable_prnu,
@@ -326,7 +335,10 @@ class Comparator(object):
 
     def noise(self, input_signal_list):
         if len(input_signal_list) == 2:
-            return [self.noise_model.apply_gain_and_noise(input_signal_list[0], input_signal_list[1])]
+            return (
+                self.noise_model.name, 
+                [self.noise_model.apply_gain_and_noise(input_signal_list[0], input_signal_list[1])]
+            )
         else:
             raise Exception("Input signal list to Comparator can only be length of 2!")
 
@@ -352,7 +364,7 @@ class AnalogToDigitalConverter(object):
         )
 
         self.noise_model = AnalogToDigitalConverterNoise(
-            name = "ADCnoise",
+            name = "AnalogToDigitalConverter",
             adc_noise = adc_noise,
             max_val = supply
         )
@@ -368,7 +380,7 @@ class AnalogToDigitalConverter(object):
                     input_signal
                 )
             )
-        return output_signal_list
+        return (self.noise_model.name, output_signal_list)
 
 
 class DigitalToCurrentConverter(object):
@@ -395,7 +407,7 @@ class DigitalToCurrentConverter(object):
         )
 
         self.noise_model = PixelwiseNoise(
-            name = "PasstiveMemNoise",
+            name = "DigitalToCurrentConverter",
             gain = gain,
             noise = noise,
             enable_prnu = enable_prnu,
@@ -413,7 +425,7 @@ class DigitalToCurrentConverter(object):
                     input_signal
                 )
             )
-        return output_signal_list
+        return (self.noise_model.name, output_signal_list)
 
 
 class MaximumVoltage(object):

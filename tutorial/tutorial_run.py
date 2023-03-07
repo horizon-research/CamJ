@@ -40,7 +40,8 @@ def tutorial_functional_simulation(
 
     simulation_res = launch_functional_simulation(sw_desc, hw_desc, mapping, input_mapping)
 
-    img_after_adc = simulation_res['Input'][0]
+    pprint(simulation_res)
+    img_after_adc = simulation_res["AnalogToDigitalConverter"][0]
     img_res = Image.fromarray(np.uint8(img_after_adc / full_scale_input_voltage * 255) , 'L')
     img_res.show()
 

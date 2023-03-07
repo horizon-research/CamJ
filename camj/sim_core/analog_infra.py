@@ -174,14 +174,20 @@ class AnalogArray(object):
 
     def noise(self, input_signal_list):
         output_signal_list = copy.deepcopy(input_signal_list)
-
+        simulation_res = []
         # iterate components in order and model noise suquentially
         for component in self.components:
             # also iterate the sub-components
             for subcomponent, _ in component.component_list:
-                output_signal_list = subcomponent.noise(output_signal_list)
+                subcomponent_name, output_signal_list = subcomponent.noise(output_signal_list)
+                simulation_res.append(
+                    (
+                        subcomponent_name,
+                        output_signal_list
+                    )
+                )
 
-        return output_signal_list
+        return simulation_res
 
     def __str__(self):
         return self.name
