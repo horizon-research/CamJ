@@ -22,8 +22,8 @@ def hw_config():
         size = (4, 4, 4096),
         write_energy_per_word = 3,
         read_energy_per_word = 1,
-        pixel_per_write_word = 1,
-        pixel_per_read_word = 1,
+        pixels_per_write_word = 1,
+        pixels_per_read_word = 1,
         location = ProcessorLocation.COMPUTE_LAYER,
     )
     hw_dict["memory"].append(double_buffer)
