@@ -11,7 +11,7 @@ def hw_config():
 
     compute_op_power = 0.5 # pJ 65nm 
 
-    hw_dict = {
+    hw_desc = {
         "memory" : [],
         "compute" : [],
         "analog" : analog_config()
@@ -26,7 +26,7 @@ def hw_config():
         pixel_per_write = 1,      # the word length or #pixel per write access
         pixel_per_read = 3,       # the word length or #pixel per read access
     )
-    hw_dict["memory"].append(line_buffer)
+    hw_desc["memory"].append(line_buffer)
 
     fifo_buffer1 = FIFO(
         name="FIFO-1",
@@ -37,7 +37,7 @@ def hw_config():
         pixel_per_write = 1,      # the word length or #pixel per write access
         pixel_per_read = 1,       # the word length or #pixel per read access
     )
-    hw_dict["memory"].append(fifo_buffer1)
+    hw_desc["memory"].append(fifo_buffer1)
 
     fifo_buffer2 = FIFO(
         name="FIFO-2",
@@ -48,7 +48,7 @@ def hw_config():
         pixel_per_write = 1,      # the word length or #pixel per write access
         pixel_per_read = 1,       # the word length or #pixel per read access
     )
-    hw_dict["memory"].append(fifo_buffer2)
+    hw_desc["memory"].append(fifo_buffer2)
 
     fifo_buffer3 = FIFO(
         name="FIFO-3",
@@ -59,7 +59,7 @@ def hw_config():
         pixel_per_write = 1,      # the word length or #pixel per write access
         pixel_per_read = 1,       # the word length or #pixel per read access 
     )
-    hw_dict["memory"].append(fifo_buffer3)
+    hw_desc["memory"].append(fifo_buffer3)
 
     adc = ADC(
         name = "ADC",
@@ -67,7 +67,7 @@ def hw_config():
         location = ProcessorLocation.SENSOR_LAYER,
     )
     adc.set_output_buffer(line_buffer)
-    hw_dict["compute"].append(adc)
+    hw_desc["compute"].append(adc)
 
     conv1_unit = ComputeUnit(
         name="ConvUnit-1",
@@ -79,7 +79,7 @@ def hw_config():
         num_of_stages = 3,                      # num of stages to output result, latency
         area = 30
     )
-    hw_dict["compute"].append(conv1_unit)
+    hw_desc["compute"].append(conv1_unit)
 
     conv1_unit.set_input_buffer(line_buffer)
     conv1_unit.set_output_buffer(fifo_buffer1)
@@ -94,7 +94,7 @@ def hw_config():
         num_of_stages = 3,                      # num of stage to output result. latency 
         area = 30
     )
-    hw_dict["compute"].append(conv2_unit)
+    hw_desc["compute"].append(conv2_unit)
 
     conv2_unit.set_input_buffer(fifo_buffer1)
     conv2_unit.set_output_buffer(fifo_buffer2)
@@ -109,10 +109,10 @@ def hw_config():
         num_of_stages = 1,                      # num of stage to output result. latency 
         area = 10
     )
-    hw_dict["compute"].append(abs_unit)
+    hw_desc["compute"].append(abs_unit)
 
     abs_unit.set_input_buffer(fifo_buffer2)
     abs_unit.set_output_buffer(fifo_buffer3)
 
-    return hw_dict
+    return hw_desc
 

@@ -9,7 +9,7 @@ from camj.sim_core.sw_utils import build_sw_graph
 
 def sw_pipeline():
 
-    sw_stage_list = []
+    sw_desc = []
     # define input data
     input_data = PixelInput((36, 36, 1), name="Input")
     
@@ -51,17 +51,17 @@ def sw_pipeline():
     conv2_stage.set_input_stage(conv1_stage)
     abs_stage.set_input_stage(conv2_stage)
 
-    sw_stage_list.append(input_data)
-    sw_stage_list.append(conv1_stage)
-    sw_stage_list.append(conv2_stage)
-    sw_stage_list.append(abs_stage)
+    sw_desc.append(input_data)
+    sw_desc.append(conv1_stage)
+    sw_desc.append(conv2_stage)
+    sw_desc.append(abs_stage)
 
-    return sw_stage_list
+    return sw_desc
 
 if __name__ == '__main__':
 
-    sw_stage_list = sw_pipeline()
-    build_sw_graph(sw_stage_list)
+    sw_desc = sw_pipeline()
+    build_sw_graph(sw_desc)
 
 
 

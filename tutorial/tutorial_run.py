@@ -20,9 +20,9 @@ from tutorial.hw import hw_config
 # functional simulation harness function
 def tutorial_functional_simulation(
     img_name,
-    hw_dict,
-    mapping_dict,
-    sw_stage_list
+    hw_desc,
+    mapping,
+    sw_desc
 ):
 
     # sensor specs
@@ -38,7 +38,7 @@ def tutorial_functional_simulation(
         "Input" : [electron_input]
     }
 
-    simulation_res = launch_functional_simulation(sw_stage_list, hw_dict, mapping_dict, input_mapping)
+    simulation_res = launch_functional_simulation(sw_desc, hw_desc, mapping, input_mapping)
 
     img_after_adc = simulation_res['Input'][0]
     img_res = Image.fromarray(np.uint8(img_after_adc / full_scale_input_voltage * 255) , 'L')
@@ -46,21 +46,21 @@ def tutorial_functional_simulation(
 
 def main():
 
-    hw_dict = hw_config()
-    mapping_dict = mapping_function()
-    sw_stage_list = sw_pipeline()
+    hw_desc = hw_config()
+    mapping = mapping_function()
+    sw_desc = sw_pipeline()
 
     tutorial_functional_simulation(
         img_name = "../test_imgs/test_img2.jpeg",
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
     )
     
     launch_simulation(
-        hw_dict = hw_dict,
-        mapping_dict = mapping_dict,
-        sw_stage_list = sw_stage_list
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
     )
 
 if __name__ == '__main__':
