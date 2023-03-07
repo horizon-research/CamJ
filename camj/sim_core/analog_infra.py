@@ -28,9 +28,6 @@ class AnalogComponent(object):
         self.input_domain = input_domain
         self.output_domain = output_domain
         self.component_list = component_list
-        self.components = []
-        self.input_components = []
-        self.output_components = []
 
     """
         Energy function compute the total energy of this component. 
