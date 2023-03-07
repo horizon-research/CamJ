@@ -250,13 +250,13 @@ def write_output_throughput(src_hw_unit, sw_stage, hw2sw, write_index, write_cnt
     
     # find the reserved buffer and buffer index
     src_index = src_hw_unit.get_output_buffer_index(sw_stage)
-    src_output_throughput = src_hw_unit.output_per_cycle
+    src_output_throughput = src_hw_unit.output_pixels_per_cycle
     output_buffer = src_output_buffer.reserved_buffer[src_hw_unit, sw_stage]
     output_buffer_shape = src_hw_unit.get_output_buffer_size(sw_stage)
     if ENABLE_DEBUG:
         print(
             "[write_output_throughput]", sw_stage, 
-            "src_output_per_cycle:", src_output_throughput, 
+            "src_output_pixels_per_cycle:", src_output_throughput, 
             "src_index:", src_index,
             "output_buffer_shape:", output_buffer_shape
         )
@@ -283,9 +283,9 @@ def write_output_throughput(src_hw_unit, sw_stage, hw2sw, write_index, write_cnt
         new_buffer_index = increment_buffer_index(src_index, output_buffer_shape, src_output_throughput)
         if ENABLE_DEBUG:
             print(
-                "[write_output_per_cycle]", "src_index: ", src_index, 
+                "[write_output_pixels_per_cycle]", "src_index: ", src_index, 
                 "new_src_index: ", new_buffer_index, 
-                "src_output_per_cycle: ", src_output_throughput
+                "src_output_pixels_per_cycle: ", src_output_throughput
             )
 
         # set the new buffer index.
@@ -348,7 +348,7 @@ def increment_input_buffer_index(dst_hw_unit, sw_stage):
         print("[increment_input_buffer_index] dst hw unit: ", dst_hw_unit, "sw_stage: ", sw_stage)
 
     # needs to increment index for each input throughput
-    for i in range(len(dst_hw_unit.input_per_cycle)):
+    for i in range(len(dst_hw_unit.input_pixels_per_cycle)):
         input_sw_stage = sw_stage.input_stages[i]
         input_size = sw_stage.input_size[i]
         input_kernel = sw_stage.kernel_size[i]
@@ -364,7 +364,7 @@ def increment_input_buffer_index(dst_hw_unit, sw_stage):
         src_hw_unit = dst_hw_unit.input_hw_units[input_sw_stage][0]
 
         dst_input_buffer = dst_hw_unit.input_buffer.reserved_buffer[src_hw_unit, input_sw_stage]
-        dst_input_throughput = dst_hw_unit.input_per_cycle[i]
+        dst_input_throughput = dst_hw_unit.input_pixels_per_cycle[i]
         # get the previous input index
         dst_input_index = dst_hw_unit.get_input_buffer_index(src_hw_unit, input_sw_stage)
 
@@ -411,15 +411,15 @@ def check_input_buffer(dst_hw_unit, sw_stage):
 
     dst_input_buffer = dst_hw_unit.input_buffer
     if ENABLE_DEBUG:
-        print("[check_input_buffer]", dst_hw_unit, "has %d dependencies." % len(dst_hw_unit.input_per_cycle))
+        print("[check_input_buffer]", dst_hw_unit, "has %d dependencies." % len(dst_hw_unit.input_pixels_per_cycle))
         print("[check_input_buffer]", dst_hw_unit, dst_hw_unit.input_hw_units)
-        print("input_per_cycle size", dst_hw_unit.input_per_cycle)
+        print("input_pixels_per_cycle size", dst_hw_unit.input_pixels_per_cycle)
         print("[check_input_buffer]", dst_hw_unit.input_index_list, sw_stage.input_stages)
-    for i in range(len(dst_hw_unit.input_per_cycle)):
+    for i in range(len(dst_hw_unit.input_pixels_per_cycle)):
         input_sw_stage = sw_stage.input_stages[i]
         src_hw_unit = dst_hw_unit.input_hw_units[input_sw_stage][0]
         dst_input_buffer = dst_hw_unit.input_buffer.reserved_buffer[src_hw_unit, input_sw_stage]
-        dst_input_throughput = dst_hw_unit.input_per_cycle[i]
+        dst_input_throughput = dst_hw_unit.input_pixels_per_cycle[i]
         dst_input_index = dst_hw_unit.input_index_list[src_hw_unit, input_sw_stage]
 
         if not check_input_buffer_data_ready(dst_input_buffer, dst_input_throughput, dst_input_index):

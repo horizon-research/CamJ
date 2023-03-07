@@ -47,7 +47,7 @@ def hw_config():
 
     adc = ADC(
         name = "ADC",
-        output_per_cycle = (2, 1, 1),
+        output_pixels_per_cycle = (2, 1, 1),
         location = ProcessorLocation.SENSOR_LAYER,
     )
     adc.set_output_buffer(fifo_buffer1)
@@ -57,8 +57,8 @@ def hw_config():
         name="FCUnit",
         domain=ProcessDomain.DIGITAL,
         location=ProcessorLocation.COMPUTE_LAYER,
-        input_per_cycle = [(1, 1, 10)],
-        output_per_cycle = (1, 1, 1),
+        input_pixels_per_cycle = [(1, 1, 10)],
+        output_pixels_per_cycle = (1, 1, 1),
         energy_per_cycle = 1 * compute_op_power,
         num_of_stages = 1 * 1 * 10,
         area = 10,

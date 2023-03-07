@@ -10,17 +10,17 @@ class ADC(object):
     def __init__(
         self,
         name: str, 
-        output_per_cycle: tuple,
+        output_pixels_per_cycle: tuple,
         location,
         energy_per_pixel = 600
     ):
         super(ADC, self).__init__()
         self.name = "ADC"
-        self.input_per_cycle = None
-        self.output_per_cycle = (
-            output_per_cycle[1],
-            output_per_cycle[0],
-            output_per_cycle[2]
+        self.input_pixels_per_cycle = None
+        self.output_pixels_per_cycle = (
+            output_pixels_per_cycle[1],
+            output_pixels_per_cycle[0],
+            output_pixels_per_cycle[2]
         ) # covert (h, w, c) to internal representation (x, y, z)
 
         self.location = location
@@ -95,8 +95,8 @@ class ADC(object):
         # if not, calculate it before return
         if self.total_read == -1:
             total_read = 0
-            if self.input_per_cycle != None:
-                for throughput in self.input_per_cycle:
+            if self.input_pixels_per_cycle != None:
+                for throughput in self.input_pixels_per_cycle:
                     read_for_one_input = 1
                     for i in range(len(throughput)):
                         read_for_one_input *= throughput[i]
@@ -139,9 +139,9 @@ class ADC(object):
         # if not, calculate it before return
         if self.total_write == -1:
             total_write = 1
-            if self.output_per_cycle is not None:
-                for i in range(len(self.output_per_cycle)):
-                    total_write *= self.output_per_cycle[i]
+            if self.output_pixels_per_cycle is not None:
+                for i in range(len(self.output_pixels_per_cycle)):
+                    total_write *= self.output_pixels_per_cycle[i]
 
             self.total_write = total_write
 
@@ -202,8 +202,8 @@ class ComputeUnit(object):
         name: str,
         domain: int,    # whether is digital or analog
         location: int,  # location of this unit
-        input_per_cycle: list,     # This is the input requirement in order to perform compute on this unit
-        output_per_cycle: list,    # the number of element can be written out once one batch of compute is finished.
+        input_pixels_per_cycle: list,     # This is the input requirement in order to perform compute on this unit
+        output_pixels_per_cycle: list,    # the number of element can be written out once one batch of compute is finished.
         energy_per_cycle: float,   # the average energy per cycle
         num_of_stages: int,        # number of stage in the pipeline.
         area: float,
@@ -215,11 +215,11 @@ class ComputeUnit(object):
         self.location = location
 
         # covert (h, w, c) to internal representation (x, y, z)
-        self.input_per_cycle = _convert_hwc_to_xyz(name, input_per_cycle)
-        self.output_per_cycle = (
-            output_per_cycle[1],
-            output_per_cycle[0],
-            output_per_cycle[2]
+        self.input_pixels_per_cycle = _convert_hwc_to_xyz(name, input_pixels_per_cycle)
+        self.output_pixels_per_cycle = (
+            output_pixels_per_cycle[1],
+            output_pixels_per_cycle[0],
+            output_pixels_per_cycle[2]
         ) # covert (h, w, c) to internal representation (x, y, z)
 
         self.energy = energy_per_cycle
@@ -345,8 +345,8 @@ class ComputeUnit(object):
         # if not, calculate it before return
         if self.total_read == -1:
             total_read = 0
-            if self.input_per_cycle != None:
-                for throughput in self.input_per_cycle:
+            if self.input_pixels_per_cycle != None:
+                for throughput in self.input_pixels_per_cycle:
                     read_for_one_input = 1
                     for i in range(len(throughput)):
                         read_for_one_input *= throughput[i]
@@ -391,9 +391,9 @@ class ComputeUnit(object):
         # if not, calculate it before return
         if self.total_write == -1:
             total_write = 1
-            if self.output_per_cycle is not None:
-                for i in range(len(self.output_per_cycle)):
-                    total_write *= self.output_per_cycle[i]
+            if self.output_pixels_per_cycle is not None:
+                for i in range(len(self.output_pixels_per_cycle)):
+                    total_write *= self.output_pixels_per_cycle[i]
 
             self.total_write = total_write
 
@@ -504,7 +504,7 @@ class SystolicArray(object):
             # print("[SYSTOLIC]", throughput_dimension_x, throughput_dimension_y, self.size_dimension)
 
             # compute the input throughput, the input dependency for computing ofmap
-            self.input_per_cycle = [
+            self.input_pixels_per_cycle = [
                 (
                     throughput_dimension_x * stride[0], 
                     throughput_dimension_y * stride[1], 
@@ -513,7 +513,7 @@ class SystolicArray(object):
             ]
             
             # compute the output throughput
-            self.output_per_cycle = (throughput_dimension_x, throughput_dimension_y, 1)
+            self.output_pixels_per_cycle = (throughput_dimension_x, throughput_dimension_y, 1)
 
             # calculate the delay for one compute batch
             self.delay = kernel_size[0] * kernel_size[1] * input_size[-1] * 1
@@ -526,7 +526,7 @@ class SystolicArray(object):
             # print("[SYSTOLIC]", throughput_dimension_x, throughput_dimension_y, self.size_dimension)
 
             # compute the input throughput, the input dependency for computing ofmap
-            self.input_per_cycle = [
+            self.input_pixels_per_cycle = [
                 (
                     throughput_dimension_x * stride[0], 
                     throughput_dimension_y * stride[1], 
@@ -535,15 +535,15 @@ class SystolicArray(object):
             ]
             
             # compute the output throughput
-            self.output_per_cycle = (throughput_dimension_x, throughput_dimension_y, 1)
+            self.output_pixels_per_cycle = (throughput_dimension_x, throughput_dimension_y, 1)
 
             # calculate the delay for one compute batch
             self.delay = kernel_size[0] * kernel_size[1] * 1
         elif op_type == "FC":
-            self.input_per_cycle = [input_size]
+            self.input_pixels_per_cycle = [input_size]
             
             # compute the output throughput
-            self.output_per_cycle = output_size
+            self.output_pixels_per_cycle = output_size
 
             fc_mac_cnt = input_size[0] * output_size[0]
             # calculate the delay for one compute batch
@@ -554,8 +554,8 @@ class SystolicArray(object):
 
         if ENABLE_DEBUG:
             print(
-                "[SYSTOLIC] input throughput: ", self.input_per_cycle,
-                "output throughput: ", self.output_per_cycle,
+                "[SYSTOLIC] input throughput: ", self.input_pixels_per_cycle,
+                "output throughput: ", self.output_pixels_per_cycle,
                 "compute delay: ", self.delay 
             )
 
@@ -585,8 +585,8 @@ class SystolicArray(object):
     # because we consider only one output buffer
     def init_output_buffer_index(self, sw_stage, buffer_size):
         
-        self.output_per_cycle = np.ones_like(buffer_size)
-        self.output_per_cycle[0] = self.size_dimension[0]
+        self.output_pixels_per_cycle = np.ones_like(buffer_size)
+        self.output_pixels_per_cycle[0] = self.size_dimension[0]
 
         self.output_buffer_size[sw_stage] = buffer_size
         
@@ -637,8 +637,8 @@ class SystolicArray(object):
     '''
     def get_total_read(self):
         total_read = 0
-        if self.input_per_cycle != None:
-            for throughput in self.input_per_cycle:
+        if self.input_pixels_per_cycle != None:
+            for throughput in self.input_pixels_per_cycle:
                 read_for_one_input = 1
                 for i in range(len(throughput)):
                     read_for_one_input *= throughput[i]
@@ -683,9 +683,9 @@ class SystolicArray(object):
         # if not, calculate it before return
         # if self.total_write == -1:
         total_write = 1
-        if self.output_per_cycle is not None:
-            for i in range(len(self.output_per_cycle)):
-                total_write *= self.output_per_cycle[i]
+        if self.output_pixels_per_cycle is not None:
+            for i in range(len(self.output_pixels_per_cycle)):
+                total_write *= self.output_pixels_per_cycle[i]
 
         self.total_write = total_write
 

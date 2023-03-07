@@ -29,7 +29,7 @@ def hw_config():
 
     adc = ADC(
         name = "ADC",
-        output_per_cycle = (1, 4, 1),
+        output_pixels_per_cycle = (1, 4, 1),
         location = ProcessorLocation.SENSOR_LAYER,
         energy_per_pixel = 600,
     )
@@ -40,8 +40,8 @@ def hw_config():
         name = "MPUnit",
         domain = ProcessDomain.DIGITAL,
         location = ProcessorLocation.COMPUTE_LAYER,
-        input_per_cycle = [(2, 16, 1)],
-        output_per_cycle = (1, 8, 1),
+        input_pixels_per_cycle = [(2, 16, 1)],
+        output_pixels_per_cycle = (1, 8, 1),
         energy_per_cycle = 3 * 8 * compute_op_power,
         num_of_stages = 2,
         area = 10
