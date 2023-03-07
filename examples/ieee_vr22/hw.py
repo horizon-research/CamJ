@@ -23,8 +23,8 @@ def hw_config():
         location = ProcessorLocation.COMPUTE_LAYER,
         write_energy_per_word = 3,  # write energy per word
         read_energy_per_word = 1*4, # read energy per word 
-        pixel_per_write = 1,      # write word length, here is one pixel
-        pixel_per_read = 4,       # read word length, here is 4 pixels
+        pixel_per_write_word = 1,      # write word length, here is one pixel
+        pixel_per_read_word = 4,       # read word length, here is 4 pixels
     )
     hw_dict["memory"].append(fifo_buffer1)
  
@@ -34,8 +34,8 @@ def hw_config():
         location = ProcessorLocation.COMPUTE_LAYER,
         write_energy_per_word = 3,  # write energy per word
         read_energy_per_word = 1,   # read energy per word
-        pixel_per_write = 1,      # write word length, one pixel per word
-        pixel_per_read = 1,       # read word length, one pixel per word
+        pixel_per_write_word = 1,      # write word length, one pixel per word
+        pixel_per_read_word = 1,       # read word length, one pixel per word
     )
     hw_dict["memory"].append(fifo_buffer2)
 
@@ -44,8 +44,8 @@ def hw_config():
         size = (4, 4, 4096),
         write_energy_per_word = 3,
         read_energy_per_word = 1,
-        pixel_per_write = 1,
-        pixel_per_read = 1,
+        pixel_per_write_word = 1,
+        pixel_per_read_word = 1,
         location = ProcessorLocation.COMPUTE_LAYER,
     )
     hw_dict["memory"].append(double_buffer)
