@@ -8,7 +8,8 @@ from camj.sim_core.analog_perf_libs import ColumnAmplifierPerf, SourceFollowerPe
                                       MaximumVoltagePerf, GeneralCircuitPerf
 from camj.functional_core.noise_model import ColumnwiseNoise, PixelwiseNoise, FloatingDiffusionNoise,\
                                         CurrentMirrorNoise, ComparatorNoise,\
-                                        PassiveSwitchedCapacitorArrayNoise, AnalogToDigitalConverterNoise
+                                        PassiveSwitchedCapacitorArrayNoise, AnalogToDigitalConverterNoise,\
+                                        AbsoluteDifferenceNoise, MaximumVoltageNoise
 
 class ColumnAmplifier(object):
     """
@@ -436,7 +437,9 @@ class MaximumVoltage(object):
         t_frame = 30e-3,  # [s]
         t_acomp = 1e-6,  # [s]
         load_capacitance = 1e-12,  # [F]
-        gain = 10
+        gain = 10,
+        # noise parameters
+        noise = 0.0,
     ):
         super(MaximumVoltage, self).__init__()
 
@@ -447,12 +450,20 @@ class MaximumVoltage(object):
             load_capacitance = load_capacitance,  # [F]
             gain = gain
         )
+
+        self.noise_model = MaximumVoltageNoise(
+            name = "MaximumVoltage",
+            noise = noise
+        )
         
     def energy(self):
         return self.perf_model.energy()
 
     def noise(self, input_signal_list):
-        raise Exception("noise function in MaximumVoltage has not been implemented yet!")
+        return (
+                self.noise_model.name, 
+                [self.noise_model.apply_gain_and_noise(input_signal_list)]
+            )
 
 
 class GeneralCircuit(object):
@@ -476,15 +487,241 @@ class GeneralCircuit(object):
     def noise(self, input_signal_list):
         raise Exception("noise function in MaximumVoltage has not been implemented yet!")
 
+class Adder(object):
+    def __init__(
+        self,
+        # performance parameters
+        load_capacitance = 1e-12,  # [F]
+        input_capacitance = 1e-12,  # [F]
+        t_sample = 2e-6,  # [s]
+        t_frame = 10e-3,  # [s]
+        supply = 1.8,  # [V]
+        gain_open = 256,
+        differential = False,
+        # noise parameters
+        columnwise_op = True,
+        noise = 0.,
+        enable_prnu = False,
+        prnu_std = 0.001
+    ):
+        self.perf_model = ColumnAmplifierPerf(
+            load_capacitance = load_capacitance,
+            input_capacitance = input_capacitance,
+            t_sample = t_sample,
+            t_frame = t_frame,
+            supply = supply,
+            gain = 1.0,    # adder no need to amplify the signal
+            gain_open = gain_open,
+            differential = differential
+        )
+
+        if columnwise_op:
+            self.noise_model = ColumnwiseNoise(
+                name = "ColumnAmplifier",
+                gain = 1.0,    # adder no need to amplify the signal
+                noise = noise,
+                enable_prnu = enable_prnu,
+                prnu_std = prnu_std
+            )
+        else:
+            self.noise_model = PixelwiseNoise(
+                name = "Amplifier",
+                gain = 1.0,    # adder no need to amplify the signal
+                noise = noise,
+                enable_prnu = enable_prnu,
+                prnu_std = prnu_std
+            )
+
+    def energy(self):
+        # here multiply by 2, because two input signal go through column amplifier
+        return self.perf_model.energy() * 2 
+
+    def noise(self, input_signal_list):
+        if len(input_signal_list) == 2:
+            noise_input1 = self.noise_model.apply_gain_and_noise(input_signal_list[0])
+            noise_input2 = self.noise_model.apply_gain_and_noise(input_signal_list[1])
+            return (
+                "Adder", 
+                [noise_input1 + noise_input2]
+            )
+        else:
+            raise Exception("Input signal list to Comparator can only be length of 2!")
 
 
 
+class Subtractor(object):
+    def __init__(
+        self,
+        # performance parameters
+        load_capacitance = 1e-12,  # [F]
+        input_capacitance = 1e-12,  # [F]
+        t_sample = 2e-6,  # [s]
+        t_frame = 10e-3,  # [s]
+        supply = 1.8,  # [V]
+        gain_open = 256,
+        differential = False,
+        # noise parameters
+        columnwise_op = True,
+        noise = 0.,
+        enable_prnu = False,
+        prnu_std = 0.001
+    ):
+        self.perf_model = ColumnAmplifierPerf(
+            load_capacitance = load_capacitance,
+            input_capacitance = input_capacitance,
+            t_sample = t_sample,
+            t_frame = t_frame,
+            supply = supply,
+            gain = 1.0,    # adder no need to amplify the signal
+            gain_open = gain_open,
+            differential = differential
+        )
+
+        if columnwise_op:
+            self.noise_model = ColumnwiseNoise(
+                name = "ColumnAmplifier",
+                gain = 1.0,    # adder no need to amplify the signal
+                noise = noise,
+                enable_prnu = enable_prnu,
+                prnu_std = prnu_std
+            )
+        else:
+            self.noise_model = PixelwiseNoise(
+                name = "Amplifier",
+                gain = 1.0,    # adder no need to amplify the signal
+                noise = noise,
+                enable_prnu = enable_prnu,
+                prnu_std = prnu_std
+            )
+
+    def energy(self):
+        # here multiply by 2, because two input signal go through column amplifier
+        return self.perf_model.energy() * 2 
+
+    def noise(self, input_signal_list):
+        if len(input_signal_list) == 2:
+            noise_input1 = self.noise_model.apply_gain_and_noise(input_signal_list[0])
+            noise_input2 = self.noise_model.apply_gain_and_noise(input_signal_list[1])
+            return (
+                "Subtractor", 
+                [noise_input1 - noise_input2]
+            )
+        else:
+            raise Exception("Input signal list to Comparator can only be length of 2!")
 
 
+class AbsoluteDifference(object):
+    def __init__(
+        self,
+        # performance parameters
+        load_capacitance = 1e-12,  # [F]
+        input_capacitance = 1e-12,  # [F]
+        t_sample = 2e-6,  # [s]
+        t_frame = 10e-3,  # [s]
+        supply = 1.8,  # [V]
+        gain_open = 256,
+        differential = False,
+        # noise parameters
+        noise = 0.,
+        enable_prnu = False,
+        prnu_std = 0.001
+    ):
+        self.perf_model = ColumnAmplifierPerf(
+            load_capacitance = load_capacitance,
+            input_capacitance = input_capacitance,
+            t_sample = t_sample,
+            t_frame = t_frame,
+            supply = supply,
+            gain = 1.0,    # adder no need to amplify the signal
+            gain_open = gain_open,
+            differential = differential
+        )
 
+        
+        self.noise_model = AbsoluteDifferenceNoise(
+            name = "AbsoluteDifference",
+            gain = 1.0,    # adder no need to amplify the signal
+            noise = noise,
+            enable_prnu = enable_prnu,
+            prnu_std = prnu_std
+        )
 
+    def energy(self):
+        # here multiply by 2, because two input signal go through column amplifier
+        return self.perf_model.energy() * 2 
 
+    def noise(self, input_signal_list):
+        if len(input_signal_list) == 2:
+            return (
+                self.noise_model.name, 
+                [   
+                    self.noise_model.apply_gain_and_noise(
+                        input_signal_list[0], 
+                        input_signal_list[1]
+                    )
+                ]
+            )
+        else:
+            raise Exception("Input signal list to Comparator can only be length of 2!")
 
+class PassiveAverage(object):
+    def __init__(
+        self,
+        # peformance parameters
+        capacitance_array,
+        vs_array,
+        sf_load_capacitance = 1e-12,  # [F]
+        sf_supply = 1.8,  # [V]
+        sf_output_vs = 1,  # [V]
+        sf_bias_current = 5e-6,  # [A]
+        # noise parameters
+        psca_noise = 0.,
+        sf_gain = 1.0,
+        sf_noise = 0.,
+        sf_enable_prnu = False,
+        sf_prnu_std = 0.001,
+        
+    ):
+        self.psca_perf_model = PassiveSwitchedCapacitorArrayPerf(
+            capacitance_array = capacitance_array,
+            vs_array = vs_array
+        )
+
+        self.sf_perf_model = SourceFollowerPerf(
+            load_capacitance = sf_load_capacitance,
+            supply = sf_supply,
+            output_vs = sf_output_vs,
+            bias_current = sf_bias_current,
+        )
+
+        self.psca_noise_model = PassiveSwitchedCapacitorArrayNoise(
+            name = "PassiveSwitchedCapacitorArray",
+            num_capacitor = len(capacitance_array),
+            noise = psca_noise
+        )
+
+        self.sf_noise_model = PixelwiseNoise(
+            name = "SourceFollower",
+            gain = sf_gain,
+            noise = sf_noise,
+            enable_prnu = sf_enable_prnu,
+            prnu_std = sf_prnu_std
+        )
+
+    def energy(self):
+        return self.psca_perf_model.energy() + self.sf_perf_model.energy()
+
+    def noise(self, input_signal_list):
+        return (
+            "PassiveAverage", 
+            [
+                self.sf_noise_model.apply_gain_and_noise(
+                    self.psca_noise_model.apply_gain_and_noise(
+                        input_signal_list
+                    )                
+                )
+            ]
+        )
 
 
 
