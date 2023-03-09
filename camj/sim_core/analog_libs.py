@@ -810,7 +810,10 @@ class Voltage2VoltageConv(object):
         for r in range(out_height):
             for c in range(out_width):
                 # find the corresponding input elements for output
-                input_elements = input_signal[r*s_height:r*s_height+w_height, c*s_width:c*s_width+w_width]
+                input_elements = input_signal[
+                    r*s_height : r*s_height+w_height,
+                    c*s_width : c*s_width+w_width
+                ]
                 output_signal[r, c] = np.sum(input_elements * weight_signal)
 
         return output_signal
@@ -850,6 +853,140 @@ class Voltage2VoltageConv(object):
             )
 
         return ("Voltage2VoltageConv", conv_result_list)
+
+
+
+class Time2CurrentConv(object):
+    def __init__(
+        self,
+        # performance parameters for current mirror
+        cm_supply = 1.8,
+        cm_load_capacitance = 2e-12,  # [F]
+        cm_t_readout = 1e-6,  # [s]
+        cm_i_dc = 1e-6,  # [A]
+        # performance parameters for analog memory
+        am_capacitance = 1e-12,  # [F]
+        am_supply = 1.8,  # [V]
+        # eqv_reso  # equivalent resolution
+        # noise parameters for current mirror
+        cm_gain = 1.0,
+        cm_noise = 0.,
+        cm_enable_prnu = False,
+        cm_prnu_std = 0.001,
+        # noise parameters for analog memory
+        am_gain = 1.0,
+        am_noise = 0.,
+        am_enable_prnu = False,
+        am_prnu_std = 0.001,
+        
+    ):
+
+        self.kernel_size = None
+        self.num_kernel = None
+        self.stride = None
+
+        self.cm_perf_model = CurrentMirrorPerf(
+            supply = cm_supply,
+            load_capacitance = cm_load_capacitance,
+            t_readout = cm_t_readout,
+            i_dc = cm_i_dc
+        )
+
+        self.am_perf_model = PassiveAnalogMemoryPerf(
+            capacitance = am_capacitance,
+            supply = am_supply
+        )
+
+        self.cm_noise_model = CurrentMirrorNoise(
+            name = "CurrentMirror",
+            gain = cm_gain,
+            noise = cm_noise,
+            enable_compute = True,
+            enable_prnu = cm_enable_prnu,
+            prnu_std = cm_prnu_std
+        )
+
+        self.am_noise_model = PixelwiseNoise(
+            name = "PassiveAnalogMemory",
+            gain = am_gain,
+            noise = am_noise,
+            enable_prnu = am_enable_prnu,
+            prnu_std = am_prnu_std
+        )
+
+    def energy(self):
+        if self.kernel_size == None:
+            raise Exception("'kernel_size' in 'Time2CurrentConv' hasn't been initialized.")
+
+        mac_cnt = self.kernel_size[0] * self.kernel_size[1]
+        return self.cm_perf_model.energy() * mac_cnt + self.am_perf_model.energy()
+
+    def set_conv_config(self, kernel_size, num_kernel, stride):
+        if len(kernel_size) != 1 or len(num_kernel) != 1 or len(stride) != 1:
+            raise Exception("The length of kernel_size, num_kernel and stride should be 1.")
+
+        if kernel_size[0][-1] != 1:
+            raise Exception("'Voltage2VoltageConv' only support kernel channel size of 1.")
+
+        self.kernel_size = kernel_size[0][:2]
+        self.num_kernel = num_kernel[0]
+        self.stride = stride[0][:2]
+
+
+    def single_channel_convolution(self, input_signal, weight_signal):
+        in_height, in_width = input_signal.shape    # Input shape
+        w_height, w_width = weight_signal.shape     # weight shape
+        s_height, s_width = self.stride             # stride shape
+        out_height = (in_height - (w_height - s_height)) // s_height
+        out_width = (in_width - (w_width - s_width)) // s_width
+        # initialize output
+        output_signal = np.zeros((out_height, out_width))
+
+        for r in range(out_height):
+            for c in range(out_width):
+                # find the corresponding input elements for output
+                input_elements = input_signal[
+                    r*s_height : r*s_height+w_height, 
+                    c*s_width : c*s_width+w_width
+                ]
+                noise_output = self.cm_noise_model.apply_gain_and_noise(
+                    input_signal = input_elements, 
+                    weight_signal = weight_signal
+                )
+                output_signal[r, c] = np.sum(noise_output)
+
+        return output_signal
+
+    def noise(self, input_signal_list):
+        image_list = []
+        kernel_list = []
+        for input_signal in input_signal_list:
+            if input_signal.shape == self.kernel_size:
+                kernel_list.append(input_signal)
+            else:
+                image_list.append(input_signal)
+
+        if len(image_list) != 1:
+            raise Exception("Input signal to 'Voltage2VoltageConv' should be 1.")
+        if len(kernel_list) != self.num_kernel:
+            raise Exception(
+                "Number of Kernel in input signal doesn't match the num_kernel (%d)"\
+                % self.num_kernel
+            )
+
+        conv_result_list = []
+        for kernel in kernel_list:
+            conv_result = self.single_channel_convolution(image_list[0], kernel)
+            output_height, output_width = conv_result.shape
+
+            conv_result_list.append(
+                self.am_noise_model.apply_gain_and_noise(
+                    conv_result
+                )
+
+            )
+
+        return ("Time2CurrentConv", conv_result_list)
 
 
 

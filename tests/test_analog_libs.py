@@ -6,7 +6,7 @@ import numpy as np
 sys.path.append(os.path.dirname(os.getcwd()))
 
 from camj.sim_core.analog_libs import MaximumVoltage, PassiveAverage, Adder, Subtractor,\
-                                      AbsoluteDifference, Voltage2VoltageConv
+                                      AbsoluteDifference, Voltage2VoltageConv, Time2CurrentConv
 
 def test_maximum_voltage():
 
@@ -199,6 +199,64 @@ def test_v2v_conv():
     for i in range(num_kernel):
         assert np.mean(output_signal[i]) == 9 * (i+1), "Wrong convolution result! Expect %.2f but %.2f" % (np.mean(output_signal[i]), 11 * (i+1))
 
+
+def test_t2c_conv():
+    t2c_conv_comp = Time2CurrentConv(
+        # performance parameters for current mirror
+        cm_supply = 1.8,
+        cm_load_capacitance = 2e-12,  # [F]
+        cm_t_readout = 1e-6,  # [s]
+        cm_i_dc = 1e-6,  # [A]
+        # performance parameters for analog memory
+        am_capacitance = 1e-12,  # [F]
+        am_supply = 1.8,  # [V]
+        # eqv_reso  # equivalent resolution
+        # noise parameters for current mirror
+        cm_gain = 1.0,
+        cm_noise = 0.,
+        cm_enable_prnu = False,
+        cm_prnu_std = 0.001,
+        # noise parameters for analog memory
+        am_gain = 1.0,
+        am_noise = 0.,
+        am_enable_prnu = False,
+        am_prnu_std = 0.001,
+    )
+
+    num_kernel = 3
+
+    input_signal_list = []
+    # first add a dummy input
+    input_signal_list.append(
+        np.ones((128, 128))
+    )
+    # then add some weights
+    for i in range(num_kernel):
+        input_signal_list.append(
+            np.array(
+                [
+                    [1, 1, 1],
+                    [1, 1, 1],
+                    [1, 1, 1]
+                ]
+            ) * (i+1)
+        )
+
+    t2c_conv_comp.set_conv_config(
+        kernel_size = [(3, 3, 1)],
+        num_kernel = [num_kernel],
+        stride = [(1, 1, 1)]
+    )
+
+    _, output_signal = t2c_conv_comp.noise(input_signal_list)
+
+    assert len(output_signal) == num_kernel, "output_signal length (%d) should equal to num_kernel (%d)" % (len(output_signal), num_kernel)
+
+    for i in range(num_kernel):
+        assert np.mean(output_signal[i]) == 9 * (i+1), "Wrong convolution result! Expect %.2f but %.2f" % (np.mean(output_signal[i]), 11 * (i+1))
+
+
+
 if __name__ == '__main__':
     
     test_maximum_voltage()
@@ -207,3 +265,4 @@ if __name__ == '__main__':
     test_subtractor()
     test_abs()
     test_v2v_conv()
+    test_t2c_conv()
