@@ -306,7 +306,7 @@ class PassiveSwitchedCapacitorArrayNoise(object):
         if len(input_signal_list) != self.num_capacitor:
             raise Exception(
                 "Input signal list length (%d) needs to be equal to the number of capacitor (%d)!"\
-                % (len(input_signal_list, self.num_capacitor)))
+                % (len(input_signal_list), self.num_capacitor))
 
         if len(input_signal_list[0].shape) != 2:
             raise Exception("input signal in noise model needs to be in (height, width) 2D shape.")
@@ -332,6 +332,58 @@ class PassiveSwitchedCapacitorArrayNoise(object):
         ) + average_input_signal
 
         return np.clip(input_after_noise, a_min = 0, a_max = None)
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return self.name
+
+class MaximumVoltageNoise(object):
+    """
+        Noise model for max voltage array
+
+        Input parameters:
+            noise: average noise value.
+    """
+    def __init__(
+        self,
+        name,
+        noise = None
+    ):
+        super(MaximumVoltageNoise, self).__init__()
+        self.name = name
+        self.noise = noise
+
+        if self.noise == None:
+            raise Exception("Insufficient parameters: noise is None.")
+
+        # initialize random number generator
+        random_seed = int(time.time())
+        self.rs = np.random.RandomState(random_seed)
+
+    def apply_gain_and_noise(self, input_signal_list):
+
+        input_shape = input_signal_list[0].shape
+
+        for input_signal in input_signal_list:
+            if input_signal.shape != input_shape:
+                raise Exception("Input signal shapes in list are not consistent!")
+
+        max_signal = np.zeros(input_shape)
+
+        for input_signal in input_signal_list:
+            max_signal = np.maximum(input_signal, max_signal)
+
+
+        input_height, input_width = max_signal.shape
+
+        max_after_noise = self.rs.normal(
+            scale = self.noise,
+            size = (input_height, input_width)
+        ) + max_signal
+
+        return np.clip(max_after_noise, a_min = 0, a_max = None)
 
     def __str__(self):
         return self.name
