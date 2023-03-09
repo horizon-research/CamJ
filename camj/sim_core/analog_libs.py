@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 from camj.sim_core.analog_perf_libs import ColumnAmplifierPerf, SourceFollowerPerf, SourceFollowerPerf,\
                                       ActiveAnalogMemoryPerf, PassiveAnalogMemoryPerf,\
@@ -722,6 +723,136 @@ class PassiveAverage(object):
                 )
             ]
         )
+
+
+class Voltage2VoltageConv(object):
+    def __init__(
+        self,
+        # peformance parameters
+        capacitance_array,
+        vs_array,
+        sf_load_capacitance = 1e-12,  # [F]
+        sf_supply = 1.8,  # [V]
+        sf_output_vs = 1,  # [V]
+        sf_bias_current = 5e-6,  # [A]
+        # noise parameters
+        psca_noise = 0.,
+        sf_gain = 1.0,
+        sf_noise = 0.,
+        sf_enable_prnu = False,
+        sf_prnu_std = 0.001,
+        
+    ):
+        if len(capacitance_array) != len(vs_array):
+            raise Exception(
+                "The length of 'capacitance_array' (%d) and the length of 'vs_array' (%d) should be the same!"\
+                % (len(capacitance_array), len(vs_array))
+            )
+
+        self.kernel_size = None
+        self.num_kernel = None
+        self.stride = None
+        self.len_capacitance_array = len(capacitance_array)
+        self.psca_perf_model = PassiveSwitchedCapacitorArrayPerf(
+            capacitance_array = capacitance_array,
+            vs_array = vs_array
+        )
+
+        self.sf_perf_model = SourceFollowerPerf(
+            load_capacitance = sf_load_capacitance,
+            supply = sf_supply,
+            output_vs = sf_output_vs,
+            bias_current = sf_bias_current,
+        )
+
+        # initialize random number generator
+        self.psca_noise = psca_noise
+        random_seed = int(time.time())
+        self.rs = np.random.RandomState(random_seed)
+
+        self.sf_noise_model = PixelwiseNoise(
+            name = "SourceFollower",
+            gain = sf_gain,
+            noise = sf_noise,
+            enable_prnu = sf_enable_prnu,
+            prnu_std = sf_prnu_std
+        )
+
+    def energy(self):
+        return self.psca_perf_model.energy() + self.sf_perf_model.energy()
+
+    def set_conv_config(self, kernel_size, num_kernel, stride):
+        if len(kernel_size) != 1 or len(num_kernel) != 1 or len(stride) != 1:
+            raise Exception("The length of kernel_size, num_kernel and stride should be 1.")
+
+        if kernel_size[0][-1] != 1:
+            raise Exception("'Voltage2VoltageConv' only support kernel channel size of 1.")
+
+        self.kernel_size = kernel_size[0][:2]
+        self.num_kernel = num_kernel[0]
+        self.stride = stride[0][:2]
+
+        if self.len_capacitance_array != self.kernel_size[0] * self.kernel_size[1]:
+            raise Exception(
+                "The length of capacitance_array (%d) doesn't match with kernel_size (%dx%d). "\
+                 % (self.len_capacitance_array, self.kernel_size[0], self.kernel_size[1]))
+
+
+    def single_channel_convolution(self, input_signal, weight_signal):
+        in_height, in_width = input_signal.shape    # Input shape
+        w_height, w_width = weight_signal.shape     # weight shape
+        s_height, s_width = self.stride             # stride shape
+        out_height = (in_height - (w_height - s_height)) // s_height
+        out_width = (in_width - (w_width - s_width)) // s_width
+        # initialize output
+        output_signal = np.zeros((out_height, out_width))
+
+        for r in range(out_height):
+            for c in range(out_width):
+                # find the corresponding input elements for output
+                input_elements = input_signal[r*s_height:r*s_height+w_height, c*s_width:c*s_width+w_width]
+                output_signal[r, c] = np.sum(input_elements * weight_signal)
+
+        return output_signal
+
+    def noise(self, input_signal_list):
+        image_list = []
+        kernel_list = []
+        for input_signal in input_signal_list:
+            if input_signal.shape == self.kernel_size:
+                kernel_list.append(input_signal)
+            else:
+                image_list.append(input_signal)
+
+        if len(image_list) != 1:
+            raise Exception("Input signal to 'Voltage2VoltageConv' should be 1.")
+        if len(kernel_list) != self.num_kernel:
+            raise Exception(
+                "Number of Kernel in input signal doesn't match the num_kernel (%d)"\
+                % self.num_kernel
+            )
+
+        conv_result_list = []
+        for kernel in kernel_list:
+            conv_result = self.single_channel_convolution(image_list[0], kernel)
+            output_height, output_width = conv_result.shape
+
+            conv_result_after_noise = self.rs.normal(
+                scale = self.psca_noise,
+                size = (output_height, output_width)
+            ) + conv_result
+
+            conv_result_list.append(
+                self.sf_noise_model.apply_gain_and_noise(
+                    conv_result_after_noise
+                )
+
+            )
+
+        return ("Voltage2VoltageConv", conv_result_list)
+
+
+
 
 
 
