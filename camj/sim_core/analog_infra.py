@@ -1,6 +1,7 @@
-
 import numpy as np
 import copy
+
+from camj.sim_core.analog_libs import Voltage2VoltageConv, Time2CurrentConv
 
 class AnalogComponent(object):
     """docstring for AnalogComponent"""
@@ -52,6 +53,15 @@ class AnalogComponent(object):
             output_signal_list = component.noise(output_signal_list)
 
         return output_signal_list
+
+    def configure_operation(self, sw_stage):
+        for comp, _ in self.component_list:
+            if isinstance(comp, Voltage2VoltageConv) or isinstance(comp, Time2CurrentConv):
+                comp.set_conv_config(
+                    kernel_size = sw_stage.kernel_size,
+                    num_kernels = sw_stage.num_kernels,
+                    stride = sw_stage.stride
+                )
 
     def __str__(self):
         return self.name
@@ -138,6 +148,10 @@ class AnalogArray(object):
 
     def add_output_array(self, analog_array):
         self.output_arrays.append(analog_array)
+
+    def configure_operation(self, sw_stage):
+        for component in self.components:
+            component.configure_operation(sw_stage)
         
     def calc_num(self, num_component):
         cnt = 1

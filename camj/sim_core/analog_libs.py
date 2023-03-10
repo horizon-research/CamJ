@@ -750,7 +750,7 @@ class Voltage2VoltageConv(object):
             )
 
         self.kernel_size = None
-        self.num_kernel = None
+        self.num_kernels = None
         self.stride = None
         self.len_capacitance_array = len(capacitance_array)
         self.psca_perf_model = PassiveSwitchedCapacitorArrayPerf(
@@ -781,15 +781,15 @@ class Voltage2VoltageConv(object):
     def energy(self):
         return self.psca_perf_model.energy() + self.sf_perf_model.energy()
 
-    def set_conv_config(self, kernel_size, num_kernel, stride):
-        if len(kernel_size) != 1 or len(num_kernel) != 1 or len(stride) != 1:
-            raise Exception("The length of kernel_size, num_kernel and stride should be 1.")
+    def set_conv_config(self, kernel_size, num_kernels, stride):
+        if len(kernel_size) != 1 or len(num_kernels) != 1 or len(stride) != 1:
+            raise Exception("The length of kernel_size, num_kernels and stride should be 1.")
 
         if kernel_size[0][-1] != 1:
             raise Exception("'Voltage2VoltageConv' only support kernel channel size of 1.")
 
         self.kernel_size = kernel_size[0][:2]
-        self.num_kernel = num_kernel[0]
+        self.num_kernels = num_kernels[0]
         self.stride = stride[0][:2]
 
         if self.len_capacitance_array != self.kernel_size[0] * self.kernel_size[1]:
@@ -829,10 +829,10 @@ class Voltage2VoltageConv(object):
 
         if len(image_list) != 1:
             raise Exception("Input signal to 'Voltage2VoltageConv' should be 1.")
-        if len(kernel_list) != self.num_kernel:
+        if len(kernel_list) != self.num_kernels:
             raise Exception(
-                "Number of Kernel in input signal doesn't match the num_kernel (%d)"\
-                % self.num_kernel
+                "Number of Kernel in input signal doesn't match the num_kernels (%d)"\
+                % self.num_kernels
             )
 
         conv_result_list = []
@@ -882,7 +882,7 @@ class Time2CurrentConv(object):
     ):
 
         self.kernel_size = None
-        self.num_kernel = None
+        self.num_kernels = None
         self.stride = None
 
         self.cm_perf_model = CurrentMirrorPerf(
@@ -921,15 +921,15 @@ class Time2CurrentConv(object):
         mac_cnt = self.kernel_size[0] * self.kernel_size[1]
         return self.cm_perf_model.energy() * mac_cnt + self.am_perf_model.energy()
 
-    def set_conv_config(self, kernel_size, num_kernel, stride):
-        if len(kernel_size) != 1 or len(num_kernel) != 1 or len(stride) != 1:
-            raise Exception("The length of kernel_size, num_kernel and stride should be 1.")
+    def set_conv_config(self, kernel_size, num_kernels, stride):
+        if len(kernel_size) != 1 or len(num_kernels) != 1 or len(stride) != 1:
+            raise Exception("The length of kernel_size, num_kernels and stride should be 1.")
 
         if kernel_size[0][-1] != 1:
             raise Exception("'Voltage2VoltageConv' only support kernel channel size of 1.")
 
         self.kernel_size = kernel_size[0][:2]
-        self.num_kernel = num_kernel[0]
+        self.num_kernels = num_kernels[0]
         self.stride = stride[0][:2]
 
 
@@ -968,10 +968,10 @@ class Time2CurrentConv(object):
 
         if len(image_list) != 1:
             raise Exception("Input signal to 'Voltage2VoltageConv' should be 1.")
-        if len(kernel_list) != self.num_kernel:
+        if len(kernel_list) != self.num_kernels:
             raise Exception(
-                "Number of Kernel in input signal doesn't match the num_kernel (%d)"\
-                % self.num_kernel
+                "Number of Kernel in input signal doesn't match the num_kernels (%d)"\
+                % self.num_kernels
             )
 
         conv_result_list = []

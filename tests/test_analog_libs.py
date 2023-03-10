@@ -167,7 +167,7 @@ def test_v2v_conv():
         sf_enable_prnu = False,
         sf_prnu_std = 0.001,
     )
-    num_kernel = 3
+    num_kernels = 3
 
     input_signal_list = []
     # first add a dummy input
@@ -175,7 +175,7 @@ def test_v2v_conv():
         np.ones((128, 128))
     )
     # then add some weights
-    for i in range(num_kernel):
+    for i in range(num_kernels):
         input_signal_list.append(
             np.array(
                 [
@@ -188,15 +188,15 @@ def test_v2v_conv():
 
     v2v_conv_comp.set_conv_config(
         kernel_size = [(3, 3, 1)],
-        num_kernel = [num_kernel],
+        num_kernels = [num_kernels],
         stride = [(1, 1, 1)]
     )
 
     _, output_signal = v2v_conv_comp.noise(input_signal_list)
 
-    assert len(output_signal) == num_kernel, "output_signal length (%d) should equal to num_kernel (%d)" % (len(output_signal), num_kernel)
+    assert len(output_signal) == num_kernels, "output_signal length (%d) should equal to num_kernels (%d)" % (len(output_signal), num_kernel)
 
-    for i in range(num_kernel):
+    for i in range(num_kernels):
         assert np.mean(output_signal[i]) == 9 * (i+1), "Wrong convolution result! Expect %.2f but %.2f" % (np.mean(output_signal[i]), 11 * (i+1))
 
 
@@ -223,7 +223,7 @@ def test_t2c_conv():
         am_prnu_std = 0.001,
     )
 
-    num_kernel = 3
+    num_kernels = 3
 
     input_signal_list = []
     # first add a dummy input
@@ -231,7 +231,7 @@ def test_t2c_conv():
         np.ones((128, 128))
     )
     # then add some weights
-    for i in range(num_kernel):
+    for i in range(num_kernels):
         input_signal_list.append(
             np.array(
                 [
@@ -244,15 +244,15 @@ def test_t2c_conv():
 
     t2c_conv_comp.set_conv_config(
         kernel_size = [(3, 3, 1)],
-        num_kernel = [num_kernel],
+        num_kernels = [num_kernels],
         stride = [(1, 1, 1)]
     )
 
     _, output_signal = t2c_conv_comp.noise(input_signal_list)
 
-    assert len(output_signal) == num_kernel, "output_signal length (%d) should equal to num_kernel (%d)" % (len(output_signal), num_kernel)
+    assert len(output_signal) == num_kernels, "output_signal length (%d) should equal to num_kernels (%d)" % (len(output_signal), num_kernel)
 
-    for i in range(num_kernel):
+    for i in range(num_kernels):
         assert np.mean(output_signal[i]) == 9 * (i+1), "Wrong convolution result! Expect %.2f but %.2f" % (np.mean(output_signal[i]), 11 * (i+1))
 
 

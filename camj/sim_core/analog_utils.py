@@ -135,6 +135,11 @@ def compute_total_energy(analog_arrays, analog_sw_stages, mapping_dict):
             sw_size = output_stage.output_size
             hw_size = analog_array.num_output
             cnt = (sw_size[0] * sw_size[1] * sw_size[2]) / (hw_size[0] * hw_size[1] * hw_size[2])
+            print(analog_array, analog_to_sw[analog_array][0])
+            # check if the analog array contains the Conv instance and config the convolution instance
+            # if the analog_to_sw contains multiple sw_stages, we will still use the first sw stage parameters
+            # to configure the analog array computation
+            analog_array.configure_operation(sw_stage = analog_to_sw[analog_array][0])
             analog_array_energy = analog_array.energy()
             ret_dict[analog_array.name] = int(cnt * analog_array_energy * 1e12) # concert J to pJ
             print(cnt, sw_size, hw_size)
@@ -209,61 +214,3 @@ def launch_analog_simulation(analog_arrays, sw_stages, mapping_dict):
     energy_dict = compute_total_energy(analog_arrays, analog_sw_stages, mapping_dict)
     
     return energy_dict
-
-
-def gm_id(
-        load_capacitance,
-        gain,
-        bandwidth,
-        differential=True,
-        inversion_level='moderate'
-    ):
-    if inversion_level == 'strong':
-        gm_id_ratio = 10
-    elif inversion_level == 'moderate':
-        gm_id_ratio = 16
-    elif inversion_level == 'weak':
-        gm_id_ratio = 20
-    num_branch = np.where(differential, 2, 1)
-    gm = 2 * np.pi * load_capacitance * gain * bandwidth
-    id = gm / gm_id_ratio * num_branch  # [A]
-
-    return [id, gm]
-
-
-def get_pixel_parasitic(
-        array_v,
-        tech_node,  # [nm]
-        pitch  # [um]
-    ):
-    C_p = 9e-15 / 130 / 5 * tech_node * pitch * array_v
-    return C_p
-
-
-def get_nominal_supply(tech_node):
-    if 130 < tech_node <= 180:
-        supply = 1.8
-    if 65 < tech_node <= 130:
-        supply = 1.5
-    if tech_node <= 65:
-        supply = 1.1
-    else:
-        raise Exception("Defined tech_node is not supported.")
-    return supply
-
-
-def parallel_impedance(impedance_array):
-    impedance = np.reciprocal(np.sum(np.reciprocal(impedance_array)))
-    return impedance
-
-
-def get_delay(
-        current_stage_output_impedance,
-        next_stage_input_impedance,
-        current_stage_output_capacitance,
-        next_stage_input_capacitance
-    ):
-    # 5*Tau represents charging to 99% of the full voltage from 0
-    delay = 5 * (parallel_impedance([current_stage_output_impedance, next_stage_input_impedance])) * \
-            (current_stage_output_capacitance + next_stage_input_capacitance)
-    return delay

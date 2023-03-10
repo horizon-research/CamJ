@@ -72,6 +72,8 @@ def launch_functional_simulation(sw_desc, hw_desc, mapping, input_mapping):
     # first process those analog stages that are initial stage in analog pipeline.
     for k in input_mapping.keys():
         analog_array = analog_sw_mapping[k]
+        # check if the analog array contains the Conv instance and config the convolution instance
+        analog_array.configure_operation(sw_stage = k)
         noise_res_list = analog_array.noise(input_mapping[k])
         for pair in noise_res_list:
             simulation_res[pair[0]] = pair[1]
@@ -93,7 +95,6 @@ def launch_functional_simulation(sw_desc, hw_desc, mapping, input_mapping):
             # check if all input stages are ready
             if ready_flag:
                 analog_array = analog_sw_mapping[sw_stage.name]
-                
                 curr_input_list = []
                 for in_stage in sw_stage.input_stages:
                     for input_data in ready_input[in_stage.name]:
@@ -106,6 +107,8 @@ def launch_functional_simulation(sw_desc, hw_desc, mapping, input_mapping):
                     finished_stages.append(sw_stage.name)
                 # else we will perform functional simulation routine.
                 else:
+                    # check if the analog array contains the Conv instance and config the convolution instance
+                    analog_array.configure_operation(sw_stage = sw_stage)
                     noise_res_list = analog_array.noise(curr_input_list)
                     for pair in noise_res_list:
                         simulation_res[pair[0]] = pair[1]
