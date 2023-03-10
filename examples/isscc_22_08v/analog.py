@@ -11,7 +11,8 @@ from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
 from camj.sim_core.analog_utils import check_analog_connect_consistency, compute_total_energy,\
                                        launch_analog_simulation
 from camj.sim_core.pixel_libs import PulseWidthModulationPixel
-from camj.sim_core.analog_libs import DigitalToCurrentConverter, CurrentMirror, Comparator, PassiveAnalogMemory
+from camj.sim_core.analog_libs import DigitalToCurrentConverter, CurrentMirror, Comparator,\
+                                      PassiveAnalogMemory, Time2CurrentConv
 from camj.sim_core.sw_utils import build_sw_graph
 
 from examples.isscc_22_08v.mapping import mapping_function
@@ -96,34 +97,27 @@ def analog_config():
         output_domain = ProcessDomain.CURRENT,
         component_list = [
             (
-                CurrentMirror(
-                    # performance parameters
-                    supply = 0.8,
-                    load_capacitance = 2e-12,  # [F]
-                    t_readout = 7.9e-6,  # [s]
-                    i_dc = None,  # [A]
-                    # noise parameters
-                    gain = 1.0,
-                    noise = 0.005,
-                    enable_compute = True,
-                    enable_prnu = True,
-                    prnu_std = 0.001
-                ),
-                9
-            ),
-            (
-                PassiveAnalogMemory(
-                    # performance parameters
-                    capacitance = 2e-12,  # [F]
-                    supply = 0.8,  # [V]
+                Time2CurrentConv(
+                    cm_supply = 0.8,
+                    cm_load_capacitance = 2e-12,  # [F]
+                    cm_t_readout = 7.9e-6,  # [s]
+                    cm_i_dc = None,  # [A]
+                    # performance parameters for analog memory
+                    am_capacitance = 2e-12,  # [F]
+                    am_supply = 0.8,  # [V]
                     # eqv_reso  # equivalent resolution
-                    # noise parameters
-                    gain = 1.0,
-                    noise = 0.,
-                    enable_prnu = False,
-                    prnu_std = 0.001,
-                ), 
-                2
+                    # noise parameters for current mirror
+                    cm_gain = 1.0,
+                    cm_noise = 0.,
+                    cm_enable_prnu = False,
+                    cm_prnu_std = 0.001,
+                    # noise parameters for analog memory
+                    am_gain = 1.0,
+                    am_noise = 0.,
+                    am_enable_prnu = False,
+                    am_prnu_std = 0.001,
+                ),
+                1
             ),
             (
                 PassiveAnalogMemory(
