@@ -819,25 +819,29 @@ class Voltage2VoltageConv(object):
         return output_signal
 
     def noise(self, input_signal_list):
-        image_list = []
-        kernel_list = []
-        for input_signal in input_signal_list:
-            if input_signal.shape == self.kernel_size:
-                kernel_list.append(input_signal)
-            else:
-                image_list.append(input_signal)
 
-        if len(image_list) != 1:
-            raise Exception("Input signal to 'Voltage2VoltageConv' should be 1.")
-        if len(kernel_list) != self.num_kernels:
+        if len(input_signal_list) != 2:
+            raise Exception("Input to Voltage2VoltageConv limits to 2 (input+weight)!")
+
+        image_input = None
+        kernel_input = None
+        for input_signal in input_signal_list:
+            if input_signal.shape[:2] == self.kernel_size[:2]:
+                kernel_input = input_signal
+            else:
+                image_input = input_signal
+
+        if image_input is None:
+            raise Exception("Input signal to 'Voltage2VoltageConv' has not been initialized.")
+        if kernel_input is None or kernel_input.shape[-1] != self.num_kernels:
             raise Exception(
                 "Number of Kernel in input signal doesn't match the num_kernels (%d)"\
                 % self.num_kernels
             )
 
         conv_result_list = []
-        for kernel in kernel_list:
-            conv_result = self.single_channel_convolution(image_list[0], kernel)
+        for i in range(self.num_kernels):
+            conv_result = self.single_channel_convolution(image_input, kernel_input[:, :, i])
             output_height, output_width = conv_result.shape
 
             conv_result_after_noise = self.rs.normal(
@@ -849,10 +853,15 @@ class Voltage2VoltageConv(object):
                 self.sf_noise_model.apply_gain_and_noise(
                     conv_result_after_noise
                 )
-
             )
 
-        return ("Voltage2VoltageConv", conv_result_list)
+        output_height, output_width = conv_result_list[0].shape
+        output_result = np.zeros((output_height, output_width, self.num_kernels))
+
+        for i in range(self.num_kernels):
+            output_result[:, :, i] = conv_result_list[i]
+
+        return ("Voltage2VoltageConv", [output_result])
 
 
 
@@ -915,7 +924,7 @@ class Time2CurrentConv(object):
         )
 
     def energy(self):
-        if self.kernel_size == None:
+        if self.kernel_size is None:
             raise Exception("'kernel_size' in 'Time2CurrentConv' hasn't been initialized.")
 
         mac_cnt = self.kernel_size[0] * self.kernel_size[1]
@@ -958,35 +967,43 @@ class Time2CurrentConv(object):
         return output_signal
 
     def noise(self, input_signal_list):
-        image_list = []
-        kernel_list = []
-        for input_signal in input_signal_list:
-            if input_signal.shape == self.kernel_size:
-                kernel_list.append(input_signal)
-            else:
-                image_list.append(input_signal)
+        if len(input_signal_list) != 2:
+            raise Exception("Input to Voltage2VoltageConv limits to 2 (input+weight)!")
 
-        if len(image_list) != 1:
-            raise Exception("Input signal to 'Voltage2VoltageConv' should be 1.")
-        if len(kernel_list) != self.num_kernels:
+        image_input = None
+        kernel_input = None
+        for input_signal in input_signal_list:
+            if input_signal.shape[:2] == self.kernel_size[:2]:
+                kernel_input = input_signal
+            else:
+                image_input = input_signal
+
+        if image_input is None:
+            raise Exception("Input signal to 'Voltage2VoltageConv' has not been initialized.")
+        if kernel_input is None or kernel_input.shape[-1] != self.num_kernels:
             raise Exception(
                 "Number of Kernel in input signal doesn't match the num_kernels (%d)"\
                 % self.num_kernels
             )
 
         conv_result_list = []
-        for kernel in kernel_list:
-            conv_result = self.single_channel_convolution(image_list[0], kernel)
+        for i in range(self.num_kernels):
+            conv_result = self.single_channel_convolution(image_input, kernel_input[:, :, i])
             output_height, output_width = conv_result.shape
 
             conv_result_list.append(
                 self.am_noise_model.apply_gain_and_noise(
                     conv_result
                 )
-
             )
 
-        return ("Time2CurrentConv", conv_result_list)
+        output_height, output_width = conv_result_list[0].shape
+        output_result = np.zeros((output_height, output_width, self.num_kernels))
+
+        for i in range(self.num_kernels):
+            output_result[:, :, i] = conv_result_list[i]
+
+        return ("Time2CurrentConv", [output_result])
 
 
 

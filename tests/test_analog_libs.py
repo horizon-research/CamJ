@@ -175,16 +175,12 @@ def test_v2v_conv():
         np.ones((128, 128))
     )
     # then add some weights
+    weight_input = np.zeros((3, 3, num_kernels))
+    # then add some weights
     for i in range(num_kernels):
-        input_signal_list.append(
-            np.array(
-                [
-                    [1, 1, 1],
-                    [1, 1, 1],
-                    [1, 1, 1]
-                ]
-            ) * (i+1)
-        )
+        weight_input[:, :, i] = 1*(i+1)
+
+    input_signal_list.append(weight_input)
 
     v2v_conv_comp.set_conv_config(
         kernel_size = [(3, 3, 1)],
@@ -194,10 +190,10 @@ def test_v2v_conv():
 
     _, output_signal = v2v_conv_comp.noise(input_signal_list)
 
-    assert len(output_signal) == num_kernels, "output_signal length (%d) should equal to num_kernels (%d)" % (len(output_signal), num_kernel)
+    assert output_signal[0].shape[-1] == num_kernels, "output_signal length (%d) should equal to num_kernels (%d)" % (len(output_signal), num_kernels)
 
     for i in range(num_kernels):
-        assert np.mean(output_signal[i]) == 9 * (i+1), "Wrong convolution result! Expect %.2f but %.2f" % (np.mean(output_signal[i]), 11 * (i+1))
+        assert np.mean(output_signal[0][:, :, i]) == 9 * (i+1), "Wrong convolution result! Expect %.2f but %.2f" % (9 * (i+1), np.mean(output_signal[0][:, :, i]))
 
 
 def test_t2c_conv():
@@ -230,17 +226,13 @@ def test_t2c_conv():
     input_signal_list.append(
         np.ones((128, 128))
     )
+
+    weight_input = np.zeros((3, 3, num_kernels))
     # then add some weights
     for i in range(num_kernels):
-        input_signal_list.append(
-            np.array(
-                [
-                    [1, 1, 1],
-                    [1, 1, 1],
-                    [1, 1, 1]
-                ]
-            ) * (i+1)
-        )
+        weight_input[:, :, i] = 1*(i+1)
+
+    input_signal_list.append(weight_input)
 
     t2c_conv_comp.set_conv_config(
         kernel_size = [(3, 3, 1)],
@@ -250,10 +242,10 @@ def test_t2c_conv():
 
     _, output_signal = t2c_conv_comp.noise(input_signal_list)
 
-    assert len(output_signal) == num_kernels, "output_signal length (%d) should equal to num_kernels (%d)" % (len(output_signal), num_kernel)
+    assert output_signal[0].shape[-1] == num_kernels, "output_signal length (%d) should equal to num_kernels (%d)" % (len(output_signal), num_kernels)
 
     for i in range(num_kernels):
-        assert np.mean(output_signal[i]) == 9 * (i+1), "Wrong convolution result! Expect %.2f but %.2f" % (np.mean(output_signal[i]), 11 * (i+1))
+        assert np.mean(output_signal[0][:, :, i]) == 9 * (i+1), "Wrong convolution result! Expect %.2f but %.2f" % (9 * (i+1), np.mean(output_signal[0][:, :, i]))
 
 
 
