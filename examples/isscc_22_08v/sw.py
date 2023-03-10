@@ -54,9 +54,12 @@ def sw_pipeline():
 
     # build the connections among different sw stages
     input_data = PixelInput((126, 126, 1), name="Input")
+    weight_data = PixelInput((3, 3, 8), name="Weight")
     sw_stage_list.append(input_data)
+    sw_stage_list.append(weight_data)
 
     conv_stage.set_input_stage(input_data)
+    conv_stage.set_input_stage(weight_data)
 
     relu_stage.set_input_stage(conv_stage)
     

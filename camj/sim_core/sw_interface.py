@@ -28,6 +28,34 @@ class PixelInput(object):
     def check_ready_board(self):
         return True
 
+class WeightInput(object):
+    def __init__(
+        self,
+        size, # (H, W, C)
+        name,
+    ):
+        assert len(size) == 3, "WeightInput size should be a tuple of length 3!"
+
+        self.size = (size[1], size[0], size[2]) # covert to internal representation (x, y, z)
+        self.input_size = []
+        self.output_size = (size[1], size[0], size[2]) # covert to internal representation (x, y, z)
+        self.input_stages = []
+        self.name = name
+        self.output_stages = []
+        self.ready_board = {}
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return self.name
+
+    def set_output_stage(self, stage):
+        self.output_stages.append(stage)
+
+    def check_ready_board(self):
+        return True
+
 
 class ProcessStage(object):
     """docstring for ProcessStage"""
