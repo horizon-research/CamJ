@@ -25,8 +25,11 @@ def sw_pipeline():
     sw_stage_list.append(conv_stage)
 
     input_data = PixelInput((128, 128, 1), name="Input")
+    weight_data = PixelInput((3, 3, 1), name="Weight")
     sw_stage_list.append(input_data)
+    sw_stage_list.append(weight_data)
     conv_stage.set_input_stage(input_data)
+    conv_stage.set_input_stage(weight_data)
 
     return sw_stage_list
 

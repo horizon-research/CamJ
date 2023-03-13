@@ -59,7 +59,7 @@ def run_functional_simulation(hw_desc, mapping, sw_desc, test_img_name):
         mapping = mapping,
         input_mapping = input_mapping
     )
-    res_img = Image.fromarray(np.uint8(simulation_res["Time2CurrentConv"][0][:, :, 0]) , 'L')
+    res_img = Image.fromarray(np.uint8(simulation_res["ReLU"][0][:, :, 0]) , 'L')
     res_img.show()
 
 if __name__ == '__main__':
