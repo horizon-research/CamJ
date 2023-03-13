@@ -66,14 +66,12 @@ def analog_config():
     )
 
     pixel_array.add_component(pixel, (480, 640, 1))
-
     cs_array = AnalogArray(
         name = "CSArray",
         layer = ProcessorLocation.SENSOR_LAYER,
         num_input = [(1, 16, 1)],
         num_output = (1, 4, 1)
     )
-
     cs = AnalogComponent(
         name = "CS",
         input_domain = [ProcessDomain.CURRENT, ProcessDomain.TIME],
@@ -90,11 +88,8 @@ def analog_config():
         num_input = [(1, 16, 1)],
         num_output = (1, 4, 1)
     )
-
     cs_array.add_component(cs, (1, 1, 1))
-
     cs_array.add_input_array(pixel_array)
-
 
     analog_arrays.append(pixel_array)
     analog_arrays.append(cs_array)
