@@ -724,6 +724,104 @@ class PassiveAverage(object):
             ]
         )
 
+class PassiveBinning(object):
+    def __init__(
+        self,
+        # peformance parameters
+        capacitance_array,
+        vs_array,
+        sf_load_capacitance = 1e-12,  # [F]
+        sf_supply = 1.8,  # [V]
+        sf_output_vs = 1,  # [V]
+        sf_bias_current = 5e-6,  # [A]
+        # noise parameters
+        psca_noise = 0.,
+        sf_gain = 1.0,
+        sf_noise = 0.,
+        sf_enable_prnu = False,
+        sf_prnu_std = 0.001,
+        
+    ):
+
+        self.kernel_size = None
+        self.psca_perf_model = PassiveSwitchedCapacitorArrayPerf(
+            capacitance_array = capacitance_array,
+            vs_array = vs_array
+        )
+
+        self.sf_perf_model = SourceFollowerPerf(
+            load_capacitance = sf_load_capacitance,
+            supply = sf_supply,
+            output_vs = sf_output_vs,
+            bias_current = sf_bias_current,
+        )
+
+        self.psca_noise_model = PassiveSwitchedCapacitorArrayNoise(
+            name = "PassiveSwitchedCapacitorArray",
+            num_capacitor = len(capacitance_array),
+            noise = psca_noise
+        )
+
+        self.sf_noise_model = PixelwiseNoise(
+            name = "SourceFollower",
+            gain = sf_gain,
+            noise = sf_noise,
+            enable_prnu = sf_enable_prnu,
+            prnu_std = sf_prnu_std
+        )
+
+    def set_binning_config(self, kernel_size):
+        if len(kernel_size) != 1:
+            raise Exception("The length of kernel_size, num_kernels and stride should be 1.")
+
+        if kernel_size[0][-1] != 1:
+            raise Exception("'PassiveBinning' only support kernel channel size of 1.")
+
+        self.kernel_size = kernel_size[0][:2]
+
+    def energy(self):
+        return self.psca_perf_model.energy() + self.sf_perf_model.energy()
+
+    def noise(self, input_signal_list):
+        output_signal_list = []
+        for input_signal in input_signal_list:
+            input_shape = input_signal.shape
+            if len(input_shape) != 3:
+                raise Exception("'PassiveBinning' only support 3D input.")
+            new_input_shape = (
+                input_shape[0] // self.kernel_size[0],
+                self.kernel_size[0],
+                input_shape[1] // self.kernel_size[1],
+                self.kernel_size[1],
+                input_shape[2]
+            )
+            transposed_input_signal = np.transpose(
+                input_signal.reshape(new_input_shape), 
+                (0, 2, 1, 3, 4)
+            ).reshape(
+                (
+                    new_input_shape[0],
+                    new_input_shape[2],
+                    new_input_shape[1] * new_input_shape[3],
+                    new_input_shape[4]
+                )
+            )
+
+            psca_input_list = []
+            for i in range(new_input_shape[1] * new_input_shape[3]):
+                psca_input_list.append(
+                    transposed_input_signal[:, :, i, :]
+                )
+
+            output_signal_list.append(
+                self.sf_noise_model.apply_gain_and_noise(
+                    self.psca_noise_model.apply_gain_and_noise(
+                        psca_input_list
+                    )
+                )
+            )
+        return ("PassiveBinning", output_signal_list)
+
 
 class Voltage2VoltageConv(object):
     def __init__(
@@ -1004,6 +1102,7 @@ class Time2CurrentConv(object):
             output_result[:, :, i] = conv_result_list[i]
 
         return ("Time2CurrentConv", [output_result])
+
 
 class AnalogReLU(object):
     def __init__(

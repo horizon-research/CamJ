@@ -42,8 +42,6 @@ def sw_pipeline():
     binning_stage.set_input_stage(analog_input_data)
     haar_stage.set_input_stage(binning_stage)    
 
-
-    
     scaler = 4
     # this part is the sw definition to run digital simulation
     conv2d_1_stage = DNNProcessStage(

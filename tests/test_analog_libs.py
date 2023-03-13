@@ -5,7 +5,7 @@ import numpy as np
 # setting path
 sys.path.append(os.path.dirname(os.getcwd()))
 
-from camj.sim_core.analog_libs import MaximumVoltage, PassiveAverage, Adder, Subtractor,\
+from camj.sim_core.analog_libs import MaximumVoltage, PassiveAverage, PassiveBinning, Adder, Subtractor,\
                                       AbsoluteDifference, Voltage2VoltageConv, Time2CurrentConv
 
 def test_maximum_voltage():
@@ -61,7 +61,41 @@ def test_passive_average():
     output_signal = passive_average_comp.noise(input_signal_list)
 
     assert output_signal[1][0].shape == (10, 10), "The max output should be a shape of (10, 10)"
-    assert np.mean(output_signal[1][0]) == 3, "The max value of output should be 3, got %f" % np.mean(output_signal[1])
+    assert np.mean(output_signal[1][0]) == 3, "The mean value of output should be 3, got %f" % np.mean(output_signal[1])
+
+def test_passive_binning():
+
+    passive_binning_comp = PassiveBinning(
+        # peformance parameters
+        capacitance_array = [1e-12, 1e-12, 1e-12, 1e-12],
+        vs_array = [3.3, 3.3, 3.3, 3.3],
+        sf_load_capacitance = 1e-12,  # [F]
+        sf_supply = 1.8,  # [V]
+        sf_output_vs = 1,  # [V]
+        sf_bias_current = 5e-6,  # [A]
+        # noise parameters
+        psca_noise = 0.,
+        sf_gain = 1.0,
+        sf_noise = 0.,
+        sf_enable_prnu = False,
+        sf_prnu_std = 0.001,
+    )
+    passive_binning_comp.set_binning_config(
+        kernel_size = [(2, 2, 1)]
+    )
+
+    input_signal_list = []
+
+    for i in range(1, 6):
+        input_signal_list.append(
+            np.ones((10, 10, 1)) * i
+        )
+
+    _, output_signal = passive_binning_comp.noise(input_signal_list)
+    print(output_signal)
+
+    assert output_signal[0].shape == (5, 5, 1), "The max output should be a shape of (5, 5)"
+    assert np.mean(output_signal[0]) == 1, "The mean value of output should be 1, got %f" % np.mean(output_signal[0])
 
 def test_adder():
     adder_comp = Adder(
@@ -253,6 +287,7 @@ if __name__ == '__main__':
     
     test_maximum_voltage()
     test_passive_average()
+    test_passive_binning()
     test_adder()
     test_subtractor()
     test_abs()
