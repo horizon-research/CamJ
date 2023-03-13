@@ -271,7 +271,7 @@ class PulseWidthModulationPixel(object):
         array_vsize = 126, # pixel array vertical size
         ramp_capacitance = 1e-12,  # [F]
         gate_capacitance = 10e-15,  # [F]
-        num_readout = 1
+        num_readout = 1,
     ):
         self.perf_model = PulseWidthModulationPixelPerf(
             pd_capacitance = pd_capacitance,
@@ -286,6 +286,7 @@ class PulseWidthModulationPixel(object):
         return self.perf_model.energy()
 
     def noise(self, input_signal_list):
-        raise Exception("Noise simulation for PWM pixel is not implemented yet!")
+        # haven't implemented the noise model for PWM pixel yet.
+        return ("PulseWidthModulationPixel", input_signal_list)
 
 

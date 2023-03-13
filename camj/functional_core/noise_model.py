@@ -2,6 +2,7 @@ import numpy as np
 import math
 import cv2
 import time
+import copy
 
 class PhotodiodeNoise(object):
     """
@@ -35,13 +36,11 @@ class PhotodiodeNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal):
-        if len(input_signal.shape) != 2:
-            raise Exception("input signal in noise model needs to be in (height, width) 2D shape.")
 
-        input_height, input_width = input_signal.shape
+        input_shape = input_signal.shape
 
         # simulate photon shot noise using Poisson random function  
-        signal_after_shot_noise = self.rs.poisson(input_signal, (input_height, input_width))
+        signal_after_shot_noise = self.rs.poisson(input_signal, input_shape)
 
         # check if DCNU needs to be applied.
         if self.enable_dcnu:
@@ -50,19 +49,19 @@ class PhotodiodeNoise(object):
                 self.dcnu_noise = self.rs.normal(
                     loc = self.dark_current_noise,
                     scale = self.dark_current_noise * self.dcnu_std,
-                    size = (input_height, input_width)
+                    size = input_shape
                 )
 
             # then apply poisson distribution on dcnu
             signal_after_dc_noise = self.rs.poisson(
                 self.dcnu_noise, 
-                size = (input_height, input_width)
+                size = input_shape
             ) + signal_after_shot_noise
         else:
             # directly apply dc noise
             signal_after_dc_noise = self.rs.poisson(
                 self.dark_current_noise, 
-                size = (input_height, input_width)
+                size = input_shape
             ) + signal_after_shot_noise
             
         return np.clip(signal_after_dc_noise, a_min = 0, a_max = None)
@@ -101,15 +100,13 @@ class AnalogToDigitalConverterNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal):
-        if len(input_signal.shape) != 2:
-            raise Exception("input signal in noise model needs to be in (height, width) 2D shape.")
-
-        input_height, input_width = input_signal.shape
+        
+        input_shape = input_signal.shape
 
         # simulate quantization noise
         signal_after_noise = self.rs.normal(
             scale = self.adc_noise,
-            size = (input_height, input_width)
+            size = input_shape
         ) + input_signal
 
         return np.clip(signal_after_noise, a_min = 0, a_max = self.max_val)
@@ -162,21 +159,19 @@ class AbsoluteDifferenceNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal1, input_signal2):
-        if len(input_signal1.shape) != 2 or len(input_signal2.shape) != 2:
-            raise Exception("input signal in noise model needs to be in (height, width) 2D shape.")
                 
         if input_signal1.shape != input_signal2.shape:
             raise Exception("Two input shapes are not equal in absolute difference!")
 
         diff_signal = np.abs(input_signal1 - input_signal2)
 
-        input_height, input_width = diff_signal.shape
+        input_shape = diff_signal.shape
         if self.enable_prnu:
             if self.prnu_gain is None or self.prnu_gain.shape != diff_signal.shape:
                 self.prnu_gain = self.rs.normal(
                     loc = self.gain,
                     scale = self.gain * self.prnu_std,
-                    size = (input_height, input_width)
+                    size = input_shape
                 )
             # generate random gain values
             diff_after_gain = self.prnu_gain * diff_signal
@@ -185,7 +180,7 @@ class AbsoluteDifferenceNoise(object):
 
         diff_after_noise = self.rs.normal(
             scale = self.noise,
-            size = (input_height, input_width)
+            size = input_shape
         ) + diff_after_gain
 
         return np.clip(diff_after_noise, a_min = 0, a_max = None)
@@ -240,28 +235,29 @@ class CurrentMirrorNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal, weight_signal=None):
-        if len(input_signal.shape) != 2:
-            raise Exception("input signal in noise model needs to be in (height, width) 2D shape.")
                 
+        output_signal = np.zeros(input_signal.shape)
         if self.enable_compute and weight_signal is not None:
-            input_signal = input_signal * weight_signal
+            output_signal = input_signal * weight_signal
+        else:
+            output_signal = copy.deepcopy(input_signal)
 
-        input_height, input_width = input_signal.shape
+        input_shape = input_signal.shape
         if self.enable_prnu:
             if self.prnu_gain is None or self.prnu_gain.shape != input_signal.shape:
                 self.prnu_gain = self.rs.normal(
                     loc = self.gain,
                     scale = self.gain * self.prnu_std,
-                    size = (input_height, input_width)
+                    size = input_shape
                 )
             # generate random gain values
-            input_after_gain = self.prnu_gain * input_signal
+            input_after_gain = self.prnu_gain * output_signal
         else:
-            input_after_gain = self.gain * input_signal
+            input_after_gain = self.gain * output_signal
 
         input_after_noise = self.rs.normal(
             scale = self.noise,
-            size = (input_height, input_width)
+            size = input_shape
         ) + input_after_gain
 
         return np.clip(input_after_noise, a_min = 0, a_max = None)
@@ -308,9 +304,6 @@ class PassiveSwitchedCapacitorArrayNoise(object):
                 "Input signal list length (%d) needs to be equal to the number of capacitor (%d)!"\
                 % (len(input_signal_list), self.num_capacitor))
 
-        if len(input_signal_list[0].shape) != 2:
-            raise Exception("input signal in noise model needs to be in (height, width) 2D shape.")
-            
         input_shape = input_signal_list[0].shape
 
         for input_signal in input_signal_list:
@@ -324,11 +317,11 @@ class PassiveSwitchedCapacitorArrayNoise(object):
 
         average_input_signal = average_input_signal / len(input_signal_list)
 
-        input_height, input_width = average_input_signal.shape
+        input_shape = average_input_signal.shape
 
         input_after_noise = self.rs.normal(
             scale = self.noise,
-            size = (input_height, input_width)
+            size = input_shape
         ) + average_input_signal
 
         return np.clip(input_after_noise, a_min = 0, a_max = None)
@@ -380,7 +373,7 @@ class MaximumVoltageNoise(object):
 
         max_after_noise = self.rs.normal(
             scale = self.noise,
-            size = (input_height, input_width)
+            size = input_shape
         ) + max_signal
 
         return np.clip(max_after_noise, a_min = 0, a_max = None)
@@ -433,16 +426,14 @@ class PixelwiseNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal):
-        if len(input_signal.shape) != 2:
-            raise Exception("input signal in noise model needs to be in (height, width) 2D shape.")
-                
-        input_height, input_width = input_signal.shape
+
+        input_shape = input_signal.shape
         if self.enable_prnu:
             if self.prnu_gain is None or self.prnu_gain.shape != input_signal.shape:
                 self.prnu_gain = self.rs.normal(
                     loc = self.gain,
                     scale = self.gain * self.prnu_std,
-                    size = (input_height, input_width)
+                    size = input_shape
                 )
             # generate random gain values
             input_after_gain = self.prnu_gain * input_signal
@@ -451,7 +442,7 @@ class PixelwiseNoise(object):
 
         input_after_noise = self.rs.normal(
             scale = self.noise,
-            size = (input_height, input_width)
+            size = input_shape
         ) + input_after_gain
 
         return np.clip(input_after_noise, a_min = 0, a_max = None)
@@ -517,16 +508,14 @@ class FloatingDiffusionNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal):
-        if len(input_signal.shape) != 2:
-            raise Exception("input signal in noise model needs to be in (height, width) 2D shape.")
                 
-        input_height, input_width = input_signal.shape
+        input_shape = input_signal.shape
         if self.enable_prnu:
             if self.prnu_gain is None or self.prnu_gain.shape != input_signal.shape:
                 self.prnu_gain = self.rs.normal(
                     loc = self.gain,
                     scale = self.gain*self.prnu_std,
-                    size = (input_height, input_width)
+                    size = input_shape
                 )
             # generate random gain values
             input_after_gain = self.prnu_gain * input_signal
@@ -535,7 +524,7 @@ class FloatingDiffusionNoise(object):
 
         reset_noise = self.rs.normal(
             scale = self.noise,
-            size = (input_height, input_width)
+            size = input_shape
         )
         input_after_noise = reset_noise + input_after_gain
 
@@ -595,10 +584,8 @@ class CorrelatedDoubleSamplingNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal, reset_noise):
-        if len(input_signal.shape) != 2:
-            raise Exception("input signal in noise model needs to be in (height, width) 2D shape.")
                 
-        input_height, input_width = input_signal.shape
+        input_shape = input_signal.shape
 
         input_diff = input_signal - reset_noise
 
@@ -607,7 +594,7 @@ class CorrelatedDoubleSamplingNoise(object):
                 self.prnu_gain = self.rs.normal(
                     loc = self.gain,
                     scale = self.gain*self.prnu_std,
-                    size = (input_height, input_width)
+                    size = input_shape
                 )
             # generate random gain values
             input_after_gain = self.prnu_gain * input_diff
@@ -617,7 +604,7 @@ class CorrelatedDoubleSamplingNoise(object):
 
         input_after_noise = self.rs.normal(
             scale = self.noise,
-            size = (input_height, input_width)
+            size = input_shape
         ) + input_after_gain
 
         return np.clip(input_after_noise, a_min=0, a_max=None)
@@ -671,19 +658,16 @@ class ComparatorNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal1, input_signal2):
-        if len(input_signal1.shape) != 2:
-            raise Exception("input signal in noise model needs to be in (height, width) 2D shape.")
                 
-        input_height, input_width = input_signal1.shape
-
+        input_shape = input_signal1.shape
         input_diff = input_signal1 - input_signal2
-
+        
         if self.enable_prnu:
             if self.prnu_gain is None or self.prnu_gain.shape != input_signal.shape:
                 self.prnu_gain = self.rs.normal(
                     loc = self.gain,
                     scale = self.gain*self.prnu_std,
-                    size = (input_height, input_width)
+                    size = input_shape
                 )
             # generate random gain values
             input_after_gain = self.prnu_gain * input_diff
@@ -692,12 +676,12 @@ class ComparatorNoise(object):
 
         input_after_noise = self.rs.normal(
             scale = self.noise,
-            size = (input_height, input_width)
+            size = input_shape
         ) + input_after_gain
 
-        # find value greater than 0 and mask them 1.
-        result = np.zeros((input_height, input_width))
-        result[input_after_noise>=0] = 1
+        # find value less than 0 and mask them 0.
+        result = copy.deepcopy(input_signal1)
+        result[input_after_noise<0] = 0
 
         return result
 

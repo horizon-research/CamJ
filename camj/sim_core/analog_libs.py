@@ -980,6 +980,7 @@ class Time2CurrentConv(object):
 
         if image_input is None:
             raise Exception("Input signal to 'Voltage2VoltageConv' has not been initialized.")
+
         if kernel_input is None or kernel_input.shape[-1] != self.num_kernels:
             raise Exception(
                 "Number of Kernel in input signal doesn't match the num_kernels (%d)"\
@@ -990,7 +991,6 @@ class Time2CurrentConv(object):
         for i in range(self.num_kernels):
             conv_result = self.single_channel_convolution(image_input, kernel_input[:, :, i])
             output_height, output_width = conv_result.shape
-
             conv_result_list.append(
                 self.am_noise_model.apply_gain_and_noise(
                     conv_result
@@ -1005,6 +1005,51 @@ class Time2CurrentConv(object):
 
         return ("Time2CurrentConv", [output_result])
 
+class AnalogReLU(object):
+    def __init__(
+        self,
+        # performance parameters
+        supply = 1.8,  # [V]
+        i_bias = 10e-6,  # [A]
+        t_readout = 1e-9,  # [s]
+        # noise parameters
+        gain = 1.0,
+        noise = 0.,
+        enable_prnu = False,
+        prnu_std = 0.001
+    ):
+        self.name = "ReLU"
+        self.perf_model = ComparatorPerf(
+            supply = supply,
+            i_bias = i_bias,
+            t_readout = t_readout
+        )
+
+        self.noise_model = ComparatorNoise(
+            name = "Comparator",
+            gain = 1,
+            noise = 0,
+            enable_prnu = enable_prnu,
+            prnu_std = prnu_std
+        )
+
+    def energy(self):
+        return self.perf_model.energy()
+
+    def noise(self, input_signal_list):
+
+        output_signal_list = []
+
+        for input_signal in input_signal_list:
+            zero_input_signal = np.zeros(input_signal.shape)
+            output_signal_list.append(
+                self.noise_model.apply_gain_and_noise(
+                    input_signal1 = input_signal, 
+                    input_signal2 = zero_input_signal
+                )
+            )
+
+        return (self.name, output_signal_list)
 
 
 

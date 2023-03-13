@@ -11,7 +11,7 @@ from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
 from camj.sim_core.analog_utils import check_analog_connect_consistency, compute_total_energy,\
                                        launch_analog_simulation
 from camj.sim_core.pixel_libs import PulseWidthModulationPixel
-from camj.sim_core.analog_libs import DigitalToCurrentConverter, CurrentMirror, Comparator,\
+from camj.sim_core.analog_libs import DigitalToCurrentConverter, CurrentMirror, AnalogReLU,\
                                       PassiveAnalogMemory, Time2CurrentConv
 from camj.sim_core.sw_utils import build_sw_graph
 
@@ -42,6 +42,7 @@ def analog_config():
                     ramp_capacitance = 1e-12,  # [F]
                     gate_capacitance = 10e-15,  # [F]
                     num_readout = 8
+                    # noise parameters
                 ),
                 1
             )
@@ -72,8 +73,8 @@ def analog_config():
                     i_dc = None,  # [A]
                     # noise parameters
                     gain = 1.0,
-                    noise = 0.005,
-                    enable_prnu = True,
+                    noise = 0.0,
+                    enable_prnu = False,
                     prnu_std = 0.001,
                 ),
                 1
@@ -151,15 +152,15 @@ def analog_config():
         output_domain = ProcessDomain.DIGITAL,
         component_list = [
             (
-                Comparator(
+                AnalogReLU(
                     # performance parameters
                     supply = 0.8,  # [V]
                     i_bias = 10e-6,  # [A]
                     t_readout = 1e-9,  # [s]
                     # noise parameters
                     gain = 1.0,
-                    noise = 0.005,
-                    enable_prnu = True,
+                    noise = 0.0,
+                    enable_prnu =  False,
                     prnu_std = 0.001
                 ),
                 1
