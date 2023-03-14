@@ -11,7 +11,7 @@ from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
 from camj.sim_core.analog_utils import check_analog_connect_consistency, compute_total_energy,\
                                   check_analog_pipeline, launch_analog_simulation
 from camj.sim_core.pixel_libs import PulseWidthModulationPixel
-from camj.sim_core.analog_libs import DigitalToCurrentConverter, Time2CurrentConv, PassiveAnalogMemory
+from camj.sim_core.analog_libs import DigitalToCurrentConverter, Time2VoltageConv
 from camj.sim_core.sw_utils import build_sw_graph
 
 from examples.jssc21_05v.mapping import mapping_function
@@ -95,10 +95,10 @@ def analog_config():
     pe = AnalogComponent(
         name = "PE",
         input_domain = [ProcessDomain.CURRENT, ProcessDomain.TIME],
-        output_domain = ProcessDomain.CURRENT,
+        output_domain = ProcessDomain.VOLTAGE,
         component_list = [
             (
-                Time2CurrentConv(
+                Time2VoltageConv(
                     cm_supply = 0.5,
                     cm_load_capacitance = 2e-12,  # [F]
                     cm_t_readout = 16e-6,  # [s]
@@ -119,21 +119,7 @@ def analog_config():
                     am_prnu_std = 0.001,
                 ),
                 1
-            ),
-            (
-                PassiveAnalogMemory(
-                    # performance parameters
-                    capacitance = 2e-12,  # [F]
-                    supply = 0.5,  # [V]
-                    # eqv_reso  # equivalent resolution
-                    # noise parameters
-                    gain = 1.0,
-                    noise = 0.,
-                    enable_prnu = False,
-                    prnu_std = 0.001,
-                ), 
-                1
-            ),
+            )
         ],
         num_input = [(3, 1, 1), (3, 1, 1)],
         num_output = (1, 1, 1)

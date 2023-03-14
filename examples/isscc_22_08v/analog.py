@@ -12,7 +12,7 @@ from camj.sim_core.analog_utils import check_analog_connect_consistency, compute
                                        launch_analog_simulation
 from camj.sim_core.pixel_libs import PulseWidthModulationPixel
 from camj.sim_core.analog_libs import DigitalToCurrentConverter, CurrentMirror, AnalogReLU,\
-                                      PassiveAnalogMemory, Time2CurrentConv
+                                      PassiveAnalogMemory, Time2VoltageConv
 from camj.sim_core.sw_utils import build_sw_graph
 
 from examples.isscc_22_08v.mapping import mapping_function
@@ -95,10 +95,10 @@ def analog_config():
     conv = AnalogComponent(
         name = "Conv",
         input_domain = [ProcessDomain.CURRENT, ProcessDomain.TIME],
-        output_domain = ProcessDomain.CURRENT,
+        output_domain = ProcessDomain.VOLTAGE,
         component_list = [
             (
-                Time2CurrentConv(
+                Time2VoltageConv(
                     cm_supply = 0.8,
                     cm_load_capacitance = 2e-12,  # [F]
                     cm_t_readout = 7.9e-6,  # [s]
@@ -119,21 +119,7 @@ def analog_config():
                     am_prnu_std = 0.001,
                 ),
                 1
-            ),
-            (
-                PassiveAnalogMemory(
-                    # performance parameters
-                    capacitance = 1e-12,  # [F]
-                    supply = 0.8,  # [V]
-                    # eqv_reso  # equivalent resolution
-                    # noise parameters
-                    gain = 1.0,
-                    noise = 0.,
-                    enable_prnu = False,
-                    prnu_std = 0.001,
-                ), 
-                2
-            ),
+            )
         ],
         num_input = [(3, 3, 3), (3, 3, 3)],
         num_output = (1, 1, 1)
@@ -148,7 +134,7 @@ def analog_config():
     )
     relu = AnalogComponent(
         name = "ReLU",
-        input_domain = [ProcessDomain.CURRENT],
+        input_domain = [ProcessDomain.VOLTAGE],
         output_domain = ProcessDomain.DIGITAL,
         component_list = [
             (

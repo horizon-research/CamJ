@@ -1,7 +1,7 @@
 import numpy as np
 import copy
 
-from camj.sim_core.analog_libs import Voltage2VoltageConv, Time2CurrentConv, PassiveBinning
+from camj.sim_core.analog_libs import Voltage2VoltageConv, Time2VoltageConv, PassiveBinning
 
 class AnalogComponent(object):
     """docstring for AnalogComponent"""
@@ -56,7 +56,7 @@ class AnalogComponent(object):
 
     def configure_operation(self, sw_stage):
         for comp, _ in self.component_list:
-            if isinstance(comp, Voltage2VoltageConv) or isinstance(comp, Time2CurrentConv):
+            if isinstance(comp, Voltage2VoltageConv) or isinstance(comp, Time2VoltageConv):
                 comp.set_conv_config(
                     kernel_size = sw_stage.kernel_size,
                     num_kernels = sw_stage.num_kernels,
