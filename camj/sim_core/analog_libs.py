@@ -174,7 +174,7 @@ class ActiveAnalogMemory(object):
         )
 
     def energy(self):
-        return self.perf_model.energy()
+        return self.perf_model.energy() 
 
     def noise(self, input_signal_list):
         output_signal_list = []
@@ -963,7 +963,7 @@ class Voltage2VoltageConv(object):
 
 
 
-class Time2CurrentConv(object):
+class Time2VoltageConv(object):
     def __init__(
         self,
         # performance parameters for current mirror
@@ -1026,7 +1026,7 @@ class Time2CurrentConv(object):
             raise Exception("'kernel_size' in 'Time2CurrentConv' hasn't been initialized.")
 
         mac_cnt = self.kernel_size[0] * self.kernel_size[1]
-        return self.cm_perf_model.energy() * mac_cnt + self.am_perf_model.energy()
+        return self.cm_perf_model.energy() * mac_cnt + self.am_perf_model.energy() * 2
 
     def set_conv_config(self, kernel_size, num_kernels, stride):
         if len(kernel_size) != 1 or len(num_kernels) != 1 or len(stride) != 1:

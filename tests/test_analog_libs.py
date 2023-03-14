@@ -6,7 +6,7 @@ import numpy as np
 sys.path.append(os.path.dirname(os.getcwd()))
 
 from camj.sim_core.analog_libs import MaximumVoltage, PassiveAverage, PassiveBinning, Adder, Subtractor,\
-                                      AbsoluteDifference, Voltage2VoltageConv, Time2CurrentConv
+                                      AbsoluteDifference, Voltage2VoltageConv, Time2VoltageConv
 
 def test_maximum_voltage():
 
@@ -92,7 +92,6 @@ def test_passive_binning():
         )
 
     _, output_signal = passive_binning_comp.noise(input_signal_list)
-    print(output_signal)
 
     assert output_signal[0].shape == (5, 5, 1), "The max output should be a shape of (5, 5)"
     assert np.mean(output_signal[0]) == 1, "The mean value of output should be 1, got %f" % np.mean(output_signal[0])
@@ -230,8 +229,8 @@ def test_v2v_conv():
         assert np.mean(output_signal[0][:, :, i]) == 9 * (i+1), "Wrong convolution result! Expect %.2f but %.2f" % (9 * (i+1), np.mean(output_signal[0][:, :, i]))
 
 
-def test_t2c_conv():
-    t2c_conv_comp = Time2CurrentConv(
+def test_t2v_conv():
+    t2v_conv_comp = Time2VoltageConv(
         # performance parameters for current mirror
         cm_supply = 1.8,
         cm_load_capacitance = 2e-12,  # [F]
@@ -268,13 +267,13 @@ def test_t2c_conv():
 
     input_signal_list.append(weight_input)
 
-    t2c_conv_comp.set_conv_config(
+    t2v_conv_comp.set_conv_config(
         kernel_size = [(3, 3, 1)],
         num_kernels = [num_kernels],
         stride = [(1, 1, 1)]
     )
 
-    _, output_signal = t2c_conv_comp.noise(input_signal_list)
+    _, output_signal = t2v_conv_comp.noise(input_signal_list)
 
     assert output_signal[0].shape[-1] == num_kernels, "output_signal length (%d) should equal to num_kernels (%d)" % (len(output_signal), num_kernels)
 
@@ -292,4 +291,4 @@ if __name__ == '__main__':
     test_subtractor()
     test_abs()
     test_v2v_conv()
-    test_t2c_conv()
+    test_t2v_conv()
