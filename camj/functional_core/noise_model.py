@@ -368,9 +368,6 @@ class MaximumVoltageNoise(object):
         for input_signal in input_signal_list:
             max_signal = np.maximum(input_signal, max_signal)
 
-
-        input_height, input_width = max_signal.shape
-
         max_after_noise = self.rs.normal(
             scale = self.noise,
             size = input_shape

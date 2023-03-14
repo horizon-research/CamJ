@@ -664,6 +664,86 @@ class AbsoluteDifference(object):
         else:
             raise Exception("Input signal list to Comparator can only be length of 2!")
 
+
+class MaxPool(object):
+    """docstring for MaxPool"""
+    def __init__(
+        self, 
+        supply = 1.8,  # [V]
+        t_frame = 30e-3,  # [s]
+        t_acomp = 1e-6,  # [s]
+        load_capacitance = 1e-12,  # [F]
+        gain = 10,
+        # noise parameters
+        noise = 0.0,
+    ):
+        self.kernel_size = None
+
+        self.perf_model = MaximumVoltagePerf(
+            supply = supply,  # [V]
+            t_frame = t_frame,  # [s]
+            t_acomp = t_acomp,  # [s]
+            load_capacitance = load_capacitance,  # [F]
+            gain = gain
+        )
+
+        self.noise_model = MaximumVoltageNoise(
+            name = "MaximumVoltage",
+            noise = noise
+        )
+        
+    def set_binning_config(self, kernel_size):
+        if len(kernel_size) != 1:
+            raise Exception("The length of kernel_size, num_kernels and stride should be 1.")
+
+        if kernel_size[0][-1] != 1:
+            raise Exception("'PassiveBinning' only support kernel channel size of 1.")
+
+        self.kernel_size = kernel_size[0][:2]
+        
+    def energy(self):
+        if self.kernel_size is None:
+            raise Exception("kernel_size in 'MaxPool' hasn't not been initialized yet!")
+
+        return self.perf_model.energy() * self.kernel_size[0] * self.kernel_size[1]
+
+    def noise(self, input_signal_list):
+
+        output_signal_list = []
+        for input_signal in input_signal_list:
+            input_shape = input_signal.shape
+            if len(input_shape) != 3:
+                raise Exception("'MaxPool' only support 3D input.")
+            new_input_shape = (
+                input_shape[0] // self.kernel_size[0],
+                self.kernel_size[0],
+                input_shape[1] // self.kernel_size[1],
+                self.kernel_size[1],
+                input_shape[2]
+            )
+            transposed_input_signal = np.transpose(
+                input_signal.reshape(new_input_shape),
+                (0, 2, 1, 3, 4)
+            ).reshape(
+                (
+                    new_input_shape[0],
+                    new_input_shape[2],
+                    new_input_shape[1] * new_input_shape[3],
+                    new_input_shape[4]
+                )
+            )
+
+            reshaped_signal_list = []
+            for i in range(new_input_shape[1] * new_input_shape[3]):
+                reshaped_signal_list.append(transposed_input_signal[:, :, i, :])
+            
+            output_signal_list.append(
+                self.noise_model.apply_gain_and_noise(reshaped_signal_list)
+            )
+
+        return ("MaxPool", output_signal_list)
+
+
 class PassiveAverage(object):
     def __init__(
         self,

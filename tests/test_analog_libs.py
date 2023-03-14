@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.getcwd()))
 
 from camj.sim_core.analog_libs import MaximumVoltage, PassiveAverage, PassiveBinning, Adder, Subtractor,\
                                       AbsoluteDifference, Voltage2VoltageConv, Time2VoltageConv,\
-                                      ActiveBinning, ActiveAverage
+                                      ActiveBinning, ActiveAverage, MaxPool
 
 def test_maximum_voltage():
 
@@ -26,13 +26,42 @@ def test_maximum_voltage():
 
     for i in range(1, 4):
         input_signal_list.append(
-            np.ones((5, 5)) * i
+            np.ones((5, 5, 1)) * i
         )
 
     output_result = max_voltage_comp.noise(input_signal_list)
 
-    assert output_result[1][0].shape == (5, 5), "The max output should be a shape of (5, 5)"
+    assert output_result[1][0].shape == (5, 5, 1), "The max output should be a shape of (5, 5, 1)"
     assert np.mean(output_result[1][0]) == 3, "The max value of output should be 3, got %f" % np.mean(output_result[1])
+
+
+def test_maxpool():
+
+    maxpool_comp = MaxPool(
+        supply = 1.8,  # [V]
+        t_frame = 30e-3,  # [s]
+        t_acomp = 1e-6,  # [s]
+        load_capacitance = 1e-12,  # [F]
+        gain = 10,
+        # noise parameters
+        noise = 0.0,
+    )
+
+    maxpool_comp.set_binning_config(
+        kernel_size = [(2, 2, 1)]
+    )
+
+    input_signal = np.zeros((6, 6, 1))
+    for i in range(1, 6):
+        input_signal[i, :, 0] = np.arange(6) * i
+
+    input_signal_list = [np.array(input_signal)]
+
+    _, output_signal = maxpool_comp.noise(input_signal_list)
+
+    assert output_signal[0].shape == (3, 3, 1), "The max output should be a shape of (3, 3)"
+    assert np.mean(output_signal[0]) == 9, "The mean value of output should be 9, got %f" % np.mean(output_signal[0])
+
 
 def test_passive_average():
 
@@ -323,6 +352,7 @@ def test_active_binning():
 if __name__ == '__main__':
     
     test_maximum_voltage()
+    test_maxpool()
     test_passive_average()
     test_passive_binning()
     test_active_binning()
