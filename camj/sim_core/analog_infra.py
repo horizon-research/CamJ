@@ -2,7 +2,7 @@ import numpy as np
 import copy
 
 from camj.sim_core.analog_libs import Voltage2VoltageConv, Time2VoltageConv, PassiveBinning,\
-                                      ActiveAverage, ActiveBinning
+                                      ActiveAverage, ActiveBinning, MaxPool
 
 class AnalogComponent(object):
     """docstring for AnalogComponent"""
@@ -63,7 +63,8 @@ class AnalogComponent(object):
                     num_kernels = sw_stage.num_kernels,
                     stride = sw_stage.stride
                 )
-            elif isinstance(comp, PassiveBinning) or isinstance(comp, ActiveBinning) or isinstance(comp, ActiveAverage):
+            elif isinstance(comp, PassiveBinning) or isinstance(comp, ActiveBinning) \
+                or isinstance(comp, ActiveAverage) or isinstance(comp, MaxPool):
                 comp.set_binning_config(
                     kernel_size = sw_stage.kernel_size
                 )

@@ -11,7 +11,7 @@ from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
 from camj.sim_core.analog_utils import check_analog_connect_consistency, compute_total_energy,\
                                        launch_analog_simulation
 from camj.sim_core.pixel_libs import ActivePixelSensor
-from camj.sim_core.analog_libs import PassiveSwitchedCapacitorArray, MaximumVoltage
+from camj.sim_core.analog_libs import Voltage2VoltageConv, MaxPool
 from camj.sim_core.sw_utils import build_sw_graph
 
 from examples.sensors_20.mapping import mapping_function
@@ -79,11 +79,21 @@ def analog_config():
         output_domain = ProcessDomain.VOLTAGE,
         component_list = [
             (
-                PassiveSwitchedCapacitorArray(
+                Voltage2VoltageConv(
+                    # peformance parameters
                     capacitance_array = [1e-12, 0.5e-12, 0.5e-12, 1e-12],
                     vs_array = [3.3, 3.3, 3.3, 3.3],
+                    sf_load_capacitance = 1e-12,  # [F]
+                    sf_supply = 1.8,  # [V]
+                    sf_output_vs = 1,  # [V]
+                    sf_bias_current = 5e-6,  # [A]
                     # noise parameters
-                    noise = 0.,
+                    psca_noise = 0.,
+                    sf_gain = 1.0,
+                    sf_noise = 0.,
+                    sf_enable_prnu = False,
+                    sf_prnu_std = 0.001,
+                    
                 ),
                 2
             )
@@ -105,7 +115,7 @@ def analog_config():
         output_domain = ProcessDomain.VOLTAGE,
         component_list = [
             (
-                MaximumVoltage(
+                MaxPool(
                     supply = 3.3,  # [V]
                     t_frame = 1/60,  # [s]
                     t_acomp = 20e-6,  # [s]
@@ -134,11 +144,21 @@ def analog_config():
         output_domain = ProcessDomain.VOLTAGE,
         component_list = [
             (
-                PassiveSwitchedCapacitorArray(
+                Voltage2VoltageConv(
+                    # peformance parameters
                     capacitance_array = [1e-12, 0.5e-12, 0.5e-12, 1e-12],
                     vs_array = [3.3, 3.3, 3.3, 3.3],
+                    sf_load_capacitance = 1e-12,  # [F]
+                    sf_supply = 1.8,  # [V]
+                    sf_output_vs = 1,  # [V]
+                    sf_bias_current = 5e-6,  # [A]
                     # noise parameters
-                    noise = 0.,
+                    psca_noise = 0.,
+                    sf_gain = 1.0,
+                    sf_noise = 0.,
+                    sf_enable_prnu = False,
+                    sf_prnu_std = 0.001,
+                    
                 ),
                 1
             )
@@ -160,7 +180,7 @@ def analog_config():
         output_domain = ProcessDomain.VOLTAGE,
         component_list = [
             (
-                MaximumVoltage(
+                MaxPool(
                     supply = 3.3,  # [V]
                     t_frame = 1/60,  # [s]
                     t_acomp = 20e-6,  # [s]
