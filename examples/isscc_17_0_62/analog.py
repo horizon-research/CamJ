@@ -11,7 +11,7 @@ from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
 from camj.sim_core.analog_utils import check_analog_connect_consistency, compute_total_energy,\
                                   check_analog_pipeline, launch_analog_simulation
 from camj.sim_core.pixel_libs import ActivePixelSensor
-from camj.sim_core.analog_libs import PassiveSwitchedCapacitorArray, ColumnAmplifier,\
+from camj.sim_core.analog_libs import PassiveSwitchedCapacitorArray, ActiveBinning, ColumnAmplifier,\
                                     ActiveAnalogMemory, Comparator
 from camj.sim_core.sw_utils import build_sw_graph
 
@@ -74,12 +74,12 @@ def analog_config():
         num_output = (1, 80, 1)
     )
     col_amp = AnalogComponent(
-        name = "ColAmp",
+        name = "ActiveBinning",
         input_domain =[ProcessDomain.VOLTAGE],
         output_domain = ProcessDomain.VOLTAGE,
         component_list = [
             (
-                ColumnAmplifier(
+                ActiveBinning(
                     # performance parameters
                     load_capacitance = 174e-15,  # [F]
                     input_capacitance = 55.6*4e-15,  # [F]
@@ -96,7 +96,7 @@ def analog_config():
                     pixel_offset_voltage = 0.1,
                     col_offset_voltage = 0.05
                 ),
-                4
+                1
             )
         ],
         num_input = [(1, 4, 1)],
