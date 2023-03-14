@@ -549,7 +549,6 @@ class Adder(object):
             raise Exception("Input signal list to Comparator can only be length of 2!")
 
 
-
 class Subtractor(object):
     def __init__(
         self,
@@ -821,6 +820,166 @@ class PassiveBinning(object):
                 )
             )
         return ("PassiveBinning", output_signal_list)
+
+
+class ActiveAverage(object):
+    def __init__(
+        self,
+        # performance parameters
+        load_capacitance = 1e-12,  # [F]
+        input_capacitance = 1e-12,  # [F]
+        t_sample = 2e-6,  # [s]
+        t_frame = 10e-3,  # [s]
+        supply = 1.8,  # [V]
+        gain = 1,
+        gain_open = 256,
+        differential = False,
+        # noise parameters
+        noise = 0.,
+        enable_prnu = False,
+        prnu_std = 0.001,
+        enable_offset = False,
+        pixel_offset_voltage = 0.1,
+        col_offset_voltage = 0.05
+    ):
+        self.perf_model = ColumnAmplifierPerf(
+            load_capacitance = load_capacitance,
+            input_capacitance = input_capacitance,
+            t_sample = t_sample,
+            t_frame = t_frame,
+            supply = supply,
+            gain = gain,
+            gain_open = gain_open,
+            differential = differential
+        )
+
+        self.noise_model = ColumnwiseNoise(
+            name = "ColumnAmplifier",
+            gain = gain,
+            noise = noise,
+            enable_prnu = enable_prnu,
+            prnu_std = prnu_std
+        )
+
+    def set_binning_config(self, kernel_size):
+        if len(kernel_size) != 1:
+            raise Exception("The length of kernel_size, num_kernels and stride should be 1.")
+
+        if kernel_size[0][-1] != 1:
+            raise Exception("'PassiveBinning' only support kernel channel size of 1.")
+
+        self.kernel_size = kernel_size[0][:2]
+
+    def energy(self):
+        return self.perf_model.energy() * self.kernel_size[0] * self.kernel_size[1]
+
+    def noise(self, input_signal_list):
+        output_signal_list = []
+        for input_signal in input_signal_list:
+            output_signal_list.append(
+                self.noise_model.apply_gain_and_noise(
+                    input_signal
+                )
+            )
+
+        output_signal_sum = np.zeros(output_signal_list[0].shape)
+        for output_signal in output_signal_list:
+            output_signal_sum += output_signal
+
+        return ["ActiveAverage", output_signal_sum / len(output_signal_list)]
+
+
+class ActiveBinning(object):
+    def __init__(
+        self,
+        # performance parameters
+        load_capacitance = 1e-12,  # [F]
+        input_capacitance = 1e-12,  # [F]
+        t_sample = 2e-6,  # [s]
+        t_frame = 10e-3,  # [s]
+        supply = 1.8,  # [V]
+        gain = 2,
+        gain_open = 256,
+        differential = False,
+        # noise parameters
+        noise = 0.,
+        enable_prnu = False,
+        prnu_std = 0.001,
+        enable_offset = False,
+        pixel_offset_voltage = 0.1,
+        col_offset_voltage = 0.05
+    ):
+        self.perf_model = ColumnAmplifierPerf(
+            load_capacitance = load_capacitance,
+            input_capacitance = input_capacitance,
+            t_sample = t_sample,
+            t_frame = t_frame,
+            supply = supply,
+            gain = gain,
+            gain_open = gain_open,
+            differential = differential
+        )
+
+        self.noise_model = ColumnwiseNoise(
+            name = "ColumnAmplifier",
+            gain = gain,
+            noise = noise,
+            enable_prnu = enable_prnu,
+            prnu_std = prnu_std
+        )
+
+    def set_binning_config(self, kernel_size):
+        if len(kernel_size) != 1:
+            raise Exception("The length of kernel_size, num_kernels and stride should be 1.")
+
+        if kernel_size[0][-1] != 1:
+            raise Exception("'PassiveBinning' only support kernel channel size of 1.")
+
+        self.kernel_size = kernel_size[0][:2]
+
+    def energy(self):
+        return self.perf_model.energy() * self.kernel_size[0] * self.kernel_size[1]
+
+    def noise(self, input_signal_list):
+        output_signal_list = []
+        for input_signal in input_signal_list:
+            input_shape = input_signal.shape
+            if len(input_shape) != 3:
+                raise Exception("'ActiveBinning' only support 3D input.")
+            new_input_shape = (
+                input_shape[0] // self.kernel_size[0],
+                self.kernel_size[0],
+                input_shape[1] // self.kernel_size[1],
+                self.kernel_size[1],
+                input_shape[2]
+            )
+            transposed_input_signal = np.transpose(
+                input_signal.reshape(new_input_shape), 
+                (0, 2, 1, 3, 4)
+            ).reshape(
+                (
+                    new_input_shape[0],
+                    new_input_shape[2],
+                    new_input_shape[1] * new_input_shape[3],
+                    new_input_shape[4]
+                )
+            )
+
+            signal_after_colamp_list = []
+            for i in range(new_input_shape[1] * new_input_shape[3]):
+                signal_after_colamp_list.append(
+                    self.noise_model.apply_gain_and_noise(
+                        transposed_input_signal[:, :, i, :]
+                    )
+                )
+
+            signal_sum = np.zeros(signal_after_colamp_list[0].shape)
+            for signal_after_colamp in signal_after_colamp_list:
+                signal_sum += signal_after_colamp
+
+            output_signal_list.append(signal_sum / len(signal_after_colamp_list))
+
+        return ("ActiveBinning", output_signal_list)
 
 
 class Voltage2VoltageConv(object):
