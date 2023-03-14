@@ -6,7 +6,8 @@ import numpy as np
 sys.path.append(os.path.dirname(os.getcwd()))
 
 from camj.sim_core.analog_libs import MaximumVoltage, PassiveAverage, PassiveBinning, Adder, Subtractor,\
-                                      AbsoluteDifference, Voltage2VoltageConv, Time2VoltageConv
+                                      AbsoluteDifference, Voltage2VoltageConv, Time2VoltageConv,\
+                                      ActiveBinning, ActiveAverage
 
 def test_maximum_voltage():
 
@@ -117,12 +118,12 @@ def test_adder():
 
     for i in range(4, 6):
         input_signal_list.append(
-            np.ones((10, 10)) * i
+            np.ones((10, 10, 1)) * i
         )
 
     output_signal = adder_comp.noise(input_signal_list)
 
-    assert output_signal[1][0].shape == (10, 10), "The max output should be a shape of (10, 10)"
+    assert output_signal[1][0].shape == (10, 10, 1), "The max output should be a shape of (10, 10)"
     assert np.mean(output_signal[1][0]) == 9, "The max value of output should be 9.0, got %f" % np.mean(output_signal[1])
 
 def test_subtractor():
@@ -145,14 +146,14 @@ def test_subtractor():
     input_signal_list = []
 
     input_signal_list.append(
-        np.ones((10, 10)) * 9
+        np.ones((10, 10, 1)) * 9
     )
     input_signal_list.append(
-        np.ones((10, 10)) * 3
+        np.ones((10, 10, 1)) * 3
     )
     output_signal = sub_comp.noise(input_signal_list)
 
-    assert output_signal[1][0].shape == (10, 10), "The max output should be a shape of (10, 10)"
+    assert output_signal[1][0].shape == (10, 10, 1), "The max output should be a shape of (10, 10)"
     assert np.mean(output_signal[1][0]) == 6, "The max value of output should be 6.0, got %f" % np.mean(output_signal[1])
 
 def test_abs():
@@ -174,14 +175,14 @@ def test_abs():
     input_signal_list = []
 
     input_signal_list.append(
-        np.ones((10, 10)) * 4
+        np.ones((10, 10, 1)) * 4
     )
     input_signal_list.append(
-        np.ones((10, 10)) * 9
+        np.ones((10, 10, 1)) * 9
     )
     output_signal = abs_comp.noise(input_signal_list)
 
-    assert output_signal[1][0].shape == (10, 10), "The max output should be a shape of (10, 10)"
+    assert output_signal[1][0].shape == (10, 10, 1), "The max output should be a shape of (10, 10)"
     assert np.mean(output_signal[1][0]) == 5, "The max value of output should be 5.0, got %f" % np.mean(output_signal[1])
 
 def test_v2v_conv():
@@ -281,12 +282,50 @@ def test_t2v_conv():
         assert np.mean(output_signal[0][:, :, i]) == 9 * (i+1), "Wrong convolution result! Expect %.2f but %.2f" % (9 * (i+1), np.mean(output_signal[0][:, :, i]))
 
 
+def test_active_binning():
+
+    active_binning_comp = ActiveBinning(
+        # performance parameters
+        load_capacitance = 1e-12,  # [F]
+        input_capacitance = 1e-12,  # [F]
+        t_sample = 2e-6,  # [s]
+        t_frame = 10e-3,  # [s]
+        supply = 1.8,  # [V]
+        gain = 1,
+        gain_open = 256,
+        differential = False,
+        # noise parameters
+        noise = 0.,
+        enable_prnu = False,
+        prnu_std = 0.001,
+        enable_offset = False,
+        pixel_offset_voltage = 0.1,
+        col_offset_voltage = 0.05
+    )
+    active_binning_comp.set_binning_config(
+        kernel_size = [(2, 2, 1)]
+    )
+
+    input_signal_list = []
+
+    for i in range(1, 6):
+        input_signal_list.append(
+            np.ones((10, 10, 1)) * i
+        )
+
+    _, output_signal = active_binning_comp.noise(input_signal_list)
+
+    assert output_signal[0].shape == (5, 5, 1), "The max output should be a shape of (5, 5)"
+    for i in range(5):
+        assert np.mean(output_signal[i]) == i+1, "The mean value of output should be %f, got %f" % (i+1, np.mean(output_signal[0]))
+
 
 if __name__ == '__main__':
     
     test_maximum_voltage()
     test_passive_average()
     test_passive_binning()
+    test_active_binning()
     test_adder()
     test_subtractor()
     test_abs()

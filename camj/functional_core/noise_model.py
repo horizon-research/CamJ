@@ -744,22 +744,26 @@ class ColumnwiseNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal):
-        if len(input_signal.shape) != 2:
+        if len(input_signal.shape) != 3:
             raise Exception("input signal in noise model needs to be in (height, width) 2D shape.")
                 
-        input_height, input_width = input_signal.shape
+        input_height, input_width, input_channel = input_signal.shape
         if self.enable_offset:
             input_signal += self.pixel_offset_voltage
         if self.enable_prnu:
             if self.prnu_gain is None or self.prnu_gain.shape != input_signal.shape:
                 self.prnu_gain = np.repeat(
-                    self.rs.normal(
-                        loc = self.gain,
-                        scale = self.gain*self.prnu_std,
-                        size = (1, input_width)
+                    np.repeat(
+                        self.rs.normal(
+                            loc = self.gain,
+                            scale = self.gain * self.prnu_std,
+                            size = (1, input_width, 1)
+                        ),
+                        input_height,
+                        axis = 0
                     ),
-                    input_height,
-                    axis=0
+                    input_channel,
+                    axis = 2
                 )
             # generate random gain values
             input_after_gain = self.prnu_gain * input_signal
@@ -768,7 +772,7 @@ class ColumnwiseNoise(object):
 
         input_after_noise = self.rs.normal(
             scale = self.noise,
-            size = (input_height, input_width)
+            size = (input_height, input_width, input_channel)
         ) + input_after_gain
 
         if self.enable_offset:
