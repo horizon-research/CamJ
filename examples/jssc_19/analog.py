@@ -29,7 +29,7 @@ def analog_config():
         num_output = (1, 240, 1)
     )
     pixel = AnalogComponent(
-        name = "4T APS",
+        name = "4T-APS",
         input_domain =[ProcessDomain.OPTICAL],
         output_domain = ProcessDomain.VOLTAGE,
         component_list = [
