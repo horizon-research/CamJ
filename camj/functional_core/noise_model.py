@@ -95,7 +95,7 @@ class AnalogToDigitalConverterNoise(object):
         self.name = name
         self.adc_noise = adc_noise
         self.max_val = max_val
-        self.max_resolution_val = 2 ** resolution
+        self.max_resolution_val = 2 ** resolution - 1
 
         # initialize random number generator
         random_seed = int(time.time())
