@@ -73,7 +73,8 @@ class ColumnAmplifier(object):
         output_signal_list = []
         for input_signal in input_signal_list:
             if input_signal.ndim == 2:
-                input_signal = np.expand_dims(input_signal, axis = 2)
+                raise Exception("Input signal to 'ColumnAmplifier' needs to be 3 dimentional (height, width, channel)")
+
             output_signal_list.append(
                 self.noise_model.apply_gain_and_noise(
                     input_signal
@@ -121,7 +122,7 @@ class SourceFollower(object):
         output_signal_list = []
         for input_signal in input_signal_list:
             if input_signal.ndim != 3:
-                raise Exception("input signal to ColumnAmplifier needs to be in (height, width, channel) 3D shape.")
+                raise Exception("input signal to 'SourceFollower' needs to be in (height, width, channel) 3D shape.")
 
             output_signal_list.append(
                 self.noise_model.apply_gain_and_noise(
@@ -184,6 +185,8 @@ class ActiveAnalogMemory(object):
     def noise(self, input_signal_list):
         output_signal_list = []
         for input_signal in input_signal_list:
+            if input_signal.ndim != 3:
+                raise Exception("input signal to 'ActiveAnalogMemory' needs to be in (height, width, channel) 3D shape.")
             output_signal_list.append(
                 self.noise_model.apply_gain_and_noise(
                     input_signal
@@ -224,6 +227,8 @@ class PassiveAnalogMemory(object):
     def noise(self, input_signal_list):
         output_signal_list = []
         for input_signal in input_signal_list:
+            if input_signal.ndim != 3:
+                raise Exception("input signal to 'PassiveAnalogMemory' needs to be in (height, width, channel) 3D shape.")
             output_signal_list.append(
                 self.noise_model.apply_gain_and_noise(
                     input_signal
@@ -267,18 +272,20 @@ class CurrentMirror(object):
         return self.perf_model.energy()
 
     def noise(self, input_signal_list):
+        # if input is two signal matrices, current mirror performs element-wise multiplication.
         if len(input_signal_list) == 2:
             return (
                 self.noise_model.name, 
                 [self.noise_model.apply_gain_and_noise(input_signal_list[0], input_signal_list[1])]
             )
+        # else just copy data over.
         elif len(input_signal_list) == 1:
             return (
                 self.noise_model.name, 
                 [self.noise_model.apply_gain_and_noise(input_signal_list[0])]
             )
         else:
-            raise Exception("Input signal list to CurrentMirror can only be length of 1 or 2!")
+            raise Exception("Input signal list to 'CurrentMirror' can only be length of 1 or 2!")
 
 
 class PassiveSwitchedCapacitorArray(object):
@@ -304,7 +311,8 @@ class PassiveSwitchedCapacitorArray(object):
     def energy(self):
         return self.perf_model.energy()
 
-    def noise(self):
+    def noise(self, input_signal_list):
+        # perform element-wise addition across different input signals.
         return (
             self.noise_model.name, 
             [self.noise_model.apply_gain_and_noise(input_signal_list)]
@@ -373,7 +381,8 @@ class AnalogToDigitalConverter(object):
         self.noise_model = AnalogToDigitalConverterNoise(
             name = "AnalogToDigitalConverter",
             adc_noise = adc_noise,
-            max_val = supply
+            max_val = supply,
+            resolution = resolution,
         )
 
     def energy(self):
@@ -394,11 +403,11 @@ class DigitalToCurrentConverter(object):
     def __init__(
         self,
         # performance parameters
-        supply=1.8,  # [V]
-        load_capacitance=2e-12,  # [F]
-        t_readout=16e-6,  # [s]
-        resolution=4,
-        i_dc=None,  # [A]
+        supply = 1.8,  # [V]
+        load_capacitance = 2e-12,  # [F]
+        t_readout = 16e-6,  # [s]
+        resolution = 4,
+        i_dc = None,  # [A]
         # noise parameters
         gain = 1.0,
         noise = 0.,
@@ -544,6 +553,8 @@ class Adder(object):
 
     def noise(self, input_signal_list):
         if len(input_signal_list) == 2:
+            if input_signal_list[0].shape != input_signal_list[1].shape:
+                raise Exception("Two inputs to 'Adder' need to be in the same shape.")
             noise_input1 = self.noise_model.apply_gain_and_noise(input_signal_list[0])
             noise_input2 = self.noise_model.apply_gain_and_noise(input_signal_list[1])
             return (
@@ -605,6 +616,9 @@ class Subtractor(object):
 
     def noise(self, input_signal_list):
         if len(input_signal_list) == 2:
+            if input_signal_list[0].shape != input_signal_list[1].shape:
+                raise Exception("Two inputs to 'Adder' need to be in the same shape.")
+
             noise_input1 = self.noise_model.apply_gain_and_noise(input_signal_list[0])
             noise_input2 = self.noise_model.apply_gain_and_noise(input_signal_list[1])
             return (
@@ -642,7 +656,6 @@ class AbsoluteDifference(object):
             differential = differential
         )
 
-        
         self.noise_model = AbsoluteDifferenceNoise(
             name = "AbsoluteDifference",
             gain = 1.0,    # adder no need to amplify the signal
@@ -1181,16 +1194,24 @@ class Voltage2VoltageConv(object):
                 % self.num_kernels
             )
 
+        if image_input.ndim == 3:
+            if image_input.shape[-1] != 1:
+                raise Exception("image_input in 'Voltage2VoltageConv' need to be either (height, width) or (height, width, 1).")
+            # squeeze image input to be 2D matrix
+            image_input = np.squeeze(image_input)
+
         conv_result_list = []
         for i in range(self.num_kernels):
             conv_result = self.single_channel_convolution(image_input, kernel_input[:, :, i])
             output_height, output_width = conv_result.shape
 
+            # apply noise to convolution result.
             conv_result_after_noise = self.rs.normal(
                 scale = self.psca_noise,
                 size = (output_height, output_width)
             ) + conv_result
 
+            # apply sf noise
             conv_result_list.append(
                 self.sf_noise_model.apply_gain_and_noise(
                     conv_result_after_noise
@@ -1329,6 +1350,12 @@ class Time2VoltageConv(object):
                 % self.num_kernels
             )
 
+        if image_input.ndim == 3:
+            if image_input.shape[-1] != 1:
+                raise Exception("image_input in 'Time2VoltageConv' need to be either (height, width) or (height, width, 1).")
+            # squeeze image input to be 2D matrix
+            image_input = np.squeeze(image_input)
+
         conv_result_list = []
         for i in range(self.num_kernels):
             conv_result = self.single_channel_convolution(image_input, kernel_input[:, :, i])
@@ -1451,11 +1478,17 @@ class BinaryWeightConv(object):
                 "Number of Kernel in input signal doesn't match the num_kernels (%d)"\
                 % self.num_kernels
             )
+
+        if image_input.ndim == 3:
+            if image_input.shape[-1] != 1:
+                raise Exception("image_input in 'Time2VoltageConv' need to be either (height, width) or (height, width, 1).")
+            # squeeze image input to be 2D matrix
+            image_input = np.squeeze(image_input)
         
         positive_conv_signal, negative_conv_signal = self.single_channel_convolution(image_input, kernel_input[:, :, 0])
         output_height, output_width = positive_conv_signal.shape
-        positive_conv_result = np.expand_dims(positive_conv_signal, axis=2)
-        negative_conv_result = np.expand_dims(negative_conv_signal, axis=2)
+        positive_conv_result = np.expand_dims(positive_conv_signal, axis = 2)
+        negative_conv_result = np.expand_dims(negative_conv_signal, axis = 2)
 
         positive_result_after_noise = self.noise_model.apply_gain_and_noise(positive_conv_result)
         negative_result_after_noise = self.noise_model.apply_gain_and_noise(negative_conv_result)

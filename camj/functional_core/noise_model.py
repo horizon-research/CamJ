@@ -88,12 +88,14 @@ class AnalogToDigitalConverterNoise(object):
         self, 
         name,
         adc_noise,
-        max_val
+        max_val,
+        resolution
     ):
         super(AnalogToDigitalConverterNoise, self).__init__()
         self.name = name
         self.adc_noise = adc_noise
         self.max_val = max_val
+        self.max_resolution_val = 2 ** resolution
 
         # initialize random number generator
         random_seed = int(time.time())
@@ -109,7 +111,7 @@ class AnalogToDigitalConverterNoise(object):
             size = input_shape
         ) + input_signal
 
-        return np.clip(signal_after_noise, a_min = 0, a_max = self.max_val)
+        return np.clip(signal_after_noise, a_min = 0, a_max = self.max_val) / self.max_val * self.max_resolution_val
 
     def __str__(self):
         return self.name
@@ -235,7 +237,12 @@ class CurrentMirrorNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal, weight_signal=None):
-                
+
+        if weight_signal is not None:
+            if input_signal.shape != weight_signal.shape:
+                raise Exception("Two inputs, input_signal and weight_signal need to be in the same shape.")
+
+        # initialize a new output matrix, avoid overwrite the input.
         output_signal = np.zeros(input_signal.shape)
         if self.enable_compute and weight_signal is not None:
             output_signal = input_signal * weight_signal
@@ -243,14 +250,15 @@ class CurrentMirrorNoise(object):
             output_signal = copy.deepcopy(input_signal)
 
         input_shape = input_signal.shape
+        # enable prnu and generate gain variance.
         if self.enable_prnu:
             if self.prnu_gain is None or self.prnu_gain.shape != input_signal.shape:
+                # generate random gain values
                 self.prnu_gain = self.rs.normal(
                     loc = self.gain,
                     scale = self.gain * self.prnu_std,
                     size = input_shape
                 )
-            # generate random gain values
             input_after_gain = self.prnu_gain * output_signal
         else:
             input_after_gain = self.gain * output_signal
@@ -260,7 +268,7 @@ class CurrentMirrorNoise(object):
             size = input_shape
         ) + input_after_gain
 
-        return np.clip(input_after_noise, a_min = 0, a_max = None)
+        return input_after_noise
 
     def __str__(self):
         return self.name
@@ -324,7 +332,7 @@ class PassiveSwitchedCapacitorArrayNoise(object):
             size = input_shape
         ) + average_input_signal
 
-        return np.clip(input_after_noise, a_min = 0, a_max = None)
+        return input_after_noise
 
     def __str__(self):
         return self.name
@@ -361,7 +369,7 @@ class MaximumVoltageNoise(object):
 
         for input_signal in input_signal_list:
             if input_signal.shape != input_shape:
-                raise Exception("Input signal shapes in list are not consistent!")
+                raise Exception("In 'MaximumVoltageNoise', input signal shapes in list are not consistent!")
 
         max_signal = np.zeros(input_shape)
 
@@ -373,7 +381,7 @@ class MaximumVoltageNoise(object):
             size = input_shape
         ) + max_signal
 
-        return np.clip(max_after_noise, a_min = 0, a_max = None)
+        return max_after_noise
 
     def __str__(self):
         return self.name
@@ -442,7 +450,7 @@ class PixelwiseNoise(object):
             size = input_shape
         ) + input_after_gain
 
-        return np.clip(input_after_noise, a_min = 0, a_max = None)
+        return input_after_noise
 
     def __str__(self):
         return self.name
@@ -526,10 +534,9 @@ class FloatingDiffusionNoise(object):
         input_after_noise = reset_noise + input_after_gain
 
         if self.enable_cds:
-            return np.clip(input_after_noise, a_min=0, a_max=None), \
-                   np.clip(reset_noise, a_min=0, a_max=None)
+            return input_after_noise, reset_noise
         else:
-            return np.clip(input_after_noise, a_min=0, a_max=None)
+            return input_after_noise
 
     def __str__(self):
         return self.name
@@ -581,6 +588,9 @@ class CorrelatedDoubleSamplingNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal, reset_noise):
+
+        if input_signal.shape != reset_noise.shape:
+            raise Exception("input_signal and reset_noise need to be the same shape in 'CorrelatedDoubleSamplingNoise'")
                 
         input_shape = input_signal.shape
 
@@ -590,7 +600,7 @@ class CorrelatedDoubleSamplingNoise(object):
             if self.prnu_gain is None or self.prnu_gain.shape != input_signal.shape:
                 self.prnu_gain = self.rs.normal(
                     loc = self.gain,
-                    scale = self.gain*self.prnu_std,
+                    scale = self.gain * self.prnu_std,
                     size = input_shape
                 )
             # generate random gain values
@@ -604,7 +614,7 @@ class CorrelatedDoubleSamplingNoise(object):
             size = input_shape
         ) + input_after_gain
 
-        return np.clip(input_after_noise, a_min=0, a_max=None)
+        return input_after_noise
 
     def __str__(self):
         return self.name
@@ -655,7 +665,10 @@ class ComparatorNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal1, input_signal2):
-                
+
+        if input_signal1.shape != input_signal2.shape:
+            raise Exception("two inputs to 'ComparatorNoise' should be in the same shape.")
+
         input_shape = input_signal1.shape
         input_diff = input_signal1 - input_signal2
         
@@ -775,7 +788,7 @@ class ColumnwiseNoise(object):
         if self.enable_offset:
             input_after_gain += self.col_offset_voltage
 
-        return np.clip(input_after_noise, a_min=0, a_max=None)
+        return input_after_noise
 
     def __str__(self):
         return self.name
