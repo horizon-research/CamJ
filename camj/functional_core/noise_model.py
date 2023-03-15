@@ -742,7 +742,7 @@ class ColumnwiseNoise(object):
 
     def apply_gain_and_noise(self, input_signal):
         if len(input_signal.shape) != 3:
-            raise Exception("input signal in noise model needs to be in (height, width) 2D shape.")
+            raise Exception("input signal in noise model needs to be in (height, width, channel) 3D shape.")
                 
         input_height, input_width, input_channel = input_signal.shape
         if self.enable_offset:
