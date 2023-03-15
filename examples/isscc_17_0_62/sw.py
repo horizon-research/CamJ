@@ -33,7 +33,7 @@ def sw_pipeline():
         name = "Haar",
         input_size = [(240, 80, 1)],
         kernel_size = [(20, 20, 1)],
-        num_kernels = [10],
+        num_kernels = [1],
         stride = [(1, 11, 1)],
         padding = [False]
     )

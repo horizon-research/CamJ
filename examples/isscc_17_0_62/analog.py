@@ -11,8 +11,8 @@ from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
 from camj.sim_core.analog_utils import check_analog_connect_consistency, compute_total_energy,\
                                   check_analog_pipeline, launch_analog_simulation
 from camj.sim_core.pixel_libs import ActivePixelSensor
-from camj.sim_core.analog_libs import PassiveSwitchedCapacitorArray, ActiveBinning, ColumnAmplifier,\
-                                    ActiveAnalogMemory, Comparator
+from camj.sim_core.analog_libs import PassiveSwitchedCapacitorArray, ActiveBinning,\
+                                    ActiveAnalogMemory, Comparator, BinaryWeightConv
 from camj.sim_core.sw_utils import build_sw_graph
 
 from examples.isscc_17_0_62.mapping import mapping_function
@@ -144,7 +144,7 @@ def analog_config():
         output_domain = ProcessDomain.VOLTAGE,
         component_list = [
             (
-                ColumnAmplifier(
+                BinaryWeightConv(
                     # performance parameters
                     load_capacitance = 100e-15,  # [F]
                     input_capacitance = 55.6*2e-15,  # [F]

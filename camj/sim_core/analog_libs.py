@@ -1542,4 +1542,3 @@ class AnalogReLU(object):
 
         return (self.name, output_signal_list)
 
-
