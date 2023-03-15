@@ -44,7 +44,7 @@ def tutorial_functional_simulation(
     img_res = Image.fromarray(np.uint8(np.squeeze(img_after_adc)) , 'L')
     img_res.show()
 
-    hw_desc["analog"][0].components[1].component_list[0][0].noise_model.noise = 0.5
+    hw_desc["analog"][0].components[1].component_list[0][0].noise_model.noise = 0.3
 
     simulation_res = launch_functional_simulation(sw_desc, hw_desc, mapping, input_mapping)
 
