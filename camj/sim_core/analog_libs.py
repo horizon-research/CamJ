@@ -72,6 +72,8 @@ class ColumnAmplifier(object):
     def noise(self, input_signal_list):
         output_signal_list = []
         for input_signal in input_signal_list:
+            if input_signal.ndim == 2:
+                input_signal = np.expand_dims(input_signal, axis = 2)
             output_signal_list.append(
                 self.noise_model.apply_gain_and_noise(
                     input_signal
@@ -118,6 +120,9 @@ class SourceFollower(object):
     def noise(self, input_signal_list):
         output_signal_list = []
         for input_signal in input_signal_list:
+            if input_signal.ndim != 3:
+                raise Exception("input signal to ColumnAmplifier needs to be in (height, width, channel) 3D shape.")
+
             output_signal_list.append(
                 self.noise_model.apply_gain_and_noise(
                     input_signal
@@ -691,7 +696,7 @@ class MaxPool(object):
             name = "MaximumVoltage",
             noise = noise
         )
-        
+
     def set_binning_config(self, kernel_size):
         if len(kernel_size) != 1:
             raise Exception("The length of kernel_size, num_kernels and stride should be 1.")
@@ -1269,10 +1274,10 @@ class Time2VoltageConv(object):
 
     def set_conv_config(self, kernel_size, num_kernels, stride):
         if len(kernel_size) != 1 or len(num_kernels) != 1 or len(stride) != 1:
-            raise Exception("The length of kernel_size, num_kernels and stride should be 1.")
+            raise Exception("In 'Time2VoltageConv', the length of kernel_size, num_kernels and stride should be 1.")
 
         if kernel_size[0][-1] != 1:
-            raise Exception("'Voltage2VoltageConv' only support kernel channel size of 1.")
+            raise Exception("'Time2VoltageConv' only support kernel channel size of 1.")
 
         self.kernel_size = kernel_size[0][:2]
         self.num_kernels = num_kernels[0]
@@ -1305,7 +1310,7 @@ class Time2VoltageConv(object):
 
     def noise(self, input_signal_list):
         if len(input_signal_list) != 2:
-            raise Exception("Input to Voltage2VoltageConv limits to 2 (input+weight)!")
+            raise Exception("Input to 'Time2VoltageConv' limits to 2 (input+weight)!")
 
         image_input = None
         kernel_input = None
@@ -1316,7 +1321,7 @@ class Time2VoltageConv(object):
                 image_input = input_signal
 
         if image_input is None:
-            raise Exception("Input signal to 'Voltage2VoltageConv' has not been initialized.")
+            raise Exception("Input signal to 'Time2VoltageConv' has not been initialized.")
 
         if kernel_input is None or kernel_input.shape[-1] != self.num_kernels:
             raise Exception(
@@ -1341,6 +1346,121 @@ class Time2VoltageConv(object):
             output_result[:, :, i] = conv_result_list[i]
 
         return ("Time2CurrentConv", [output_result])
+
+
+class BinaryWeightConv(object):
+    def __init__(
+        self,
+        # performance parameters
+        load_capacitance = 1e-12,  # [F]
+        input_capacitance = 1e-12,  # [F]
+        t_sample = 2e-6,  # [s]
+        t_frame = 10e-3,  # [s]
+        supply = 1.8,  # [V]
+        gain = 2,
+        gain_open = 256,
+        differential = False,
+        # noise parameters
+        noise = 0.,
+        enable_prnu = False,
+        prnu_std = 0.001,
+        enable_offset = False,
+        pixel_offset_voltage = 0.1,
+        col_offset_voltage = 0.05
+    ):
+
+        self.kernel_size = None
+        self.num_kernels = None
+        self.stride = None
+
+        self.perf_model = ColumnAmplifierPerf(
+            load_capacitance = load_capacitance,
+            input_capacitance = input_capacitance,
+            t_sample = t_sample,
+            t_frame = t_frame,
+            supply = supply,
+            gain = gain,
+            gain_open = gain_open,
+            differential = differential
+        )
+
+        self.noise_model = ColumnwiseNoise(
+            name = "ColumnAmplifier",
+            gain = gain,
+            noise = noise,
+            enable_prnu = enable_prnu,
+            prnu_std = prnu_std
+        )
+
+    def energy(self):
+        return self.perf_model.energy()
+
+    def set_conv_config(self, kernel_size, num_kernels, stride):
+        if len(kernel_size) != 1 or len(num_kernels) != 1 or len(stride) != 1:
+            raise Exception("The length of kernel_size, num_kernels and stride should be 1.")
+
+        if kernel_size[0][-1] != 1:
+            raise Exception("'BinaryWeightConv' only support kernel channel size of 1.")
+
+        if num_kernels[0] != 1:
+            raise Exception("'BinaryWeightConv' only support num_kernels to be 1.")
+
+        self.kernel_size = kernel_size[0][:2]
+        self.num_kernels = num_kernels[0]
+        self.stride = stride[0][:2]
+
+    def single_channel_convolution(self, input_signal, weight_signal):
+        in_height, in_width = input_signal.shape    # Input shape
+        w_height, w_width = weight_signal.shape     # weight shape
+        s_height, s_width = self.stride             # stride shape
+        out_height = (in_height - (w_height - s_height)) // s_height
+        out_width = (in_width - (w_width - s_width)) // s_width
+        # initialize output
+        positive_output_signal = np.zeros((out_height, out_width))
+        negative_output_signal = np.zeros((out_height, out_width))
+
+        for r in range(out_height):
+            for c in range(out_width):
+                # find the corresponding input elements for output
+                input_elements = input_signal[
+                    r*s_height : r*s_height+w_height,
+                    c*s_width : c*s_width+w_width
+                ]
+                positive_output_signal[r, c] = np.sum(input_elements[input_elements>=0])
+                negative_output_signal[r, c] = np.sum(input_elements[input_elements< 0])
+
+        return positive_output_signal, negative_output_signal
+
+    def noise(self, input_signal_list):
+
+        if len(input_signal_list) != 2:
+            raise Exception("Input to 'BinaryWeightConv' limits to 2 (input+weight)!")
+
+        image_input = None
+        kernel_input = None
+        for input_signal in input_signal_list:
+            if input_signal.shape[:2] == self.kernel_size[:2]:
+                kernel_input = input_signal
+            else:
+                image_input = input_signal
+
+        if image_input is None:
+            raise Exception("Input signal to 'BinaryWeightConv' has not been initialized.")
+        if kernel_input is None or kernel_input.shape[-1] != self.num_kernels:
+            raise Exception(
+                "Number of Kernel in input signal doesn't match the num_kernels (%d)"\
+                % self.num_kernels
+            )
+        
+        positive_conv_signal, negative_conv_signal = self.single_channel_convolution(image_input, kernel_input[:, :, 0])
+        output_height, output_width = positive_conv_signal.shape
+        positive_conv_result = np.expand_dims(positive_conv_signal, axis=2)
+        negative_conv_result = np.expand_dims(negative_conv_signal, axis=2)
+
+        positive_result_after_noise = self.noise_model.apply_gain_and_noise(positive_conv_result)
+        negative_result_after_noise = self.noise_model.apply_gain_and_noise(negative_conv_result)
+
+        return ("BinaryWeightConv", [positive_result_after_noise, negative_result_after_noise])
 
 
 class AnalogReLU(object):

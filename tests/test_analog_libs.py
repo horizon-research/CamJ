@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.getcwd()))
 
 from camj.sim_core.analog_libs import MaximumVoltage, PassiveAverage, PassiveBinning, Adder, Subtractor,\
                                       AbsoluteDifference, Voltage2VoltageConv, Time2VoltageConv,\
-                                      ActiveBinning, ActiveAverage, MaxPool
+                                      ActiveBinning, ActiveAverage, MaxPool, BinaryWeightConv
 
 def test_maximum_voltage():
 
@@ -311,6 +311,54 @@ def test_t2v_conv():
         assert np.mean(output_signal[0][:, :, i]) == 9 * (i+1), "Wrong convolution result! Expect %.2f but %.2f" % (9 * (i+1), np.mean(output_signal[0][:, :, i]))
 
 
+def test_binary_weight_conv():
+    t2v_conv_comp = BinaryWeightConv(
+        # performance parameters
+        load_capacitance = 1e-12,  # [F]
+        input_capacitance = 1e-12,  # [F]
+        t_sample = 2e-6,  # [s]
+        t_frame = 10e-3,  # [s]
+        supply = 1.8,  # [V]
+        gain = 1,
+        gain_open = 256,
+        differential = False,
+        # noise parameters
+        noise = 0.,
+        enable_prnu = False,
+        prnu_std = 0.001,
+        enable_offset = False,
+        pixel_offset_voltage = 0.1,
+        col_offset_voltage = 0.05
+    )
+
+    num_kernels = 1
+
+    input_signal_list = []
+    # first add a dummy input
+    input_signal_list.append(
+        np.ones((128, 128))
+    )
+
+    weight_input = np.zeros((3, 3, num_kernels))
+    # then add some weights
+    for i in range(num_kernels):
+        weight_input[:, :, i] = 1
+
+    input_signal_list.append(weight_input)
+
+    t2v_conv_comp.set_conv_config(
+        kernel_size = [(3, 3, 1)],
+        num_kernels = [num_kernels],
+        stride = [(1, 1, 1)]
+    )
+
+    _, output_signal = t2v_conv_comp.noise(input_signal_list)
+    assert output_signal[0].shape[-1] == num_kernels, "output_signal length (%d) should equal to num_kernels (%d)" % (len(output_signal), num_kernels)
+
+    for i in range(num_kernels):
+        assert np.mean(output_signal[0][:, :, i]) == 9, "Wrong convolution result! Expect %.2f but %.2f" % (9, np.mean(output_signal[0][:, :, i]))
+
+
 def test_active_binning():
 
     active_binning_comp = ActiveBinning(
@@ -361,3 +409,4 @@ if __name__ == '__main__':
     test_abs()
     test_v2v_conv()
     test_t2v_conv()
+    test_binary_weight_conv()
