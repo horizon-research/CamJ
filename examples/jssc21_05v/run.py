@@ -37,9 +37,9 @@ def run_functional_simulation(hw_desc, mapping, sw_desc, test_img_name):
     weight_input = np.zeros((3, 3, 1))
     # blurring and dimming
     weight_input[:, :, 0] = [
-        [1/18, 1/18, 1/18],
-        [1/18, 1/18, 1/18],
-        [1/18, 1/18, 1/18],
+        [-1/3, -1/3, -1/3],
+        [0, 0, 0],
+        [1/3, 1/3, 1/3],
     ]
 
     input_mapping = {
@@ -53,7 +53,7 @@ def run_functional_simulation(hw_desc, mapping, sw_desc, test_img_name):
         mapping = mapping,
         input_mapping = input_mapping
     )
-    res_img = Image.fromarray(np.uint8(simulation_res["PassiveAnalogMemory"][0][:, :, 0]) , 'L')
+    res_img = Image.fromarray(np.uint8(simulation_res["Time2VoltageConv"][0][:, :, 0]) , 'L')
     res_img.show()
 
 if __name__ == '__main__':

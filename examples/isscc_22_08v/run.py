@@ -36,14 +36,20 @@ def run_functional_simulation(hw_desc, mapping, sw_desc, test_img_name):
 
     # hand-craft a (3x3x8) weight input
     weight_input = np.zeros((3, 3, 8))
-    # blurring
+    # find vertical edges
     weight_input[:, :, 0] = [
+        [-1, 0, 1],
+        [-1, 0, 1],
+        [-1, 0, 1],
+    ]
+    # blurring
+    weight_input[:, :, 1] = [
         [1/9, 1/9, 1/9],
         [1/9, 1/9, 1/9],
         [1/9, 1/9, 1/9],
     ]
     # less blurry
-    weight_input[:, :, 1] = [
+    weight_input[:, :, 2] = [
         [0.05, 0.05, 0.05],
         [0.05, 0.60, 0.05],
         [0.05, 0.05, 0.05],

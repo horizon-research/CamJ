@@ -1372,7 +1372,7 @@ class Time2VoltageConv(object):
         for i in range(self.num_kernels):
             output_result[:, :, i] = conv_result_list[i]
 
-        return ("Time2CurrentConv", [output_result])
+        return ("Time2VoltageConv", [output_result])
 
 
 class BinaryWeightConv(object):
