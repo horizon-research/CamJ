@@ -11,7 +11,7 @@ from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
 from camj.sim_core.analog_utils import check_analog_connect_consistency, compute_total_energy,\
                                   check_analog_pipeline, launch_analog_simulation
 from camj.sim_core.pixel_libs import ActivePixelSensor
-from camj.sim_core.analog_libs import PassiveSwitchedCapacitorArray
+from camj.sim_core.analog_libs import Voltage2VoltageConv
 from camj.sim_core.sw_utils import build_sw_graph
 
 from examples.jssc21_51pj.mapping import mapping_function
@@ -30,7 +30,7 @@ def analog_config():
     pixel = AnalogComponent(
         name = "APSPixel",
         input_domain =[ProcessDomain.OPTICAL],
-        output_domain = ProcessDomain.TIME,
+        output_domain = ProcessDomain.VOLTAGE,
         component_list = [
             (
                 ActivePixelSensor(
@@ -74,15 +74,25 @@ def analog_config():
     )
     cs = AnalogComponent(
         name = "CS",
-        input_domain = [ProcessDomain.CURRENT, ProcessDomain.TIME],
-        output_domain = ProcessDomain.CURRENT,
+        input_domain = [ProcessDomain.VOLTAGE, ProcessDomain.VOLTAGE],
+        output_domain = ProcessDomain.VOLTAGE,
         component_list = [
             (
-                PassiveSwitchedCapacitorArray(
-                    capacitance_array = [1.059e-12, 1.059e-12], # F
-                    vs_array = [1.1, 1.5], # V
+                Voltage2VoltageConv(
+                    capacitance_array = [
+                        1.059e-12, 1.059e-12, 1.059e-12, 1.059e-12, 1.059e-12, 1.059e-12, 1.059e-12, 1.059e-12,
+                        1.059e-12, 1.059e-12, 1.059e-12, 1.059e-12, 1.059e-12, 1.059e-12, 1.059e-12, 1.059e-12,
+                    ], # F
+                    vs_array = [
+                        1.1, 1.5, 1.1, 1.5, 1.1, 1.5, 1.1, 1.5,
+                        1.1, 1.5, 1.1, 1.5, 1.1, 1.5, 1.1, 1.5, 
+                    ], # V
+                    sf_load_capacitance = 1e-12,  # [F]
+                    sf_supply = 1.8,  # [V]
+                    sf_output_vs = 1,  # [V]
+                    sf_bias_current = 5e-6,  # [A]
                 ),
-                16+16 # need to double, because of CDS.
+                2+2 # need to double, because of CDS.
             )
         ],
         num_input = [(1, 16, 1)],

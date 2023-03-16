@@ -15,7 +15,7 @@ def sw_pipeline():
     cs_stage = ProcessStage(
         name = "CS",
         input_size = [(480, 640, 1)],
-        kernel_size = [(16, 16, 1)],
+        kernel_size = [(16, 1, 1)],
         num_kernels = [64],
         stride = [(16, 16, 1)],
         padding = [False]
