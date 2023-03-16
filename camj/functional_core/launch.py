@@ -72,14 +72,20 @@ def launch_functional_simulation(sw_desc, hw_desc, mapping, input_mapping):
     # first process those analog stages that are initial stage in analog pipeline.
     for k in input_mapping.keys():
         analog_array = analog_sw_mapping[k]
-        # check if the analog array contains the Conv instance and config the convolution instance
-        analog_array.configure_operation(sw_stage = k)
-        noise_res_list = analog_array.noise(input_mapping[k])
-        for pair in noise_res_list:
-            simulation_res[pair[0]] = pair[1]
-        ready_input[k] = noise_res_list[-1][1]
-        finished_stages.append(k)
-        visited_analog_array.append(analog_array)
+
+        # if no input array, then it is the source, perform noise modeling
+        if len(analog_array.input_arrays) == 0:
+            noise_res_list = analog_array.noise(input_mapping[k])
+            for pair in noise_res_list:
+                simulation_res[pair[0]] = pair[1]
+            ready_input[k] = noise_res_list[-1][1]
+            finished_stages.append(k)
+            visited_analog_array.append(analog_array)
+        # if this analog array has any input array, then, this is just part of input for this analog
+        # array. no need to perform noise modeling
+        else:
+            finished_stages.append(k)
+            ready_input[k] = input_mapping[k]
 
     # iteratively process the remain analog stages
     while len(finished_stages) != len(analog_sw_stages):
@@ -96,9 +102,15 @@ def launch_functional_simulation(sw_desc, hw_desc, mapping, input_mapping):
             if ready_flag:
                 analog_array = analog_sw_mapping[sw_stage.name]
                 curr_input_list = []
+                # include any input that is generated from input stage
                 for in_stage in sw_stage.input_stages:
                     for input_data in ready_input[in_stage.name]:
                         curr_input_list.append(input_data)
+                # include any input from input mapping file
+                for k in input_mapping.keys():
+                    if analog_array == analog_sw_mapping[k]:
+                        for input_data in input_mapping[k]:
+                            curr_input_list.append(input_data)
 
                 # if the analog array is already computed, we assume for one particular
                 # analog stage, one analog array will only be accessed once.

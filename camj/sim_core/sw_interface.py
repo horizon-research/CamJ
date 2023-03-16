@@ -37,6 +37,7 @@ class WeightInput(object):
         assert len(size) == 3, "WeightInput size should be a tuple of length 3!"
 
         self.size = (size[1], size[0], size[2]) # covert to internal representation (x, y, z)
+        self.kernel_size = self.size
         self.input_size = []
         self.output_size = (size[1], size[0], size[2]) # covert to internal representation (x, y, z)
         self.input_stages = []
