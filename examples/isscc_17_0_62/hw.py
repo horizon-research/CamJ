@@ -4,6 +4,7 @@ from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
 from camj.sim_core.digital_memory import FIFO, DoubleBuffer
 from camj.sim_core.digital_compute import ADC, ComputeUnit, SystolicArray
 
+from examples.isscc_17_0_62.analog import analog_config
 
 # an example of user defined hw configuration setup 
 def hw_config():
@@ -13,7 +14,7 @@ def hw_config():
     hw_dict = {
         "memory": [],
         "compute": [],
-        "analog" : []
+        "analog" : analog_config()
     }
 
     double_buffer = DoubleBuffer(

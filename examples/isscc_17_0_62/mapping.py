@@ -4,6 +4,7 @@ def mapping_function():
         # analog simulation
         "AnalogInput" : "PixelArray",
         "Binning" : "BinningArray",
+        "Weight" : "HaarArray",
         "Haar" : "HaarArray",
         # digital simulation
         "Input" : "ADC",

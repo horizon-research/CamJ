@@ -6,7 +6,7 @@ parent_directory = os.path.dirname(os.getcwd())
 # setting path
 sys.path.append(os.path.dirname(parent_directory))
 
-from camj.sim_core.sw_interface import ProcessStage, DNNProcessStage, PixelInput
+from camj.sim_core.sw_interface import ProcessStage, DNNProcessStage, PixelInput, WeightInput
 from camj.sim_core.sw_utils import build_sw_graph
 
 def sw_pipeline():
@@ -16,8 +16,10 @@ def sw_pipeline():
     # NOTE: because this paper use two different image sizes to run digital 
     # and analog simulation, here, we define them separately.
     # this part is the sw definition to run analog simulation
-    analog_input_data = PixelInput((240, 320, 1), name="AnalogInput")
+    analog_input_data = PixelInput((240, 320, 1), name = "AnalogInput")
+    analog_weight_data = WeightInput((20, 20, 1), name = "Weight")
     sw_stage_list.append(analog_input_data)
+    sw_stage_list.append(analog_weight_data)
 
     binning_stage = ProcessStage(
         name = "Binning",
