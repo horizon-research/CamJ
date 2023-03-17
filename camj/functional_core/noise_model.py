@@ -18,7 +18,7 @@ class PhotodiodeNoise(object):
     and dark current non-uniformity.
 
     Mathematical Expression:
-        output_signal = Poisson(x_in) + norm(DCNU * dark_current) 
+        output_signal = Poisson(x_in) + Norm(DCNU * dark_current) 
 
     Args:
         name (str): the name of this noise.
@@ -98,7 +98,7 @@ class AnalogToDigitalConverterNoise(object):
     We don't consider non-linear noise errors which can be calibrated during manufacture.
 
     Mathematical Expression:
-        output_signal = Quantization(input_signal + norm(adc_noise))
+        output_signal = Quantization(input_signal + Norm(adc_noise))
 
     Args:
         name (str): the name of the noise.
@@ -158,7 +158,7 @@ class AbsoluteDifferenceNoise(object):
     Two inputs will first compute the absolute difference, and then, apply gain and noises.
     
     Mathematical Expression:
-        out = gain * (abs(in1 - in2)) + norm(noise)
+        out = gain * (Abs(in1 - in2)) + Norm(noise)
 
     Args:
         name (str): the name of the noise.
@@ -242,8 +242,8 @@ class CurrentMirrorNoise(object):
     2. output current: in this case, there is no computation, just perform gain amplification.
 
     Mathematical Expression:
-        1. out = gain * (input_signal * weight_signal) + norm(noise)
-        2. out = gain * input_signal + norm(noise).
+        1. out = gain * (input_signal * weight_signal) + Norm(noise)
+        2. out = gain * input_signal + Norm(noise).
 
     Args:
         name (str): the name of the noise.
@@ -337,12 +337,12 @@ class PassiveSwitchedCapacitorArrayNoise(object):
     average, addition, multiplication.
 
     Mathematical Expression:
-        out = average(in_1, ..., in_N)  + norm(noise)
+        out = Average(in_1, ..., in_N)  + Norm(noise)
 
     Args:
         name (str): the name of the noise.
-        num_capacitor (int): number of capacitor in capacitor array
-        noise (float): average noise value.
+        num_capacitor (int): number of capacitor in capacitor array.
+        noise (float): average noise value. Default value is ``None``.
     """
     def __init__(
         self,
@@ -362,7 +362,7 @@ class PassiveSwitchedCapacitorArrayNoise(object):
         random_seed = int(time.time())
         self.rs = np.random.RandomState(random_seed)
 
-    def apply_gain_and_noise(self, input_signal_list):
+    def apply_gain_and_noise(self, input_signal_list: list):
         """apply gain and noise to input signal
 
         Args:
@@ -405,10 +405,17 @@ class PassiveSwitchedCapacitorArrayNoise(object):
         return self.name
 
 class MaximumVoltageNoise(object):
-    """Noise model for max voltage array
+    """A noise model for max voltage array.
+
+    Maximum voltage produce element-wise maximum for a list of input signals. It is 
+    used for operations like MaxPool.
+
+    Mathematical Expression:
+        out = Max(in_1, ..., in_N) + Norm(noise)
 
     Args:
-        noise: average noise value.
+        name (str): the name of the noise.
+        noise (float): average noise value. Default value is ``None``.
     """
     def __init__(
         self,
@@ -426,8 +433,15 @@ class MaximumVoltageNoise(object):
         random_seed = int(time.time())
         self.rs = np.random.RandomState(random_seed)
 
-    def apply_gain_and_noise(self, input_signal_list):
+    def apply_gain_and_noise(self, input_signal_list: list):
+        """apply gain and noise to input signal
 
+        Args:
+            input_signal_list: a list of input signals to maximum voltage.
+
+        Returns:
+            2D/3D tensor: maximum signal after maximum voltage.
+        """
         input_shape = input_signal_list[0].shape
 
         for input_signal in input_signal_list:
@@ -456,25 +470,26 @@ class PixelwiseNoise(object):
     """A general interface for pixelwise noise
 
     A general interface for any noise source resided inside each pixel,
-    including floating diffusion, source follower, etc.
+    including floating diffusion, source follower, etc. General assumption of the noise source
+    is that the noise follows a "zero-mean" Gaussian distribution. Users need to provide mean 
+    noise (sigma value).
 
-    General assumption of the noise source is that the noise follows 
-    a "zero-mean" Gaussian distribution. Users need to provide mean noise (sigma value).
-
-    The computation follows first applying gain to the input and then sampling noise.
+    Mathematical Expression:
+        out = (gain * in) + Norm(noise)
 
     Args:
-        gain: the average gain.
-        noise: average noise value.
-        enable_prnu: flag to enable PRNU.
-        prnu_std: the relative prnu standard deviation respect to gain.
+        name (str): the name of the noise.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): average noise value. Default value is ``None``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative prnu standard deviation respect to gain.
                   prnu gain standard deviation = prnu_std * gain.
-                  the default value is 0.001
+                  the default value is ``0.001``.
     """
     def __init__(
         self,
         name,
-        gain = 1,
+        gain = 1.0,
         noise = None,
         enable_prnu = False,
         prnu_std = 0.001
@@ -495,7 +510,14 @@ class PixelwiseNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal):
+        """apply gain and noise to input signal
 
+        Args:
+            input_signal: the input signals.
+
+        Returns:
+            2D/3D tensor: signal values after processed by analog compoenent.
+        """
         input_shape = input_signal.shape
         if self.enable_prnu:
             if self.prnu_gain is None or self.prnu_gain.shape != input_signal.shape:
@@ -523,36 +545,32 @@ class PixelwiseNoise(object):
         return self.name
 
 class FloatingDiffusionNoise(object):
-    """Floating Diffusion class
+    """A noise model for floating diffusion
 
-    General assumption of the noise source is that the noise 
-    follows a "zero-mean" Gaussian distribution. Users need 
-    to provide the average noise error (sigma value).
+    General assumption of the noise model is that the noise follows a ``zero-mean``
+    Gaussian distribution. Users need to provide the average noise error (sigma value).
+    Gain is generally slightly less than 1, here, the default value is 1.0.
 
-    Gain is generally slightly less than 1, here, the default value
-    is 1.
-
-    To enable CDS and PRNU, just set enable flag to be True.
-
-    if enable_cds is True, apply_gain_and_noise function will
-    return two values, one is the input + reset noise, 
+    To enable CDS and PRNU, just set enable flag to be True. If ``enable_cds`` is True,
+    apply_gain_and_noise function will return two values, one is the input + reset noise, 
     and the other is the reset noise.
 
-    Order: gain will be first applied before adding noises.
+    Mathematical Expression:
+        out = (gain * in) + Norm(noise)
 
     Args:
-        gain: the average gain value.
-        noise: the average noise value.
-        enable_cds: flag to enable CDS (correlated double sampling).
-        enable_prnu: flag to enable PRNU.
-        prnu_std: the relative prnu standard deviation respect to gain.
-                  prnu gain standard deviation = prnu_std * gain.
-                  the default value is 0.001
+        name (str): the name of the noise.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): average reset noise value. Default value is ``None``.
+        enable_cds (bool): flag to enable CDS (correlated double sampling). Default value is ``False``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain. the default value is ``0.001``.
     """
     def __init__(
         self,
-        name,
-        gain = 1,
+        name: str,
+        gain = 1.0,
         noise = None,
         enable_cds = False,
         enable_prnu = False,
@@ -576,13 +594,21 @@ class FloatingDiffusionNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal):
-                
+        """apply gain and noise to input signal
+
+        Args:
+            input_signal: the input signals.
+
+        Returns:
+            2D/3D tensor: signal values after processed by floating diffusion. If ``enable_cds`` is
+            ``True``, then the second return value is reset noise.
+        """       
         input_shape = input_signal.shape
         if self.enable_prnu:
             if self.prnu_gain is None or self.prnu_gain.shape != input_signal.shape:
                 self.prnu_gain = self.rs.normal(
                     loc = self.gain,
-                    scale = self.gain*self.prnu_std,
+                    scale = self.gain * self.prnu_std,
                     size = input_shape
                 )
             # generate random gain values
@@ -609,26 +635,25 @@ class FloatingDiffusionNoise(object):
 
 
 class CorrelatedDoubleSamplingNoise(object):
-    """Correlated Double Sampling
+    """A noise model for correlated double sampling module.
 
-    noise model for correlated double sampling module.
+    General assumption of CDS is gain is 1, read noise follows ``zero-mean`` normal distribution.
 
-    General assumption of CDS is gain is 1, read noise follows zero-mean normal distribution.
-    Mathematical expression for CDS:
-        output = (input_signal - reset_signal) * gain + noise
+    Mathematical Expression:
+        output = (input_signal - reset_signal) * gain + Norm(noise)
 
-    Input parameters:
-        gain: the average gain value.
-        noise: the average noise value.ß
-        enable_prnu: flag to enable PRNU.
+    Args:
+        name (str): the name of the noise.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): average noise value. Default value is ``None``.
+        enable_prnu: flag to enable PRNU. Default value is ``False``.
         prnu_std: the relative prnu standard deviation respect to gain.
-                  prnu gain standard deviation = prnu_std * gain.
-                  the default value is 0.001
+                  prnu gain standard deviation = prnu_std * gain. The default value is ``0.001``.
         
     """
     def __init__(
         self,
-        name,
+        name: str,
         gain = 1,
         noise = None,
         enable_prnu = False,
@@ -650,7 +675,15 @@ class CorrelatedDoubleSamplingNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal, reset_noise):
+        """apply gain and noise to input signal
 
+        Args:
+            input_signal: the input signals.
+            reset_noise: reset noise signal from floating diffusion.
+
+        Returns:
+            2D/3D tensor: signal values after processed by CDS.
+        """ 
         if input_signal.shape != reset_noise.shape:
             raise Exception("input_signal and reset_noise need to be the same shape in 'CorrelatedDoubleSamplingNoise'")
                 
@@ -688,24 +721,24 @@ class CorrelatedDoubleSamplingNoise(object):
 class ComparatorNoise(object):
     """Comparator noise model
 
-    General assumption:
-        gain is 1,
-        noise follows zero-mean normal distribution.
+    The general assumption for comparator component is that its gain is 1,
+    and its noise follows zero-mean normal distribution.
 
-    Order: gain will be first applied before adding noises.
+    Mathematical Expression:
+        output = GreaterThanOne(Diff(input_signal1 - input_signal2) * gain + Norm(noise))
 
     Args:
-        gain: the average gain value.
-        noise: the average noise value.
-        enable_prnu: flag to enable PRNU.
-        prnu_std: the relative prnu standard deviation respect to gain.
-                  prnu gain standard deviation = prnu_std * gain.
-                  the default value is 0.001
+        name (str): the name of the noise.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): average noise value. Default value is ``None``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative PRNU standard deviation respect to gain.
+            PRNU gain standard deviation = prnu_std * gain. The default value is 0.001
     """
     def __init__(
         self,
         name,
-        gain = 1,
+        gain = 1.0,
         noise = None,
         enable_prnu = False,
         prnu_std = 0.001
@@ -726,7 +759,15 @@ class ComparatorNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal1, input_signal2):
+        """apply gain and noise to input signals.
 
+        Args:
+            input_signal1: the first input signal.
+            input_signal2: the second input signal.
+
+        Returns:
+            2D/3D tensor: signal values in ``input_signal1`` that are greater that corresponding values in ``input_signal2``. Otherwise, output zeros.
+        """ 
         if input_signal1.shape != input_signal2.shape:
             raise Exception("two inputs to 'ComparatorNoise' should be in the same shape.")
 
@@ -737,7 +778,7 @@ class ComparatorNoise(object):
             if self.prnu_gain is None or self.prnu_gain.shape != input_signal.shape:
                 self.prnu_gain = self.rs.normal(
                     loc = self.gain,
-                    scale = self.gain*self.prnu_std,
+                    scale = self.gain * self.prnu_std,
                     size = input_shape
                 )
             # generate random gain values
@@ -767,34 +808,35 @@ class ColumnwiseNoise(object):
     """A general interface for column-wise noise
 
     A general interface for any noise source that applies to
-    each column, such as column amplifier.
+    each column, such as column amplifier. Assumption for this class is that 
+    it has a row-like struction such as column amplifier, and this class can 
+    capture the different properties in columnwise structure. One example is 
+    the column amplifier has PRNU columnwise.
 
-    Assumption for this class is that it has a row-like struction such as column amplifier,
-    and this class can capture the different properties in columnwise structure.
-    One example is the column amplifier has PRNU columnwise.
-
-    Mathematical equation:
-        output = gain * in + noise
+    Mathematical Expression:
+        output = gain * in + Norm(noise)
 
     Args:
-        gain: the average gain value.
-        noise: the average noise value.
-        max_val: the maximum value of the input range.
-        enable_prnu: flag to enable PRNU.
-        prnu_std: the relative prnu standard deviation respect to gain.
-                  prnu gain standard deviation = prnu_std * gain.
-                  the default value is 0.001
+        name (str): the name of the noise.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): average noise value. Default value is ``None``.
+        ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative PRNU standard deviation respect to gain.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+        enable_offset (bool): flag to enable adding offset voltage. Default value is ``False``.
+        pixel_offset_voltage: pixel offset voltage in unit of volt (V). Default value is ``0.1``.
+        col_offset_voltage: column-wise offset voltage in unit of volt (V). Default value is ``0.05``.
     """
     def __init__(
         self,
         name,
-        gain=1,
-        noise=None,
-        enable_prnu=False,
-        prnu_std=0.001,
-        enable_offset=False,
-        pixel_offset_voltage=0.1,
-        col_offset_voltage=0.05
+        gain = 1.0,
+        noise = None,
+        enable_prnu = False,
+        prnu_std = 0.001,
+        enable_offset = False,
+        pixel_offset_voltage = 0.1,
+        col_offset_voltage = 0.05,
     ):
         super(ColumnwiseNoise, self).__init__()
         self.name = name
@@ -816,6 +858,14 @@ class ColumnwiseNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal):
+        """apply gain and noise to input signal
+
+        Args:
+            input_signal: the input signals.
+
+        Returns:
+            2D/3D tensor: signal values after processed by columnwise noise component.
+        """  
         if len(input_signal.shape) != 3:
             raise Exception("input signal in noise model needs to be in (height, width, channel) 3D shape.")
                 
