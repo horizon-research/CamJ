@@ -1,8 +1,6 @@
 camj.functional\_core package
 =============================
 
-Submodules
-----------
 
 camj.functional\_core.launch module
 -----------------------------------
@@ -20,11 +18,3 @@ camj.functional\_core.noise\_model module
    :undoc-members:
    :show-inheritance:
 
-
-Module contents
----------------
-
-.. automodule:: camj.functional_core
-   :members:
-   :undoc-members:
-   :show-inheritance:

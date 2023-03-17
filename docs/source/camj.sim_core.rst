@@ -1,8 +1,6 @@
 camj.sim\_core package
 ======================
 
-Submodules
-----------
 
 camj.sim\_core.analog\_infra module
 -----------------------------------
@@ -123,12 +121,4 @@ camj.sim\_core.sw\_utils module
    :members:
    :undoc-members:
    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: camj.sim_core
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   
