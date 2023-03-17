@@ -6,15 +6,15 @@ import copy
 class PhotodiodeNoise(object):
     """Noise model for photediode.
 
-        This model simulates the behavior of photodiode, including shot noise, dark current
-        and dark current non-uniformity.
+    This model simulates the behavior of photodiode, including shot noise, dark current
+    and dark current non-uniformity.
 
-        Input parameters:
-            dark_current_noise: unit (e).
-            enable_dcnu: flag to enable dark current non-uniformity
-            dcnu_std: dcnu standard deviation percentage. it is relative number respect
-                      to dark_current_noise, the dcnu standard deviation is,
-                      dcnu_std * dark_current_noise, the default value is 0.001.
+    Args:
+        dark_current_noise: unit (e).
+        enable_dcnu: flag to enable dark current non-uniformity
+        dcnu_std: dcnu standard deviation percentage. it is relative number respect
+                  to dark_current_noise, the dcnu standard deviation is,
+                  dcnu_std * dark_current_noise, the default value is 0.001.
     """
     def __init__(self, 
         name,
@@ -73,13 +73,13 @@ class PhotodiodeNoise(object):
 class AnalogToDigitalConverterNoise(object):
     """ADC quantization noise model
 
-        This model only considerthe coarse scale ADC noise, we don't split noise into details
-        and we don't consider non-linear noise errors which can be calibrated during manufacture.
+    This model only considerthe coarse scale ADC noise, we don't split noise into details
+    and we don't consider non-linear noise errors which can be calibrated during manufacture.
 
-        Input parameters:
-            adc_noise: the overall noise on ADC.
-            max_val: the maximum value in ADC input. We assume the input voltage range is
-                     from [0, max_val]
+    Args:
+        adc_noise: the overall noise on ADC.
+        max_val: the maximum value in ADC input. We assume the input voltage range is
+                 from [0, max_val]
     """
     def __init__(
         self, 
@@ -119,18 +119,18 @@ class AnalogToDigitalConverterNoise(object):
 class AbsoluteDifferenceNoise(object):
     """A noise model for absolute difference
 
-        This noise model simulates the noises happened in absolute difference operation.
-        Two inputs will first compute the absolute difference, and then, apply gain and noises.
-        The mathematical equation is
-            res = gain * (abs(in1 - in2)) + noise
+    This noise model simulates the noises happened in absolute difference operation.
+    Two inputs will first compute the absolute difference, and then, apply gain and noises.
+    The mathematical equation is
+        res = gain * (abs(in1 - in2)) + noise
 
-        Input parameters:
-            gain: the gain applied in absolute difference, the default value is 1.
-            noise: the read noise happened during readout absolute result. unit: V.
-            enable_prnu: flag to enable PRNU.
-            prnu_std: the relative prnu standard deviation respect to gain.
-                      prnu gain standard deviation = prnu_std * gain.
-                      the default value is 0.001
+    Args:
+        gain: the gain applied in absolute difference, the default value is 1.
+        noise: the read noise happened during readout absolute result. unit: V.
+        enable_prnu: flag to enable PRNU.
+        prnu_std: the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain.
+                  the default value is 0.001
 
     """
     def __init__(
@@ -192,19 +192,19 @@ class AbsoluteDifferenceNoise(object):
 class CurrentMirrorNoise(object):
     """Noise model for current mirror
 
-        Current mirror has two possible outputs:
-        1. output charge: in this case, the input current will multiply with integrated time and 
-        output the charge which is (current*time).
-        2. output current: in this case, there is no computation, just perform gain amplification.
+    Current mirror has two possible outputs:
+    1. output charge: in this case, the input current will multiply with integrated time and 
+    output the charge which is (current*time).
+    2. output current: in this case, there is no computation, just perform gain amplification.
 
-        Input parameters:
-            gain: the average gain.
-            noise: average noise value.
-            enable_compute: flag to enable compute and output charges.
-            enable_prnu: flag to enable PRNU.
-            prnu_std: the relative prnu standard deviation respect to gain.
-                      prnu gain standard deviation = prnu_std * gain.
-                      the default value is 0.001
+    Args:
+        gain: the average gain.
+        noise: average noise value.
+        enable_compute: flag to enable compute and output charges.
+        enable_prnu: flag to enable PRNU.
+        prnu_std: the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain.
+                  the default value is 0.001
     """
     def __init__(
         self,
@@ -274,13 +274,13 @@ class CurrentMirrorNoise(object):
 class PassiveSwitchedCapacitorArrayNoise(object):
     """Noise model for passive switched capacitor array
 
-        Input parameters:
-            num_capacitor: number of capacitor in capacitor array
-            noise: average noise value.
-            enable_prnu: flag to enable PRNU.
-            prnu_std: the relative prnu standard deviation respect to gain.
-                      prnu gain standard deviation = prnu_std * gain.
-                      the default value is 0.001
+    Args:
+        num_capacitor: number of capacitor in capacitor array
+        noise: average noise value.
+        enable_prnu: flag to enable PRNU.
+        prnu_std: the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain.
+                  the default value is 0.001
     """
     def __init__(
         self,
@@ -337,8 +337,8 @@ class PassiveSwitchedCapacitorArrayNoise(object):
 class MaximumVoltageNoise(object):
     """Noise model for max voltage array
 
-        Input parameters:
-            noise: average noise value.
+    Args:
+        noise: average noise value.
     """
     def __init__(
         self,
@@ -385,21 +385,21 @@ class MaximumVoltageNoise(object):
 class PixelwiseNoise(object):
     """A general interface for pixelwise noise
 
-        A general interface for any noise source resided inside each pixel,
-        including floating diffusion, source follower, etc.
+    A general interface for any noise source resided inside each pixel,
+    including floating diffusion, source follower, etc.
 
-        General assumption of the noise source is that the noise follows 
-        a "zero-mean" Gaussian distribution. Users need to provide mean noise (sigma value).
+    General assumption of the noise source is that the noise follows 
+    a "zero-mean" Gaussian distribution. Users need to provide mean noise (sigma value).
 
-        The computation follows first applying gain to the input and then sampling noise.
+    The computation follows first applying gain to the input and then sampling noise.
 
-        Input parameters:
-            gain: the average gain.
-            noise: average noise value.
-            enable_prnu: flag to enable PRNU.
-            prnu_std: the relative prnu standard deviation respect to gain.
-                      prnu gain standard deviation = prnu_std * gain.
-                      the default value is 0.001
+    Args:
+        gain: the average gain.
+        noise: average noise value.
+        enable_prnu: flag to enable PRNU.
+        prnu_std: the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain.
+                  the default value is 0.001
     """
     def __init__(
         self,
@@ -455,29 +455,29 @@ class PixelwiseNoise(object):
 class FloatingDiffusionNoise(object):
     """Floating Diffusion class
 
-        General assumption of the noise source is that the noise 
-        follows a "zero-mean" Gaussian distribution. Users need 
-        to provide the average noise error (sigma value).
+    General assumption of the noise source is that the noise 
+    follows a "zero-mean" Gaussian distribution. Users need 
+    to provide the average noise error (sigma value).
 
-        Gain is generally slightly less than 1, here, the default value
-        is 1.
+    Gain is generally slightly less than 1, here, the default value
+    is 1.
 
-        To enable CDS and PRNU, just set enable flag to be True.
+    To enable CDS and PRNU, just set enable flag to be True.
 
-        if enable_cds is True, apply_gain_and_noise function will
-        return two values, one is the input + reset noise, 
-        and the other is the reset noise.
+    if enable_cds is True, apply_gain_and_noise function will
+    return two values, one is the input + reset noise, 
+    and the other is the reset noise.
 
-        Order: gain will be first applied before adding noises.
+    Order: gain will be first applied before adding noises.
 
-        Input parameters:
-            gain: the average gain value.
-            noise: the average noise value.
-            enable_cds: flag to enable CDS (correlated double sampling).
-            enable_prnu: flag to enable PRNU.
-            prnu_std: the relative prnu standard deviation respect to gain.
-                      prnu gain standard deviation = prnu_std * gain.
-                      the default value is 0.001
+    Args:
+        gain: the average gain value.
+        noise: the average noise value.
+        enable_cds: flag to enable CDS (correlated double sampling).
+        enable_prnu: flag to enable PRNU.
+        prnu_std: the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain.
+                  the default value is 0.001
     """
     def __init__(
         self,
@@ -541,19 +541,19 @@ class FloatingDiffusionNoise(object):
 class CorrelatedDoubleSamplingNoise(object):
     """Correlated Double Sampling
 
-        noise model for correlated double sampling module.
+    noise model for correlated double sampling module.
 
-        General assumption of CDS is gain is 1, read noise follows zero-mean normal distribution.
-        Mathematical expression for CDS:
-            output = (input_signal - reset_signal) * gain + noise
+    General assumption of CDS is gain is 1, read noise follows zero-mean normal distribution.
+    Mathematical expression for CDS:
+        output = (input_signal - reset_signal) * gain + noise
 
-        Input parameters:
-            gain: the average gain value.
-            noise: the average noise value.ß
-            enable_prnu: flag to enable PRNU.
-            prnu_std: the relative prnu standard deviation respect to gain.
-                      prnu gain standard deviation = prnu_std * gain.
-                      the default value is 0.001
+    Input parameters:
+        gain: the average gain value.
+        noise: the average noise value.ß
+        enable_prnu: flag to enable PRNU.
+        prnu_std: the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain.
+                  the default value is 0.001
         
     """
     def __init__(
@@ -618,19 +618,19 @@ class CorrelatedDoubleSamplingNoise(object):
 class ComparatorNoise(object):
     """Comparator noise model
 
-        General assumption:
-            gain is 1,
-            noise follows zero-mean normal distribution.
+    General assumption:
+        gain is 1,
+        noise follows zero-mean normal distribution.
 
-        Order: gain will be first applied before adding noises.
+    Order: gain will be first applied before adding noises.
 
-        Input parameters:
-            gain: the average gain value.
-            noise: the average noise value.
-            enable_prnu: flag to enable PRNU.
-            prnu_std: the relative prnu standard deviation respect to gain.
-                      prnu gain standard deviation = prnu_std * gain.
-                      the default value is 0.001
+    Args:
+        gain: the average gain value.
+        noise: the average noise value.
+        enable_prnu: flag to enable PRNU.
+        prnu_std: the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain.
+                  the default value is 0.001
     """
     def __init__(
         self,
@@ -696,24 +696,24 @@ class ComparatorNoise(object):
 class ColumnwiseNoise(object):
     """A general interface for column-wise noise
 
-        A general interface for any noise source that applies to
-        each column, such as column amplifier.
+    A general interface for any noise source that applies to
+    each column, such as column amplifier.
 
-        Assumption for this class is that it has a row-like struction such as column amplifier,
-        and this class can capture the different properties in columnwise structure.
-        One example is the column amplifier has PRNU columnwise.
+    Assumption for this class is that it has a row-like struction such as column amplifier,
+    and this class can capture the different properties in columnwise structure.
+    One example is the column amplifier has PRNU columnwise.
 
-        Mathematical equation:
-            output = gain * in + noise
+    Mathematical equation:
+        output = gain * in + noise
 
-        Input parameters:
-            gain: the average gain value.
-            noise: the average noise value.
-            max_val: the maximum value of the input range.
-            enable_prnu: flag to enable PRNU.
-            prnu_std: the relative prnu standard deviation respect to gain.
-                      prnu gain standard deviation = prnu_std * gain.
-                      the default value is 0.001
+    Args:
+        gain: the average gain value.
+        noise: the average noise value.
+        max_val: the maximum value of the input range.
+        enable_prnu: flag to enable PRNU.
+        prnu_std: the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain.
+                  the default value is 0.001
     """
     def __init__(
         self,
