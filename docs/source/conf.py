@@ -18,8 +18,8 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = 'CamJ'
-copyright = '2023, Yu Feng, Tianrui Ma, Yuhao Zhu, Xuan Zhang'
-author = 'Yu Feng, Tianrui Ma, Yuhao Zhu, Xuan Zhang'
+copyright = '2023, Yu Feng, Tianrui Ma, Xuan Zhang, Yuhao Zhu'
+author = 'Yu Feng, Tianrui Ma, Xuan Zhang, Yuhao Zhu'
 
 # The full version, including alpha/beta/rc tags
 release = 'beta'
