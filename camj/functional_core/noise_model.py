@@ -9,12 +9,16 @@ class PhotodiodeNoise(object):
     This model simulates the behavior of photodiode, including shot noise, dark current
     and dark current non-uniformity.
 
+    Mathematical Expression:
+        output_signal = Poisson(x_in) + DCNU * dark_current 
+
     Args:
-        dark_current_noise: unit (e).
-        enable_dcnu: flag to enable dark current non-uniformity
+        dark_current_noise: average dark current noise in unit of electrons (e).
+        enable_dcnu: flag to enable dark current non-uniformity, the default value is False.
         dcnu_std: dcnu standard deviation percentage. it is relative number respect
-                  to dark_current_noise, the dcnu standard deviation is,
-                  dcnu_std * dark_current_noise, the default value is 0.001.
+            to ``dark_current_noise``, the dcnu standard deviation is,
+            ``dcnu_std`` * ``dark_current_noise``, the default value is 0.001.
+
     """
     def __init__(self, 
         name,
@@ -34,6 +38,14 @@ class PhotodiodeNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal):
+        """apply gain and noise to input signal
+
+        Args:
+            input_signal: input signal to photodiode in unit of photons in a 2D tensor.
+
+        Returns:
+            2D tensor: signal out of photodiode in unit of voltage.
+        """
 
         input_shape = input_signal.shape
 
