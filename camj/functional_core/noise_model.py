@@ -4,8 +4,7 @@ import time
 import copy
 
 class PhotodiodeNoise(object):
-    """
-        Noise model for photediode.
+    """Noise model for photediode.
 
         This model simulates the behavior of photodiode, including shot noise, dark current
         and dark current non-uniformity.
@@ -72,8 +71,7 @@ class PhotodiodeNoise(object):
         return self.name
 
 class AnalogToDigitalConverterNoise(object):
-    """
-        ADC quantization noise model
+    """ADC quantization noise model
 
         This model only considerthe coarse scale ADC noise, we don't split noise into details
         and we don't consider non-linear noise errors which can be calibrated during manufacture.
@@ -119,8 +117,7 @@ class AnalogToDigitalConverterNoise(object):
         return self.name
 
 class AbsoluteDifferenceNoise(object):
-    """
-        A noise model for absolute difference
+    """A noise model for absolute difference
 
         This noise model simulates the noises happened in absolute difference operation.
         Two inputs will first compute the absolute difference, and then, apply gain and noises.
@@ -193,8 +190,7 @@ class AbsoluteDifferenceNoise(object):
         return self.name
 
 class CurrentMirrorNoise(object):
-    """
-        Noise model for current mirror
+    """Noise model for current mirror
 
         Current mirror has two possible outputs:
         1. output charge: in this case, the input current will multiply with integrated time and 
@@ -276,8 +272,7 @@ class CurrentMirrorNoise(object):
         return self.name
 
 class PassiveSwitchedCapacitorArrayNoise(object):
-    """
-        Noise model for passive switched capacitor array
+    """Noise model for passive switched capacitor array
 
         Input parameters:
             num_capacitor: number of capacitor in capacitor array
@@ -340,8 +335,7 @@ class PassiveSwitchedCapacitorArrayNoise(object):
         return self.name
 
 class MaximumVoltageNoise(object):
-    """
-        Noise model for max voltage array
+    """Noise model for max voltage array
 
         Input parameters:
             noise: average noise value.
@@ -389,7 +383,8 @@ class MaximumVoltageNoise(object):
         return self.name
 
 class PixelwiseNoise(object):
-    """
+    """A general interface for pixelwise noise
+
         A general interface for any noise source resided inside each pixel,
         including floating diffusion, source follower, etc.
 
@@ -458,8 +453,7 @@ class PixelwiseNoise(object):
         return self.name
 
 class FloatingDiffusionNoise(object):
-    """
-        Floating Diffusion class
+    """Floating Diffusion class
 
         General assumption of the noise source is that the noise 
         follows a "zero-mean" Gaussian distribution. Users need 
@@ -545,8 +539,7 @@ class FloatingDiffusionNoise(object):
 
 
 class CorrelatedDoubleSamplingNoise(object):
-    """
-        Correlated Double Sampling
+    """Correlated Double Sampling
 
         noise model for correlated double sampling module.
 
@@ -623,8 +616,7 @@ class CorrelatedDoubleSamplingNoise(object):
 
 
 class ComparatorNoise(object):
-    """
-        Comparator noise model
+    """Comparator noise model
 
         General assumption:
             gain is 1,
@@ -702,7 +694,8 @@ class ComparatorNoise(object):
 
 
 class ColumnwiseNoise(object):
-    """
+    """A general interface for column-wise noise
+
         A general interface for any noise source that applies to
         each column, such as column amplifier.
 
