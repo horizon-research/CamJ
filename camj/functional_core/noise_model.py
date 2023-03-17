@@ -1,7 +1,15 @@
+"""Noise Model Module
+
+This module includes all basic noise model for CamJ functional simulation.
+
+"""
+
 import numpy as np
 import math
 import time
 import copy
+
+
 
 class PhotodiodeNoise(object):
     """Noise model for photediode.
@@ -10,10 +18,11 @@ class PhotodiodeNoise(object):
     and dark current non-uniformity.
 
     Mathematical Expression:
-        output_signal = Poisson(x_in) + DCNU * dark_current 
+        output_signal = Poisson(x_in) + norm(DCNU * dark_current) 
 
     Args:
-        dark_current_noise: average dark current noise in unit of electrons (e).
+        name (str): the name of this noise.
+        dark_current_noise (float): average dark current noise in unit of electrons (e).
         enable_dcnu: flag to enable dark current non-uniformity, the default value is False.
         dcnu_std: dcnu standard deviation percentage. it is relative number respect
             to ``dark_current_noise``, the dcnu standard deviation is,
@@ -21,8 +30,8 @@ class PhotodiodeNoise(object):
 
     """
     def __init__(self, 
-        name,
-        dark_current_noise,
+        name: str,
+        dark_current_noise: float,
         enable_dcnu = False,
         dcnu_std = 0.001,
     ):
@@ -85,20 +94,26 @@ class PhotodiodeNoise(object):
 class AnalogToDigitalConverterNoise(object):
     """ADC quantization noise model
 
-    This model only considerthe coarse scale ADC noise, we don't split noise into details
-    and we don't consider non-linear noise errors which can be calibrated during manufacture.
+    This model only consider a coarse-scale ADC noise, which we model in normal distribution.
+    We don't consider non-linear noise errors which can be calibrated during manufacture.
+
+    Mathematical Expression:
+        output_signal = Quantization(input_signal + norm(adc_noise))
 
     Args:
-        adc_noise: the overall noise on ADC.
-        max_val: the maximum value in ADC input. We assume the input voltage range is
-                 from [0, max_val]
-    """
+        name (str): the name of the noise.
+        adc_noise (float): the overall noise on ADC.
+        max_val (float): the maximum value in ADC input. We assume the input voltage range is
+            from [0, max_val]
+        resolution (int): the resolution of the output value in digital domain. ``8`` means
+            the maximum value in digital value is ``8^2 - 1`` == ``255`` bit.
+    """ 
     def __init__(
         self, 
-        name,
-        adc_noise,
-        max_val,
-        resolution
+        name: str,
+        adc_noise: float,
+        max_val: float,
+        resolution: int
     ):
         super(AnalogToDigitalConverterNoise, self).__init__()
         self.name = name
@@ -111,7 +126,15 @@ class AnalogToDigitalConverterNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal):
-        
+        """apply gain and noise to input signal
+
+        Args:
+            input_signal: input signal to ADC in unit of voltage in a 2D/3D tensor.
+
+        Returns:
+            2D/3D tensor: digital values after quantization of ADC.
+        """
+
         input_shape = input_signal.shape
 
         # simulate quantization noise
@@ -133,22 +156,23 @@ class AbsoluteDifferenceNoise(object):
 
     This noise model simulates the noises happened in absolute difference operation.
     Two inputs will first compute the absolute difference, and then, apply gain and noises.
-    The mathematical equation is
-        res = gain * (abs(in1 - in2)) + noise
+    
+    Mathematical Expression:
+        out = gain * (abs(in1 - in2)) + norm(noise)
 
     Args:
-        gain: the gain applied in absolute difference, the default value is 1.
-        noise: the read noise happened during readout absolute result. unit: V.
-        enable_prnu: flag to enable PRNU.
-        prnu_std: the relative prnu standard deviation respect to gain.
-                  prnu gain standard deviation = prnu_std * gain.
-                  the default value is 0.001
+        name (str): the name of the noise.
+        gain (float): the gain applied in absolute difference, the default value is ``1.0``.
+        noise (float): the read noise happened during readout absolute result in the unit of voltage (V).
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): relative PRNU standard deviation respect to gain. 
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
 
     """
     def __init__(
         self,
-        name,
-        gain = 1,
+        name: str,
+        gain = 1.0,
         noise = None,
         enable_prnu = False,
         prnu_std = 0.001
@@ -169,7 +193,15 @@ class AbsoluteDifferenceNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal1, input_signal2):
-                
+        """apply gain and noise to input signal
+
+        Args:
+            input_signal1: the first input signal to ABS component in a 2D/3D tensor.
+            input_signal2: the second input signal to ABS component in a 2D/3D tensor.
+
+        Returns:
+            2D/3D tensor: digital values after ABS component.
+        """       
         if input_signal1.shape != input_signal2.shape:
             raise Exception("Two input shapes are not equal in absolute difference!")
 
@@ -202,25 +234,28 @@ class AbsoluteDifferenceNoise(object):
         return self.name
 
 class CurrentMirrorNoise(object):
-    """Noise model for current mirror
+    """A noise model for current mirror
 
-    Current mirror has two possible outputs:
+    Current mirror has two possible outputs to model two functionalities of current mirror.
     1. output charge: in this case, the input current will multiply with integrated time and 
-    output the charge which is (current*time).
+    output the charge which is ``current*time``.
     2. output current: in this case, there is no computation, just perform gain amplification.
 
+    Mathematical Expression:
+        1. out = gain * (input_signal * weight_signal) + norm(noise)
+        2. out = gain * input_signal + norm(noise).
+
     Args:
-        gain: the average gain.
-        noise: average noise value.
-        enable_compute: flag to enable compute and output charges.
-        enable_prnu: flag to enable PRNU.
-        prnu_std: the relative prnu standard deviation respect to gain.
-                  prnu gain standard deviation = prnu_std * gain.
-                  the default value is 0.001
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): average noise value. Default value is ``None``.
+        enable_compute (bool): flag to enable compute and output charges. Default value is ``False``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative prnu standard deviation respect to gain.
+            prnu gain standard deviation = prnu_std * gain. The default value is ``0.001``.
     """
     def __init__(
         self,
-        name,
+        name: str,
         gain = 1,
         noise = None,
         enable_compute = False,
@@ -251,8 +286,11 @@ class CurrentMirrorNoise(object):
 
         # initialize a new output matrix, avoid overwrite the input.
         output_signal = np.zeros(input_signal.shape)
-        if self.enable_compute and weight_signal is not None:
-            output_signal = input_signal * weight_signal
+        if self.enable_compute:
+            if weight_signal is not None:
+                output_signal = input_signal * weight_signal
+            else:
+                raise Exception("Weight signal is missing when compute is enabled in current mirror.")
         else:
             output_signal = copy.deepcopy(input_signal)
 
