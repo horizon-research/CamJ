@@ -200,7 +200,7 @@ class AbsoluteDifferenceNoise(object):
             input_signal2: the second input signal to ABS component in a 2D/3D tensor.
 
         Returns:
-            2D/3D tensor: digital values after ABS component.
+            2D/3D tensor: signal values after ABS component.
         """       
         if input_signal1.shape != input_signal2.shape:
             raise Exception("Two input shapes are not equal in absolute difference!")
@@ -246,6 +246,7 @@ class CurrentMirrorNoise(object):
         2. out = gain * input_signal + norm(noise).
 
     Args:
+        name (str): the name of the noise.
         gain (float): the average gain. Default value is ``1.0``.
         noise (float): average noise value. Default value is ``None``.
         enable_compute (bool): flag to enable compute and output charges. Default value is ``False``.
@@ -279,7 +280,15 @@ class CurrentMirrorNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal, weight_signal=None):
+        """apply gain and noise to input signal
 
+        Args:
+            input_signal: the input signal to current mirror in a 2D/3D tensor.
+            weight_signal: the weight signal to current mirror in a 2D/3D tensor.
+
+        Returns:
+            2D/3D tensor: signal values after current mirror.
+        """
         if weight_signal is not None:
             if input_signal.shape != weight_signal.shape:
                 raise Exception("Two inputs, input_signal and weight_signal need to be in the same shape.")
@@ -322,15 +331,18 @@ class CurrentMirrorNoise(object):
         return self.name
 
 class PassiveSwitchedCapacitorArrayNoise(object):
-    """Noise model for passive switched capacitor array
+    """A noise model for passive switched capacitor array
+
+    Passive switched capacitor array can realize many mathematical operations such as
+    average, addition, multiplication.
+
+    Mathematical Expression:
+        out = average(in_1, ..., in_N)  + norm(noise)
 
     Args:
-        num_capacitor: number of capacitor in capacitor array
-        noise: average noise value.
-        enable_prnu: flag to enable PRNU.
-        prnu_std: the relative prnu standard deviation respect to gain.
-                  prnu gain standard deviation = prnu_std * gain.
-                  the default value is 0.001
+        name (str): the name of the noise.
+        num_capacitor (int): number of capacitor in capacitor array
+        noise (float): average noise value.
     """
     def __init__(
         self,
@@ -351,6 +363,14 @@ class PassiveSwitchedCapacitorArrayNoise(object):
         self.rs = np.random.RandomState(random_seed)
 
     def apply_gain_and_noise(self, input_signal_list):
+        """apply gain and noise to input signal
+
+        Args:
+            input_signal_list: a list of input signals to passive switched capacitor array.
+
+        Returns:
+            2D/3D tensor: averaged signal value after passive switched capacitor array.
+        """
         if len(input_signal_list) != self.num_capacitor:
             raise Exception(
                 "Input signal list length (%d) needs to be equal to the number of capacitor (%d)!"\
