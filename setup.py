@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 with open("README.md", "r") as readme_file:
     readme = readme_file.read()
 
-requirements = ["numpy>=1.22", "pillow==9.4.0"]
+requirements = ["numpy==1.21.6", "pillow==9.4.0"]
 
 setup(
     name="camj",
