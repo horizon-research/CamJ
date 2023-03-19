@@ -1,9 +1,6 @@
 camj package
 ============
 
-Subpackages
------------
-
 .. toctree::
    :maxdepth: 4
 
