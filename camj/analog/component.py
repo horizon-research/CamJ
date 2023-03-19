@@ -36,8 +36,7 @@ class ActivePixelSensor(object):
             load_capacitance: load capacitance at the output of the pixel
             tech_node: the technology process node.
             pitch: pitch, pixel pitch size (width or height)
-            array_vsize: pixel array vertical size, only use for rolling shutter. 
-                         To estimate parasitic capacitance on vertical wire.
+            array_vsize: pixel array vertical size to estimate parasitic capacitance on vertical wire.
     """
     def __init__(
         self,
