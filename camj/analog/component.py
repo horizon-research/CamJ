@@ -27,7 +27,7 @@ class ActivePixelSensor(object):
         Our APS model supports energy estimation for both 3T-APS and 4T-APS. Users need to define
         `num_transistor` to get the correct energy estimation.
 
-        Input parameters:
+        Args:
             pd_capacitance: the capacitance of PD.
             pd_supply: supply voltage
             output_vs: output voltage swing, the typical value range is [?, ?].
@@ -918,6 +918,7 @@ class Subtractor(object):
 
 
 class AbsoluteDifference(object):
+    """AbsoluteDifference"""
     def __init__(
         self,
         # performance parameters
@@ -1051,6 +1052,7 @@ class MaxPool(object):
 
 
 class PassiveAverage(object):
+    """PassiveAverage"""
     def __init__(
         self,
         # peformance parameters
@@ -1110,6 +1112,7 @@ class PassiveAverage(object):
         )
 
 class PassiveBinning(object):
+    """PassiveBinning"""
     def __init__(
         self,
         # peformance parameters
@@ -1209,6 +1212,7 @@ class PassiveBinning(object):
 
 
 class ActiveAverage(object):
+    """ActiveAverage"""
     def __init__(
         self,
         # performance parameters
@@ -1276,6 +1280,7 @@ class ActiveAverage(object):
 
 
 class ActiveBinning(object):
+    """ActiveBinning"""
     def __init__(
         self,
         # performance parameters
@@ -1369,6 +1374,7 @@ class ActiveBinning(object):
 
 
 class Voltage2VoltageConv(object):
+    """Voltage2VoltageConv"""
     def __init__(
         self,
         # peformance parameters
@@ -1517,6 +1523,7 @@ class Voltage2VoltageConv(object):
 
 
 class Time2VoltageConv(object):
+    """Time2VoltageConv"""
     def __init__(
         self,
         # performance parameters for current mirror
@@ -1664,6 +1671,7 @@ class Time2VoltageConv(object):
 
 
 class BinaryWeightConv(object):
+    """BinaryWeightConv"""
     def __init__(
         self,
         # performance parameters
@@ -1785,6 +1793,7 @@ class BinaryWeightConv(object):
 
 
 class AnalogReLU(object):
+    """AnalogReLU"""
     def __init__(
         self,
         # performance parameters
