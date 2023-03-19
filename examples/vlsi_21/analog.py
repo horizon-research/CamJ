@@ -5,15 +5,15 @@ parent_directory = os.path.dirname(os.getcwd())
 # setting path
 sys.path.append(os.path.dirname(parent_directory))
 
+# import local modules
+from camj.analog.component import DigitalPixelSensor, GeneralCircuit
+from camj.analog.infra import AnalogArray, AnalogComponent
+from camj.analog.utils import check_analog_connect_consistency, compute_total_energy,\
+                            check_analog_pipeline, launch_analog_simulation
+from camj.general.enum import ProcessorLocation, ProcessDomain
+from camj.sw.utils import build_sw_graph
 
-from camj.sim_core.analog_infra import AnalogArray, AnalogComponent
-from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
-from camj.sim_core.analog_utils import check_analog_connect_consistency, compute_total_energy,\
-                                  check_analog_pipeline, launch_analog_simulation
-from camj.sim_core.pixel_libs import DigitalPixelSensor
-from camj.sim_core.analog_libs import GeneralCircuit
-from camj.sim_core.sw_utils import build_sw_graph
-
+# import customized configs
 from examples.vlsi_21.mapping import mapping_function
 from examples.vlsi_21.sw import sw_pipeline
 

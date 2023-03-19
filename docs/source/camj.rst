@@ -7,13 +7,8 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   camj.functional_core
-   camj.sim_core
+   camj.analog
+   camj.digital
+   camj.general
+   camj.sw
 
-Module contents
----------------
-
-.. automodule:: camj
-   :members:
-   :undoc-members:
-   :show-inheritance:

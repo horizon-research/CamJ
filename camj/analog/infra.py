@@ -1,8 +1,8 @@
 import numpy as np
 import copy
 
-from camj.sim_core.analog_libs import Voltage2VoltageConv, Time2VoltageConv, BinaryWeightConv,\
-                                      PassiveBinning, ActiveAverage, ActiveBinning, MaxPool
+from camj.analog.component import Voltage2VoltageConv, Time2VoltageConv, BinaryWeightConv,\
+                                PassiveBinning, ActiveAverage, ActiveBinning, MaxPool
 
 class AnalogComponent(object):
     """docstring for AnalogComponent"""

@@ -1,8 +1,8 @@
 import numpy as np
 import copy
 
-from camj.sim_core.analog_infra import AnalogArray, AnalogComponent
-from camj.sim_core.enum_const import ProcessDomain
+from camj.analog.infra import AnalogArray, AnalogComponent
+from camj.general.enum import ProcessDomain
 
 
 def check_component_internal_connect_consistency(analog_component):

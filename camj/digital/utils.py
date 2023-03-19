@@ -5,9 +5,12 @@
 '''
 
 import numpy as np
-from camj.sim_core.digital_memory import FIFO, LineBuffer
-from camj.sim_core.sw_interface import ProcessStage, DNNProcessStage
-from camj.sim_core.flags import *
+
+# import local module
+from camj.digital.memory import FIFO, LineBuffer
+from camj.general.flags import *
+from camj.sw.interface import ProcessStage, DNNProcessStage
+
 
 # this function creates the mapping from sw stage to hw unit.
 # sw stage to hw unit is one-to-one mapping.

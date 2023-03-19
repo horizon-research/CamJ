@@ -10,7 +10,6 @@ import time
 import copy
 
 
-
 class PhotodiodeNoise(object):
     """Noise model for photediode.
 

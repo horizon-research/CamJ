@@ -6,9 +6,9 @@ parent_directory = os.path.dirname(os.getcwd())
 sys.path.append(os.path.dirname(parent_directory))
 
 # import local modules
-from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
-from camj.sim_core.digital_memory import FIFO, LineBuffer
-from camj.sim_core.digital_compute import ADC, ComputeUnit
+from camj.general.enum import ProcessorLocation, ProcessDomain
+from camj.digital.memory import FIFO, LineBuffer
+from camj.digital.compute import ADC, ComputeUnit
 
 from examples.isscc_22_08v.analog import analog_config
 

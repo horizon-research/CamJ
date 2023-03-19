@@ -1,6 +1,6 @@
 
 import numpy as np
-from camj.sim_core.flags import *
+from camj.general.flags import *
 
 '''
     TODO: For now, just consider ADC as a compute unit, can be modified it later.

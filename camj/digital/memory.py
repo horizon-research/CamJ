@@ -1,6 +1,8 @@
 import numpy as np
-from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
-from camj.sim_core.flags import *
+
+# import local module
+from camj.general.enum import ProcessorLocation, ProcessDomain
+from camj.general.flags import *
 
 '''
 This is the base class for digital storage memory.

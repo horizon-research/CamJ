@@ -9,7 +9,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.getcwd())))
 
 # import local modules
-from camj.sim_core.launch import launch_simulation
+from camj.general.launch import launch_simulation
 
 from examples.tcas_i22.mapping import mapping_function
 from examples.tcas_i22.sw import sw_pipeline

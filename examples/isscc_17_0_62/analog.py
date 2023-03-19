@@ -5,16 +5,16 @@ parent_directory = os.path.dirname(os.getcwd())
 # setting path
 sys.path.append(os.path.dirname(parent_directory))
 
-
-from camj.sim_core.analog_infra import AnalogArray, AnalogComponent
-from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
-from camj.sim_core.analog_utils import check_analog_connect_consistency, compute_total_energy,\
+# import local module
+from camj.analog.component import ActivePixelSensor, PassiveSwitchedCapacitorArray, ActiveBinning,\
+                                ActiveAnalogMemory, Comparator, BinaryWeightConv
+from camj.analog.infra import AnalogArray, AnalogComponent
+from camj.analog.utils import check_analog_connect_consistency, compute_total_energy,\
                                   check_analog_pipeline, launch_analog_simulation
-from camj.sim_core.pixel_libs import ActivePixelSensor
-from camj.sim_core.analog_libs import PassiveSwitchedCapacitorArray, ActiveBinning,\
-                                    ActiveAnalogMemory, Comparator, BinaryWeightConv
-from camj.sim_core.sw_utils import build_sw_graph
+from camj.general.enum import ProcessorLocation, ProcessDomain
+from camj.sw.utils import build_sw_graph
 
+# import customized modules
 from examples.isscc_17_0_62.mapping import mapping_function
 from examples.isscc_17_0_62.sw import sw_pipeline
 

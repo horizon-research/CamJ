@@ -8,8 +8,9 @@ parent_directory = os.path.dirname(os.getcwd())
 # setting path
 sys.path.append(os.path.dirname(parent_directory))
 
-from camj.sim_core.sw_interface import ProcessStage, DNNProcessStage, PixelInput
-from camj.sim_core.sw_utils import build_sw_graph
+# import local modules
+from camj.sw.interface import ProcessStage, DNNProcessStage, PixelInput
+from camj.sw.utils import build_sw_graph
 
 def sw_pipeline():
 

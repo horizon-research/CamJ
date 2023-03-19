@@ -9,7 +9,7 @@ from pprint import pprint
 sys.path.append(os.path.dirname(os.path.dirname(os.getcwd())))
 
 # import local modules
-from camj.sim_core.launch import launch_simulation
+from camj.general.launch import launch_simulation
 
 from examples.isscc_21_back_illuminated.mapping import mapping_function
 from examples.isscc_21_back_illuminated.sw import sw_pipeline
