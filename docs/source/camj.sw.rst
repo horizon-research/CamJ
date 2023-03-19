@@ -1,9 +1,6 @@
 camj.sw package
 ===============
 
-Subpackages
------------
-
 camj.sw.interface module
 ------------------------
 

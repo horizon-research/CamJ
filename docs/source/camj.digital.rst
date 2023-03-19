@@ -1,9 +1,6 @@
 camj.digital package
 ====================
 
-Subpackages
------------
-
 camj.digital.compute module
 ---------------------------
 
