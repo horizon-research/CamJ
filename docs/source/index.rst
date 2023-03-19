@@ -10,7 +10,7 @@ Welcome to CamJ's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   modules
+   camj
 
 
 Indices and tables
