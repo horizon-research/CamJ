@@ -3,13 +3,13 @@ import sys
 # setting path
 sys.path.append(os.path.dirname(os.getcwd()))
 
+# import local modules
+from camj.analog.component import ActivePixelSensor, ColumnAmplifier, AnalogToDigitalConverter
+from camj.analog.infra import AnalogArray, AnalogComponent
+from camj.general.enum import ProcessorLocation, ProcessDomain
+from camj.general.launch import launch_analog_simulation
 
-from camj.sim_core.analog_infra import AnalogArray, AnalogComponent
-from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
-from camj.sim_core.analog_utils import launch_analog_simulation
-from camj.sim_core.pixel_libs import ActivePixelSensor
-from camj.sim_core.analog_libs import ColumnAmplifier, AnalogToDigitalConverter
-
+# import customized configs
 from tutorial.mapping import mapping_function
 from tutorial.sw import sw_pipeline
 

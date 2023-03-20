@@ -9,8 +9,7 @@ import sys
 sys.path.append(os.path.dirname(os.getcwd()))
 
 # import local modules
-from camj.sim_core.launch import launch_simulation
-from camj.functional_core.launch import launch_functional_simulation
+from camj.general.launch import launch_simulation, launch_functional_simulation
 
 # import tutorial example configuration modules
 from tutorial.mapping import mapping_function
