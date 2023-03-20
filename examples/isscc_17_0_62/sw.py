@@ -16,8 +16,8 @@ def sw_pipeline():
     # NOTE: because this paper use two different image sizes to run digital 
     # and analog simulation, here, we define them separately.
     # this part is the sw definition to run analog simulation
-    analog_input_data = PixelInput((240, 320, 1), name = "AnalogInput")
-    analog_weight_data = WeightInput((20, 20, 1), name = "Weight")
+    analog_input_data = PixelInput(name = "AnalogInput", size = (240, 320, 1))
+    analog_weight_data = WeightInput(name = "Weight", size = (20, 20, 1))
     sw_stage_list.append(analog_input_data)
     sw_stage_list.append(analog_weight_data)
 
@@ -140,7 +140,7 @@ def sw_pipeline():
     )
     sw_stage_list.append(fc_1_stage)
 
-    input_data = PixelInput((128, 128, 1), name="Input")
+    input_data = PixelInput(name = "Input", size = (128, 128, 1))
     sw_stage_list.append(input_data)
 
     conv2d_1_stage.set_input_stage(input_data)
