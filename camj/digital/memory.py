@@ -9,6 +9,7 @@ class DigitalStorage(object):
     """Base class for digital storage class
 
     This is the base class for digital storage memory.
+
     IMPORTANT: Don't use this class directly, use the derived class instead!
 
     A very important attribute in DigitalStorage class is reserved_buffer.
@@ -77,12 +78,25 @@ class DigitalStorage(object):
         return self.name
 
 class LineBuffer(DigitalStorage):
-    """Line Buffer
+    """Line Buffer, extended from DigitalStorage base class
 
-    Line buffer class, extended from DigitalStorage base class
-    size (a, b) will define the number of rows and the size of each row in line buffer,
-    the number of row also defines the number of write port.
-    Here, a is the number of read port, the number of write port is always 1.
+    This class follows a specific memory access pattern. The size of this class defines
+    the number of read and write per cycle. For instance, a size of ``(3, 128)`` line buffer
+    can be read ``3`` pixels per cycle and can be written ``1`` pixel per cycle.
+
+    However, this class doesn't check if per-cycle read and write surpass its capacity.
+    This class does check if the number of read and write requests by consumer/producer 
+    can be fulfilled or not.
+
+    Args:
+        name (str): name of this memory structure.
+        size (tuple): the size of the line buffer in a shape of ``(A, B)``. ``A`` is the number
+            of rows in this line buffer, ``B`` is the size of each row in unit of pixel.
+        location: the location of this memory unit.
+        write_energy_per_word (float): energy cost for each write
+        read_energy_per_word (float): energy cost for each read
+        pixels_per_write_word (int): the length of each write. Unit in pixel
+        pixels_per_read_word (int): the length of one read. Unit is pixel
     """
     def __init__(
         self,
@@ -109,6 +123,22 @@ class LineBuffer(DigitalStorage):
         self.total_write_cnt = 0
         self.total_read_cnt = 0
 
+    def total_memory_access_energy(self):
+        """Calculate the total memory access energy
+
+        Returns:
+            Memory Access Energy (flaot): the memory access energy in unit of pJ.
+        """
+        # number of write access = number of written pixel / write word length
+        total_write_access = self.total_write_cnt / self.pixels_per_write_word
+        # number of read access = number of read pixel / read word length
+        total_read_access = self.total_read_cnt / self.pixels_per_read_word
+        # total write memory energy
+        write_mem_energy = self.write_energy_per_word * total_write_access
+        # total read memory energy
+        read_mem_energy = self.read_energy_per_word * total_read_access
+        # return total memory energy
+        return write_mem_energy + read_mem_energy
     
     def _have_space_to_write(self, num_write):
         """
@@ -159,28 +189,21 @@ class LineBuffer(DigitalStorage):
         if ENABLE_DEBUG:
             print("[MEMORY] READ", self.name, "has %d of data" % self.stored_data)
 
-    
-    def total_memory_access_energy(self):
-        """
-        Calculate the total memory access energy
-        """
-        # number of write access = number of written pixel / write word length
-        total_write_access = self.total_write_cnt / self.pixels_per_write_word
-        # number of read access = number of read pixel / read word length
-        total_read_access = self.total_read_cnt / self.pixels_per_read_word
-        # total write memory energy
-        write_mem_energy = self.write_energy_per_word * total_write_access
-        # total read memory energy
-        read_mem_energy = self.read_energy_per_word * total_read_access
-        # return total memory energy
-        return write_mem_energy + read_mem_energy
 
 class FIFO(DigitalStorage):
     """FIFO Buffer
 
-    FIFO defines only one read port and one write port,
-    only one HW unit is able to read from this FIFO
-    and only one HW unit is able to write to this FIFO.
+    This class emulates the hardware behavior of FIFO. Each FIFO will have one read port
+    and one write port.
+
+    Args:
+        name (str): name of this memory structure.
+        size (tuple): the size of FIFO in unit of pixel.
+        location: the location of this memory unit.
+        write_energy_per_word (float): energy cost for each write
+        read_energy_per_word (float): energy cost for each read
+        pixels_per_write_word (int): the length of each write. Unit in pixel
+        pixels_per_read_word (int): the length of one read. Unit is pixel
     """
     def __init__(
         self,
@@ -207,7 +230,23 @@ class FIFO(DigitalStorage):
         self.total_write_cnt = 0
         self.total_read_cnt = 0
 
-    
+    def total_memory_access_energy(self):
+        """Calculate the total memory access energy
+
+        Returns:
+            Memory Access Energy (flaot): the memory access energy in unit of pJ.
+        """
+        # number of write access = number of written pixel / write word length
+        total_write_access = self.total_write_cnt / self.pixels_per_write_word
+        # number of read access = number of read pixel / read word length
+        total_read_access = self.total_read_cnt / self.pixels_per_read_word
+        # total write memory energy
+        write_mem_energy = self.write_energy_per_word * total_write_access
+        # total read memory energy
+        read_mem_energy = self.read_energy_per_word * total_read_access
+        # return total memory energy
+        return write_mem_energy + read_mem_energy
+
     def _have_space_to_write(self, num_write):
         """
         Check if there is enough space to store the data
@@ -255,24 +294,23 @@ class FIFO(DigitalStorage):
         if ENABLE_DEBUG:
             print("[MEMORY] READ", self.name, "has %d of data" % self.stored_data)
 
-    def total_memory_access_energy(self):
-        """
-        Calculate the total memory access energy
-        """
-        # number of write access = number of written pixel / write word length
-        total_write_access = self.total_write_cnt / self.pixels_per_write_word
-        # number of read access = number of read pixel / read word length
-        total_read_access = self.total_read_cnt / self.pixels_per_read_word
-        # total write memory energy
-        write_mem_energy = self.write_energy_per_word * total_write_access
-        # total read memory energy
-        read_mem_energy = self.read_energy_per_word * total_read_access
-        # return total memory energy
-        return write_mem_energy + read_mem_energy
-
 
 class DoubleBuffer(DigitalStorage):
-    """docstring for DoubleBuffer"""
+    """DoubleBuffer
+
+    This class emulates the hardware behavior of double buffer.
+
+    Args:
+        name (str): name of this memory structure.
+        size (tuple): the size of double buffer in a shape of ``(A, B, C)``. 
+            ``A`` is number of SRAM, ``B`` is the number of bank, 
+            ``C`` is the size of each bank.
+        location: the location of this memory unit.
+        write_energy_per_word (float): energy cost for each write
+        read_energy_per_word (float): energy cost for each read
+        pixels_per_write_word (int): the length of each write. Unit in pixel
+        pixels_per_read_word (int): the length of one read. Unit is pixel
+    """
     def __init__(
         self, 
         name: str,
@@ -297,6 +335,23 @@ class DoubleBuffer(DigitalStorage):
         self.pixels_per_read_word = pixels_per_read_word
         self.total_write_cnt = 0
         self.total_read_cnt = 0
+
+    def total_memory_access_energy(self):
+        """Calculate the total memory access energy
+
+        Returns:
+            Memory Access Energy (flaot): the memory access energy in unit of pJ.
+        """
+        # number of write access = number of written pixel / write word length
+        total_write_access = self.total_write_cnt / self.pixels_per_write_word
+        # number of read access = number of read pixel / read word length
+        total_read_access = self.total_read_cnt / self.pixels_per_read_word
+        # total write memory energy
+        write_mem_energy = self.write_energy_per_word * total_write_access
+        # total read memory energy
+        read_mem_energy = self.read_energy_per_word * total_read_access
+        # return total memory energy
+        return write_mem_energy + read_mem_energy
 
     def _have_space_to_write(self, num_write):
         """
@@ -328,19 +383,4 @@ class DoubleBuffer(DigitalStorage):
         """
         self.stored_data -= num_read
         self.total_read_cnt += num_read
-
-    def total_memory_access_energy(self):
-        """
-        Calculate the total memory access energy
-        """
-        # number of write access = number of written pixel / write word length
-        total_write_access = self.total_write_cnt / self.pixels_per_write_word
-        # number of read access = number of read pixel / read word length
-        total_read_access = self.total_read_cnt / self.pixels_per_read_word
-        # total write memory energy
-        write_mem_energy = self.write_energy_per_word * total_write_access
-        # total read memory energy
-        read_mem_energy = self.read_energy_per_word * total_read_access
-        # return total memory energy
-        return write_mem_energy + read_mem_energy
 
