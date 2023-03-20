@@ -1,10 +1,26 @@
 from copy import deepcopy
 
 class PixelInput(object):
+    """Pixel Input Interface
+
+    This class is used to define pixel input stage in software pipeline.
+
+    Args:
+        name (str): define a name for this ``PixelInput`` class.
+        size (tuple): define the input size of this pixel input, the format is ``(H, W, C)``.
+
+    Examples:
+        To initialized a ``PixelInput`` instance.
+
+        >>> PixelInput("Input", (128, 128, 1))
+
+        This will initialize a ``128x128x1`` pixel input.
+    """
     def __init__(
         self,
-        size, # (H, W, C)
         name,
+        size, # (H, W, C)
+        
     ):
         assert len(size) == 3, "PixelInput size should be a tuple of length 3!"
 
@@ -23,16 +39,45 @@ class PixelInput(object):
         return self.name
 
     def set_output_stage(self, stage):
+        """Specify the output stage for this ``PixelInput``.
+
+        Specify the output stage for this ``PixelInput``. This function can be called multiple
+        times to this ``PixelInput`` has multiple consumers.
+
+        Args:
+            stage: output stage of this ``PixelInput`` instance.
+
+        Examples:
+            >>> pixel_stage.set_output_stage(resize_stage)
+
+        """
         self.output_stages.append(stage)
 
-    def check_ready_board(self):
+    def _check_ready_board(self):
         return True
 
 class WeightInput(object):
+    """Weight Input Interface
+
+    This class is used to define some input stages other than pixel inputs. For instance, users
+    can use this stage to define a weight input in convolution.
+
+    Args:
+        name (str): define a name for this ``PixelInput`` class.
+        size (tuple): define the input size of this pixel input, the format is ``(H, W, C)``.
+
+    Examples:
+        To initialized a ``WeightInput`` instance.
+
+        >>> WeightInput("Input", (3, 3, 1))
+
+        This will initialize a ``3x3x1`` weight input which can be used in a convolution.
+
+    """
     def __init__(
         self,
-        size, # (H, W, C)
         name,
+        size, # (H, W, C)
     ):
         assert len(size) == 3, "WeightInput size should be a tuple of length 3!"
 
@@ -52,14 +97,73 @@ class WeightInput(object):
         return self.name
 
     def set_output_stage(self, stage):
+        """Specify the output stage for this ``WeightInput``.
+
+        Specify the output stage for this ``PixelInput``. This function can be called multiple
+        times to this ``WeightInput`` has multiple consumers.
+
+        Args:
+            stage: output stage of this ``WeightInput`` instance.
+
+        Examples:
+            >>> weight_input.set_output_stage(conv_stage)
+
+        """
         self.output_stages.append(stage)
 
-    def check_ready_board(self):
+    def _check_ready_board(self):
         return True
 
 
 class ProcessStage(object):
-    """docstring for ProcessStage"""
+    """A Class to Define General Processing Stages in Software
+
+    This class is used to define a general processing stages in software pipeline.
+    The software stage needs to fulfill one requirement: this processing stage is
+    a stencil operation.
+
+    Args:
+        name (str): the name of this software stage.
+        input_size (list): define the input shape of this processing stage. The input size 
+            should be in a list of tuples.
+        kernel_size (list): define the operation kernel shape of this processing stage. The
+            kernel size should be a list of ``tuple``. Each input can only has one kernel shape
+            operating on it. See examples below.
+        num_kernels (list): define the number of kernels for each kernel in ``kernel_size`` list.
+            This parameter should be a list of ``int``.
+        stride (list): define the processing stride for each kernel. This parameter should be
+            a list of ``tuple``.
+        padding (list): define whether applying paddings to each kernel operation. This parameter
+            should be a list of ``int``.
+
+    Examples:
+        To define a convolution with two (3x3x1) weights, stride of 2 and no padding. 
+
+        >>> ProcessStage(
+            name = "Conv",
+            input_size = [(128, 128, 1)],
+            kernel_size = [(3, 3, 1)],
+            num_kernels = [2],
+            stride = [(2, 2, 1)],
+            padding = [False]
+        )
+
+        To define a stencil operation with two inputs, ``128x128x1`` and ``64x64x1``, each input
+        is operated with different kernel sizes ``2x2x1`` and ``1x1x1``, assuming no padding.
+
+        >>> ProcessStage(
+            name = "Conv",
+            input_size = [(128, 128, 1), (64, 64, 1)],
+            kernel_size = [(2, 2, 1), (1, 1, 1)],
+            num_kernels = [1, 1],
+            stride = [(2, 2, 1), (1, 1, 1)],
+            padding = [False, False]
+        )
+
+        Here, each kernel operates on its own input. The first ``128x128x1`` input operates with 
+        ``2x2x1`` kernel and the second ``64x64x1`` input operates with ``1x1x1`` kernel. Make 
+        sure both inputs result in the same output, otherwise, an error will occur.
+    """
     def __init__(
         self, 
         name: str,
@@ -67,7 +171,6 @@ class ProcessStage(object):
         kernel_size: list,
         num_kernels: list,
         stride: list,
-        # output_size: list,
         padding: list,
     ):
         super(ProcessStage, self).__init__()
@@ -81,9 +184,31 @@ class ProcessStage(object):
         self.output_stages = []
         self.ready_board = {}
         self.padding = padding
-        self.check_consistency()
+        self._check_consistency()
 
-    def check_consistency(self):
+    def set_input_stage(self, stage):
+        """Specify the input stage for this ``ProcessStage``.
+
+        Specify the input stage for this ``ProcessStage``. This function can be called multiple
+        times to this ``ProcessStage`` has multiple producers.
+
+        Args:
+            stage: input stage of this ``ProcessStage`` instance.
+        """
+        self.input_stages.append(stage)
+
+    def set_output_stage(self, stage):
+        """Specify the output stage for this ``ProcessStage``.
+
+        Specify the output stage for this ``ProcessStage``. This function can be called multiple
+        times to this ``ProcessStage`` has multiple consumers.
+
+        Args:
+            stage: output stage of this ``ProcessStage`` instance.
+        """
+        self.output_stages.append(stage)
+
+    def _check_consistency(self):
         if len(self.input_size) != len(self.kernel_size):
             raise Exception(
                 "ProcessStage '%s' input_size length (%d) is not the same as kernel_size length (%d)" % (
@@ -131,38 +256,22 @@ class ProcessStage(object):
         # pick any element in extrapolatied_size is output size
         self.output_size = extrapolated_size[0]
 
-    def set_input_stage(self, stage):
-        self.input_stages.append(stage)
-
-    def set_output_stage(self, stage):
-        self.output_stages.append(stage)
-
-    def is_parent_of(self, process_stage):
+    def _is_parent_of(self, process_stage):
 
         if process_stage in self.input_stages:
             return True
         else:
             return False
 
-    def is_child_process_of(self, process_stage):
+    def _is_child_process_of(self, process_stage):
 
         if process_stage in self.input_stages:
             return True
         else:
             return False
 
-    def construct_ready_board(self, stage):
+    def _construct_ready_board(self, stage):
         self.ready_board[stage] = False
-
-    def set_ready_board(self, stage):
-        self.ready_board[stage] = True
-
-    def check_ready_board(self):
-        for k in self.ready_board:
-            if self.ready_board[k] == False:
-                return False
-
-        return True
 
     def __str__(self):
         return self.name
@@ -171,7 +280,31 @@ class ProcessStage(object):
         return self.name        
 
 class DNNProcessStage(object):
-    """docstring for DNNProcessStage"""
+    """A Class to Define DNN Processing Stage
+
+    Args:
+        name (str): the name of this software stage.
+        op_type (str): define the DNN operation type. Now we support ``Conv2D``, ``DWConv2`` and ``FC``.
+        ifmap_size (list): define the input shape of this processing stage. The input size 
+            should be in a list of ``int``. The order should be ``[H, W, C_in]``.
+        kernel_size (list): define the operation kernel shape of this processing stage. The
+            kernel size should be a list of ``int``. The order should be ``[H, W, C_in, C_out]``.
+        stride (int): define the processing stride of this DNN operation.
+        padding (bool): define whether applying paddings to DNN operation.
+
+    Examples:
+        To define convolution with input of ``128x128x3`` and kernel shape of ``3x3x3x16``.
+
+        >>> DNNProcessStage(
+            name = "DNN-Conv",
+            op_type = "Conv2D",
+            ifmap_size = [128, 128, 3],
+            kernel_size = [3, 3, 3, 16],
+            stride = 2,
+            padding = True
+        )
+
+    """
     def __init__(
         self,
         name: str,
@@ -228,40 +361,47 @@ class DNNProcessStage(object):
             raise Exception("Unsupported op types in class 'DNNProcessStage'.")
 
     def flatten(self):
+        """Set flatten flag when operating from convolution to FC layer."""
         self.needs_flatten = True
 
     def set_input_stage(self, stage):
+        """Specify the input stage for this ``DNNProcessStage``.
+
+        Specify the input stage for this ``DNNProcessStage``. This function can be called multiple
+        times to this ``DNNProcessStage`` has multiple producers.
+
+        Args:
+            stage: input stage of this ``ProcessStage`` instance.
+        """
         self.input_stages.append(stage)
 
     def set_output_stage(self, stage):
+        """Specify the output stage for this ``DNNProcessStage``.
+
+        Specify the output stage for this ``DNNProcessStage``. This function can be called multiple
+        times to this ``DNNProcessStage`` has multiple consumers.
+
+        Args:
+            stage: output stage of this ``DNNProcessStage`` instance.
+        """
         self.output_stages.append(stage)
 
-    def is_parent_of(self, process_stage):
+    def _is_parent_of(self, process_stage):
 
         if process_stage in self.input_stages:
             return True
         else:
             return False
 
-    def is_child_process_of(self, process_stage):
+    def _is_child_process_of(self, process_stage):
 
         if process_stage in self.input_stages:
             return True
         else:
             return False
 
-    def construct_ready_board(self, stage):
+    def _construct_ready_board(self, stage):
         self.ready_board[stage] = False
-
-    def set_ready_board(self, stage):
-        self.ready_board[stage] = True
-
-    def check_ready_board(self):
-        for k in self.ready_board:
-            if self.ready_board[k] == False:
-                return False
-
-        return True
 
     def __str__(self):
         return self.name
