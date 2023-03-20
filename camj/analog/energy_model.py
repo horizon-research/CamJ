@@ -120,10 +120,10 @@ class DigitalPixelSensorPerf(ActivePixelSensorPerf):
         The model includes an APS and an ADC.
 
         Args:
-            aps_parameters: same to  ``ActivePixelSensorPerf''.
-            adc_type: the actual ADC type. Please check ADC class for more details.
-            adc_fom: ADC's Figure-of-Merit, expressed by energy per conversion.
-            adc_resolution: ADC's resolution.
+            aps_parameters: same to  "ActivePixelSensorPerf".
+            adc_type (str): the actual ADC type. Please check ADC class for more details.
+            adc_fom (float): ADC's Figure-of-Merit, expressed by energy per conversion.
+            adc_resolution (int): ADC's resolution.
     """
 
     def __init__(
@@ -219,13 +219,13 @@ class ColumnAmplifierPerf(object):
         such as switched-capacitor integrator, switched-capacitor subtractor, and switched-capacitor multiplier.
 
         Args:
-            load_capacitance: load capacitance.
-            input_capacitance: input capacitance.
-            t_sample: sampling time, which mainly consists of the amplifier's settling time.
-            t_hold: holding time, during which the amplifier is turned on and consumes power relentlessly.
-            supply: supply voltage.
-            gain_close: amplifier's closed-loop gain.
-            gain_open: amplifier's open-loop gain.
+            load_capacitance (float): load capacitance.
+            input_capacitance (float): input capacitance.
+            t_sample (float): sampling time, which mainly consists of the amplifier's settling time.
+            t_hold (float): holding time, during which the amplifier is turned on and consumes power relentlessly.
+            supply (float): supply voltage.
+            gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of input_capacitance over feedback capacitance.
+            gain_open (int): amplifier's open-loop gain. This gain is used to determine the amplifier's bias current by gm/id method.
             differential (bool): if using differential-input amplifier or single-input amplifier.
     """
 
@@ -236,7 +236,7 @@ class ColumnAmplifierPerf(object):
         t_sample=2e-6,  # [s]
         t_hold=10e-3,  # [s], FIXME: name changed!
         supply=1.8,  # [V]
-        gain=2,
+        gain_close=2, # FIXME: name changed!
         gain_open=256,
         differential = False,
     ):
@@ -245,9 +245,9 @@ class ColumnAmplifierPerf(object):
         self.t_sample = t_sample
         self.t_hold = t_hold
         self.supply = supply
-        self.gain = gain
+        self.gain_close = gain_close
         self.gain_open = gain_open
-        self.fb_capacitance = self.input_capacitance / self.gain
+        self.fb_capacitance = self.input_capacitance / self.gain_close
         [self.i_opamp, self.gm] = gm_id(
             load_capacitance=self.load_capacitance,
             gain=self.gain_open,
@@ -279,8 +279,15 @@ class ColumnAmplifierPerf(object):
 
 
 class SourceFollowerPerf(object):
-    """
-    NMOS-based constant current-biased source follower.
+    """ Source follower (SF) with constant current bias.
+
+        This model is applicable to not only the simplest single-transistor source follower but also flipped-voltage-follower (FVF).
+
+        Args:
+            load_capacitance (float): load capacitance.
+            supply (float): supply voltage.
+            output_vs (float): voltage swing at the SF's output node.
+            bias_current (float): bias current.
     """
 
     def __init__(
@@ -314,19 +321,17 @@ class SourceFollowerPerf(object):
 
 
 class ActiveAnalogMemoryPerf(object):
-    """
-    PMOS-based differential-input-single-output amplifier.
+    """ Analog memory with active feedback.
+    
+        The model is based on the design in "(2004, JSSC) A 10-nW 12-bit accurate analog storage cell with 10-aA leakage".
+        The model consists of a sample capacitor, a compensation capacitor, and an amplifier which holds the stored analog data through feedback.
 
-    @article{o200410,
-    title={A 10-nW 12-bit accurate analog storage cell with 10-aA leakage},
-    author={O'Halloran, Micah and Sarpeshkar, Rahul},
-    journal={IEEE journal of solid-state circuits},
-    volume={39},
-    number={11},
-    pages={1985--1996},
-    year={2004},
-    publisher={IEEE}
-    }
+        Args:
+            sample_capacitance (float): sample capacitance.
+            comp_capacitance (float): compensation capacitance
+            t_sample (float): sampling time, which mainly consists of the amplifier's settling time.
+            t_hold (float): holding time, during which the amplifier is turned on and consumes power relentlessly.
+            supply (float): supply voltage.
     """
 
     def __init__(
