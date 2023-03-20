@@ -1,12 +1,25 @@
+"""Digital Compute Library
 
+This module defines the digital compute interface. It contains three types of compute units
+which can be used in digital simulation.
+"""
 import numpy as np
 from camj.general.flags import *
 
-'''
-    TODO: For now, just consider ADC as a compute unit, can be modified it later.
-'''
 class ADC(object):
-    """docstring for ADC"""
+    """ADC compute unit
+
+    ADC is relately unique because it serves as an interface between digital and analog domain.
+    Here, to perform digital simulation, we assume the computation starts with ADC. Users need
+    to define ADC to launch digital simulation.
+
+    Args:
+        name(str): name of this class.
+        output_pixels_per_cycle (tuple): the output pixel rate per cycle. It should be in ``(H, W, C)`` format.
+        location: defines the location of the ADC. see ``general.enum`` for more details.
+        energy_per_pixel: the energy consumption generated in digital domain per pixel.
+
+    """
     def __init__(
         self,
         name: str, 
@@ -15,7 +28,10 @@ class ADC(object):
         energy_per_pixel = 600
     ):
         super(ADC, self).__init__()
-        self.name = "ADC"
+        self.name = name
+
+        # check output pixels per cycle is a 3D tuple.
+        assert len(output_pixels_per_cycle) == 3, "Parameter 'output_pixels_per_cycle' should be a tuple of length 3!"
         self.input_pixels_per_cycle = None
         self.output_pixels_per_cycle = (
             output_pixels_per_cycle[1],
@@ -43,14 +59,99 @@ class ADC(object):
         # performance counter
         self.sys_all_compute_cycle = 0
 
+    #################################################
+    #               Public functions                #
+    #################################################
     def set_input_buffer(self, input_buffer):
+        """Set Input Buffer
+            
+        This function sets the input buffer for this compute unit. Each compute can have
+        one input buffer, call this function multiple times will overwrite the old input
+        buffer.
+
+        Args:
+            input_buffer: input buffer object for this compute instance.
+
+        Returns:
+            None
+        """
         self.input_buffer = input_buffer
         input_buffer.add_access_unit(self.name)
 
     def set_output_buffer(self, output_buffer):
+        """Set Output Buffer
+
+        This function sets the output buffer for this compute unit. Each compute can have
+        one output buffer, call this function multiple times will overwrite the old output
+        buffer.
+
+        Args:
+            output_buffer: output buffer object for this compute instance.
+
+        Returns:
+            None
+        """
         self.output_buffer = output_buffer
         output_buffer.add_access_unit(self.name)
 
+    def get_total_read(self):
+        """Calculate number of reads before output the given number of pixels defined by users.
+
+        Returns:
+            Number of Reads (int)
+        """
+        # need to check if total_read has been initialized
+        # if not, calculate it before return
+        if self.total_read == -1:
+            total_read = 0
+            if self.input_pixels_per_cycle != None:
+                for throughput in self.input_pixels_per_cycle:
+                    read_for_one_input = 1
+                    for i in range(len(throughput)):
+                        read_for_one_input *= throughput[i]
+
+                    total_read += read_for_one_input
+
+            self.total_read = total_read
+
+        return self.total_read
+
+    def get_total_write(self):
+        """Calculate number of writes to output the given number of pixels defined by users.
+
+        Returns:
+            Number of Write (int)
+        """
+        # need to check if total_write has been initialized
+        # if not, calculate it before return
+        if self.total_write == -1:
+            total_write = 1
+            if self.output_pixels_per_cycle is not None:
+                for i in range(len(self.output_pixels_per_cycle)):
+                    total_write *= self.output_pixels_per_cycle[i]
+
+            self.total_write = total_write
+
+        return self.total_write
+
+    def compute_energy(self):
+        """Total Compute Energy
+
+        This function calculates the total compute energy for this compute instance.
+        CamJ simulator calls this function after the simulation is finished.
+
+        Mathematically Expression:
+            Total Compute Energy = Energy per Pixel * Output Pixels
+
+        Returns:
+            Compute energy number in pJ (int)
+        """
+        return int(self.energy_per_pixel * self.sys_all_compute_cycle * self.total_write)
+
+
+    #################################################
+    #               Private functions               #
+    #################################################
     def _init_output_buffer_index(self, sw_stage, buffer_size):
         self.output_buffer_size[sw_stage] = buffer_size
         self.output_index_list[sw_stage] = []
@@ -90,23 +191,6 @@ class ADC(object):
     '''
         Functions related to reading stage
     '''
-    def get_total_read(self):
-        # need to check if total_read has been initialized
-        # if not, calculate it before return
-        if self.total_read == -1:
-            total_read = 0
-            if self.input_pixels_per_cycle != None:
-                for throughput in self.input_pixels_per_cycle:
-                    read_for_one_input = 1
-                    for i in range(len(throughput)):
-                        read_for_one_input *= throughput[i]
-
-                    total_read += read_for_one_input
-
-            self.total_read = total_read
-
-        return self.total_read
-
     # return number of read still un-read
     def _num_read_remain(self):
         total_read = self.get_total_read()
@@ -134,19 +218,6 @@ class ADC(object):
     '''
         Functions related to writing stage
     '''
-    def get_total_write(self):
-        # need to check if total_write has been initialized
-        # if not, calculate it before return
-        if self.total_write == -1:
-            total_write = 1
-            if self.output_pixels_per_cycle is not None:
-                for i in range(len(self.output_pixels_per_cycle)):
-                    total_write *= self.output_pixels_per_cycle[i]
-
-            self.total_write = total_write
-
-        return self.total_write
-
     # return number of write still un-read
     def _num_write_remain(self):
         total_write = self.get_total_write()
@@ -175,60 +246,75 @@ class ADC(object):
         else:
             return False
 
-    def compute_energy(self):
-        return self.energy_per_pixel * self.sys_all_compute_cycle
-
     def __str__(self):
         return self.name
 
     def __repr__(self):
         return self.name        
 
-'''
-    This is the generic Compute Unit interface for both digital and analog.
-    It can be used directly or extended to a derived class.
-    Four attributes are important to define the behavior of the compute unit.
-        1. input throughput: it is a list of tuples, each tuple defines the input throughput for one
-            perticular source HW unit (producer).
-        2. output throughput: it is a tuple, to define the output throughput shape for each compute.
-        3. delay: assume the stage is fully pipelined, in that case, how long it takes to obtain one
-            batch of output result.
-        4. initial delay: it is the initial delay before this stage is fully pipelined.
-'''
+
 class ComputeUnit(object):
-    """docstring for ComputeUnit"""
+    """Generic Compute Unit Interface
+
+    This is the generic Compute Unit interface for digital domain. It can be used to
+    model any digital compute hardware that performs stencil operations.
+
+    Args:
+        name(str): name of this class.
+        location: defines the location of the ADC. see ``general.enum`` for more details.
+        output_pixels_per_cycle (list): the input pixel rate per cycle in order to perform computation.
+            It should be a list of tuple. Eacg tuple should be in ``(H, W, C)`` format.
+        output_pixels_per_cycle (tuple): the output pixel rate per cycle. It should be in ``(H, W, C)`` format.
+        energy_per_cycle (float): the average energy per cycle in unit of pJ.
+        num_of_stages (int): number of stage of this compute unit in the pipeline.
+
+    Examples:
+        To instantiate a ``3x3x1`` convolution operation with 3-stage pipeline. Each cycle, 
+        this compute unit takes ``1x3x1`` inputs and output ``1x1x1``. When fully pipelined,
+        this compute unit consumes 9 pJ (9 operations, each takes 1 pJ).
+
+        >>> ComputeUnit(
+            name = "ConvUnit",
+            location = ProcessorLocation.COMPUTE_LAYER,
+            input_pixels_per_cycle = [(1, 3, 1)],
+            output_pixels_per_cycle = (1, 1, 1),
+            energy_per_cycle = 9,   # pJ
+            num_of_stages = 3,      # 3-stage pipeline
+        ) 
+    """
     def __init__(
         self,
         name: str,
-        domain: int,    # whether is digital or analog
         location: int,  # location of this unit
         input_pixels_per_cycle: list,     # This is the input requirement in order to perform compute on this unit
         output_pixels_per_cycle: list,    # the number of element can be written out once one batch of compute is finished.
         energy_per_cycle: float,   # the average energy per cycle
         num_of_stages: int,        # number of stage in the pipeline.
-        area: float,
     ):
         super(ComputeUnit, self).__init__()
         # assign variables
         self.name = name
         self.domain = domain
         self.location = location
+        self.energy_per_cycle = energy_per_cycle
 
         # covert (h, w, c) to internal representation (x, y, z)
         self.input_pixels_per_cycle = _convert_hwc_to_xyz(name, input_pixels_per_cycle)
+
+        # check output pixels per cycle is a 3D tuple.
+        assert len(output_pixels_per_cycle) == 3, "Parameter 'output_pixels_per_cycle' should be a tuple of length 3!"
         self.output_pixels_per_cycle = (
             output_pixels_per_cycle[1],
             output_pixels_per_cycle[0],
             output_pixels_per_cycle[2]
         ) # covert (h, w, c) to internal representation (x, y, z)
-
-        self.energy = energy_per_cycle
-        self.area = area
+        
         # setup the delay for the entire compute
         self.add_init_delay = False
         self.initial_delay = num_of_stages - 1
         self.delay = 1
         self.elapse_cycle = -1
+
         # parameters for reading stage
         self.read_cnt = -1 # num of input already being read for one compute
         self.total_read = -1 # total num of reads
@@ -244,22 +330,106 @@ class ComputeUnit(object):
         # performance counter
         self.sys_all_compute_cycle = 0
 
-    '''
-        # Input/output Data Dependency Configuration 
+    #################################################
+    #               Public functions                #
+    #################################################
+
+    """Input/output Data Dependency Configuration 
 
         All the input_/output_ related functions are used to define the dataflow.
         The input/output data indexes are used for HW unit to write data at the 
         correct location.
-    '''
-    # needs to set the input and output buffer
+    """
     def set_input_buffer(self, input_buffer):
+        """Set Input Buffer
+            
+        This function sets the input buffer for this compute unit. Each compute can have
+        one input buffer, call this function multiple times will overwrite the old input
+        buffer.
+
+        Args:
+            input_buffer: input buffer object for this compute instance.
+
+        Returns:
+            None
+        """
         self.input_buffer = input_buffer
         input_buffer.add_access_unit(self.name)
 
     def set_output_buffer(self, output_buffer):
+        """Set Output Buffer
+
+        This function sets the output buffer for this compute unit. Each compute can have
+        one output buffer, call this function multiple times will overwrite the old output
+        buffer.
+
+        Args:
+            output_buffer: output buffer object for this compute instance.
+
+        Returns:
+            None
+        """
         self.output_buffer = output_buffer
         output_buffer.add_access_unit(self.name)
 
+    def compute_energy(self):
+        """Total Compute Energy
+
+        This function calculates the total compute energy for this compute instance.
+        CamJ simulator calls this function after the simulation is finished.
+
+        Mathematically Expression:
+            Total Compute Energy = Energy per cycle * Compute Cycles
+
+        Returns:
+            Compute energy number in pJ (int)
+        """
+        # print(self.name, self.energy_per_cycle, self.sys_all_compute_cycle)
+        return int(self.energy_per_cycle * self.sys_all_compute_cycle)
+
+    def get_total_read(self):
+        """Calculate number of reads before output the given number of pixels defined by users.
+
+        Returns:
+            Number of Reads (int)
+        """
+        # need to check if total_read has been initialized
+        # if not, calculate it before return
+        if self.total_read == -1:
+            total_read = 0
+            if self.input_pixels_per_cycle != None:
+                for throughput in self.input_pixels_per_cycle:
+                    read_for_one_input = 1
+                    for i in range(len(throughput)):
+                        read_for_one_input *= throughput[i]
+
+                    total_read += read_for_one_input
+
+            self.total_read = total_read
+
+        return self.total_read
+
+    def get_total_write(self):
+        """Calculate number of writes to output the given number of pixels defined by users.
+
+        Returns:
+            Number of Write (int)
+        """
+        # need to check if total_write has been initialized
+        # if not, calculate it before return
+        if self.total_write == -1:
+            total_write = 1
+            if self.output_pixels_per_cycle is not None:
+                for i in range(len(self.output_pixels_per_cycle)):
+                    total_write *= self.output_pixels_per_cycle[i]
+
+            self.total_write = total_write
+
+        return self.total_write
+
+    #################################################
+    #               Private functions               #
+    #################################################
     # set the input hw units, the final input hw units is a list,
     # we assume multiple hw units as input
     def _set_input_hw_unit(self, sw_stage, hw_unit):
@@ -267,7 +437,6 @@ class ComputeUnit(object):
             self.input_hw_units[sw_stage] = [hw_unit]
         else:
             raise Exception("[set_input_hw_unit]: each input sw_stage can only map to one hw_unit")
-
 
     # initialize input buffer index, so that we know where to the next data
     # the buffer index will be indexed using (source hw unit, sw stage)
@@ -301,12 +470,11 @@ class ComputeUnit(object):
     def _set_output_buffer_index(self, sw_stage, output_buffer_index):
         self.output_index_list[sw_stage] = output_buffer_index
 
-    '''
-        # Compute-related Functions
+    """Compute-related Functions
 
         Those functions are used for cycle-level simulation, make sure each batch of 
         compute are finished based on the defined delay time.
-    '''
+    """
     # initialize the cycle number that needs to be elapsed before writing the output
     def _init_elapse_cycle(self):
         if self.add_init_delay:
@@ -333,30 +501,9 @@ class ComputeUnit(object):
         else:
             return False
 
-    def compute_energy(self):
-        # print(self.name, self.energy, self.sys_all_compute_cycle, self.delay)
-        return int(self.energy * self.sys_all_compute_cycle / self.delay)
-
-    '''
+    """
         Functions related to reading stage
-    '''
-    def get_total_read(self):
-        # need to check if total_read has been initialized
-        # if not, calculate it before return
-        if self.total_read == -1:
-            total_read = 0
-            if self.input_pixels_per_cycle != None:
-                for throughput in self.input_pixels_per_cycle:
-                    read_for_one_input = 1
-                    for i in range(len(throughput)):
-                        read_for_one_input *= throughput[i]
-
-                    total_read += read_for_one_input
-
-            self.total_read = total_read
-
-        return self.total_read
-
+    """
     # return number of read still un-read
     def _num_read_remain(self):
         total_read = self.get_total_read()
@@ -383,22 +530,9 @@ class ComputeUnit(object):
         else:
             return False
 
-    '''
+    """
         Functions related to writing stage
-    '''
-    def get_total_write(self):
-        # need to check if total_write has been initialized
-        # if not, calculate it before return
-        if self.total_write == -1:
-            total_write = 1
-            if self.output_pixels_per_cycle is not None:
-                for i in range(len(self.output_pixels_per_cycle)):
-                    total_write *= self.output_pixels_per_cycle[i]
-
-            self.total_write = total_write
-
-        return self.total_write
-
+    """
     # return number of write still un-read
     def _num_write_remain(self):
         total_write = self.get_total_write()
@@ -434,27 +568,43 @@ class ComputeUnit(object):
     def __repr__(self):
         return self.name
 
-'''
-    Systolic Array, it is an unique architecture design.
-'''
+
 class SystolicArray(object):
-    """docstring for SystolicArray"""
+    """SystolicArray
+
+    This class emulate a classic architecture design, systolic array.
+
+    Args:
+        name(str): name of this class.
+        location: defines the location of the ADC. see ``general.enum`` for more details.
+        size_dimension (tuple): the dimension of the systolic array in a format of ``(H, W)``.
+        energy_per_cycle (float): the average energy per cycle in unit of pJ.
+
+    Example:
+        To instantiate a ``16x16`` systolic array
+
+        >>> SystolicArray(
+            name = "SystolicArray",
+            location = ProcessorLocation.COMPUTE_LAYER,
+            size_dimension = (16, 16),
+            energy_per_cycle = 0.5 * 16 *16, # 0.5 pJ per MAC op
+        )
+    """
     def __init__(
         self,
         name,
-        domain,
         location,
         size_dimension,
         energy_per_cycle,
-        area
     ):
         super(SystolicArray, self).__init__()
-        self.name = name 
-        self.domain = domain
+        # store configs
+        self.name = name
         self.location = location
         self.size_dimension = size_dimension
         self.energy_per_cycle = energy_per_cycle
-        self.area = area
+
+        # simulation setup
         self.input_hw_units = {}
         self.input_index_list = {}
 
@@ -475,15 +625,95 @@ class SystolicArray(object):
         # performance counter
         self.sys_all_compute_cycle = 0
 
-
+    #################################################
+    #               Public functions                #
+    #################################################
     # needs to set the input and output buffer
     def set_input_buffer(self, input_buffer):
+        """Set Input Buffer
+            
+        This function sets the input buffer for this compute unit. Each compute can have
+        one input buffer, call this function multiple times will overwrite the old input
+        buffer.
+
+        Args:
+            input_buffer: input buffer object for this compute instance.
+
+        Returns:
+            None
+        """
         self.input_buffer = input_buffer
         input_buffer.add_access_unit(self.name)
 
     def set_output_buffer(self, output_buffer):
+        """Set Output Buffer
+
+        This function sets the output buffer for this compute unit. Each compute can have
+        one output buffer, call this function multiple times will overwrite the old output
+        buffer.
+
+        Args:
+            output_buffer: output buffer object for this compute instance.
+
+        Returns:
+            None
+        """
         self.output_buffer = output_buffer
         output_buffer.add_access_unit(self.name)
+
+    def compute_energy(self):
+        """Total Compute Energy
+
+        This function calculates the total compute energy for this compute instance.
+        CamJ simulator calls this function after the simulation is finished.
+
+        Mathematically Expression:
+            Total Compute Energy = Energy per cycle * Compute Cycles
+
+        Returns:
+            Compute energy number in pJ (int)
+        """
+        return int(self.energy_per_cycle * self.sys_all_compute_cycle)
+
+    def get_total_read(self):
+        """Calculate number of reads before output the given number of pixels defined by users.
+
+        Returns:
+            Number of Reads (int)
+        """
+        total_read = 0
+        if self.input_pixels_per_cycle != None:
+            for throughput in self.input_pixels_per_cycle:
+                read_for_one_input = 1
+                for i in range(len(throughput)):
+                    read_for_one_input *= throughput[i]
+
+                total_read += read_for_one_input
+
+        self.total_read = total_read
+
+        return self.total_read
+
+    def get_total_write(self):
+        """Calculate number of writes to output the given number of pixels defined by users.
+
+        Returns:
+            Number of Write (int)
+        """
+        # need to check if total_write has been initialized
+        # if not, calculate it before return
+        total_write = 1
+        if self.output_pixels_per_cycle is not None:
+            for i in range(len(self.output_pixels_per_cycle)):
+                total_write *= self.output_pixels_per_cycle[i]
+
+        self.total_write = total_write
+
+        return self.total_write
+
+    #################################################
+    #               Private functions               #
+    #################################################
 
     def _config_throughput(self, input_size, output_size, stride, kernel_size, op_type):
         if ENABLE_DEBUG:
@@ -629,26 +859,9 @@ class SystolicArray(object):
         else:
             return False
 
-    def compute_energy(self):
-        return int(self.energy_per_cycle * self.sys_all_compute_cycle)
-
-    '''
+    """
         Functions related to reading stage
-    '''
-    def get_total_read(self):
-        total_read = 0
-        if self.input_pixels_per_cycle != None:
-            for throughput in self.input_pixels_per_cycle:
-                read_for_one_input = 1
-                for i in range(len(throughput)):
-                    read_for_one_input *= throughput[i]
-
-                total_read += read_for_one_input
-
-        self.total_read = total_read
-
-        return self.total_read
-
+    """
     # return number of read still un-read
     def _num_read_remain(self):
         total_read = self.get_total_read()
@@ -675,22 +888,9 @@ class SystolicArray(object):
         else:
             return False
 
-        '''
+    """
         Functions related to writing stage
-    '''
-    def get_total_write(self):
-        # need to check if total_write has been initialized
-        # if not, calculate it before return
-        # if self.total_write == -1:
-        total_write = 1
-        if self.output_pixels_per_cycle is not None:
-            for i in range(len(self.output_pixels_per_cycle)):
-                total_write *= self.output_pixels_per_cycle[i]
-
-        self.total_write = total_write
-
-        return self.total_write
-
+    """
     # return number of write still un-read
     def _num_write_remain(self):
         total_write = self.get_total_write()
@@ -725,32 +925,28 @@ class SystolicArray(object):
     def __repr__(self):
         return self.name
 
-'''
-    Neural processor, it is an unique architecture design.
-    It is a SIMD architecture that commonly exists in many mobile or 
-    embedded architecture. 
-    Curently, the data flow only supports output stationary.
-'''
-class NeuralProcessor(object):
-    """docstring for NeuralProcessor"""
+
+class SIMDProcessor(object):
+    """SIMD Processor
+
+    It is a SIMD architecture that commonly exists in many mobile or embedded architecture 
+    for DNN acceleration. Curently, the data flow only supports output stationary.
+
+    """
     def __init__(
         self,
         name,
-        domain,
         location,
         size_dimension,
-        clock,
-        energy,
-        area
+        energy_per_cycle
     ):
-        super(NeuralProcessor, self).__init__()
-        self.name = name 
-        self.domain = domain
+        super(SIMDProcessor, self).__init__()
+        # store configs
+        self.name = name
         self.location = location
         self.size_dimension = size_dimension
-        self.clock_frequency = clock
-        self.energy = energy
-        self.area = area
+        self.energy_per_cycle = energy_per_cycle
+
         self.input_hw_units = {}
         self.input_index_list = {}
         self.output_buffer_size = {}
@@ -773,66 +969,176 @@ class NeuralProcessor(object):
         self.sys_all_read_cnt = 0
 
 
+        # simulation setup
+        self.input_hw_units = {}
+        self.input_index_list = {}
+
+        self.output_buffer_size = {}
+        self.output_index_list = {}
+
+        self.add_init_delay = False
+        self.initial_delay = size_dimension[0]
+        self.delay = 10
+        self.elapse_cycle = -1
+        # parameters for reading stage
+        self.read_cnt = -1 # num of input already being read for one compute
+        self.total_read = -1 # total num of reads
+        # parameters for writing stage
+        self.write_cnt = -1 # num of output already being written for one compute
+        self.total_write = -1 # total num of write
+
+        # performance counter
+        self.sys_all_compute_cycle = 0
+
+    #################################################
+    #               Public functions                #
+    #################################################
     # needs to set the input and output buffer
     def set_input_buffer(self, input_buffer):
+        """Set Input Buffer
+            
+        This function sets the input buffer for this compute unit. Each compute can have
+        one input buffer, call this function multiple times will overwrite the old input
+        buffer.
+
+        Args:
+            input_buffer: input buffer object for this compute instance.
+
+        Returns:
+            None
+        """
         self.input_buffer = input_buffer
         input_buffer.add_access_unit(self.name)
 
     def set_output_buffer(self, output_buffer):
+        """Set Output Buffer
+
+        This function sets the output buffer for this compute unit. Each compute can have
+        one output buffer, call this function multiple times will overwrite the old output
+        buffer.
+
+        Args:
+            output_buffer: output buffer object for this compute instance.
+
+        Returns:
+            None
+        """
         self.output_buffer = output_buffer
         output_buffer.add_access_unit(self.name)
+
+    def compute_energy(self):
+        """Total Compute Energy
+
+        This function calculates the total compute energy for this compute instance.
+        CamJ simulator calls this function after the simulation is finished.
+
+        Mathematically Expression:
+            Total Compute Energy = Energy per cycle * Compute Cycles
+
+        Returns:
+            Compute energy number in pJ (int)
+        """
+        return int(self.energy_per_cycle * self.sys_all_compute_cycle)
+
+    def get_total_read(self):
+        """Calculate number of reads before output the given number of pixels defined by users.
+
+        Returns:
+            Number of Reads (int)
+        """
+        total_read = 0
+        if self.input_pixels_per_cycle != None:
+            for throughput in self.input_pixels_per_cycle:
+                read_for_one_input = 1
+                for i in range(len(throughput)):
+                    read_for_one_input *= throughput[i]
+
+                total_read += read_for_one_input
+
+        self.total_read = total_read
+
+        return self.total_read
+
+    def get_total_write(self):
+        """Calculate number of writes to output the given number of pixels defined by users.
+
+        Returns:
+            Number of Write (int)
+        """
+        # need to check if total_write has been initialized
+        # if not, calculate it before return
+        total_write = 1
+        if self.output_pixels_per_cycle is not None:
+            for i in range(len(self.output_pixels_per_cycle)):
+                total_write *= self.output_pixels_per_cycle[i]
+
+        self.total_write = total_write
+
+        return self.total_write
+
+    #################################################
+    #               Private functions               #
+    #################################################
 
     def _config_throughput(self, input_size, output_size, stride, kernel_size, op_type):
         if ENABLE_DEBUG:
             print(
-                "[NEURALPROCESSOR] config: ", 
-                "ifmap size: ", input_size, 
-                "ofmap size: ", output_size, 
-                "stride: ", stride, 
-                "kernel size: ", kernel_size
+                "[SIMDProcessor] config: ", 
+                "ifmap size (x, y, z): ", input_size, 
+                "ofmap size (x, y, z): ", output_size, 
+                "stride (x, y, z): ", stride, 
+                "kernel size (x, y, z): ", kernel_size
             )
 
         if op_type == "Conv2D":
             # compute throughput dimension
             # when the input size is smaller than size_dimension, we should take input_size as throughput
-            throughput_dimension_x = min(input_size[0]//stride, self.size_dimension[0])
+            throughput_dimension_x = min(input_size[0]//stride[0], self.size_dimension[0])
             # same as throughput_dimension_x.
-            throughput_dimension_y = min(input_size[1]//stride, self.size_dimension[1])
-            # print("[SYSTOLIC]", throughput_dimension_x, throughput_dimension_y, self.size_dimension)
+            throughput_dimension_y = min(input_size[1]//stride[1], self.size_dimension[1])
+            # print("[SIMDProcessor]", throughput_dimension_x, throughput_dimension_y, self.size_dimension)
 
             # compute the input throughput, the input dependency for computing ofmap
-            self.input_throughput = [
-                (throughput_dimension_x*stride, throughput_dimension_y*stride, input_size[-1])
+            self.input_pixels_per_cycle = [
+                (
+                    throughput_dimension_x * stride[0], 
+                    throughput_dimension_y * stride[1], 
+                    input_size[-1] * 1
+                )
             ]
             
             # compute the output throughput
-            self.output_throughput = (throughput_dimension_x, throughput_dimension_y, output_size[-1])
+            self.output_pixels_per_cycle = (throughput_dimension_x, throughput_dimension_y, 1)
 
             # calculate the delay for one compute batch
-            self.delay = kernel_size*kernel_size*input_size[-1]*output_size[-1]
+            self.delay = kernel_size[0] * kernel_size[1] * input_size[-1] * 1
         elif op_type == "DWConv2D":
             # compute throughput dimension
             # when the input size is smaller than size_dimension, we should take input_size as throughput
-            throughput_dimension_x = min(input_size[0]//stride, self.size_dimension[0])
+            throughput_dimension_x = min(input_size[0]//stride[0], self.size_dimension[0])
             # same as throughput_dimension_x.
-            throughput_dimension_y = min(input_size[1]//stride, self.size_dimension[1])
-            # print("[SYSTOLIC]", throughput_dimension_x, throughput_dimension_y, self.size_dimension)
+            throughput_dimension_y = min(input_size[1]//stride[1], self.size_dimension[1])
+            # print("[SIMDProcessor]", throughput_dimension_x, throughput_dimension_y, self.size_dimension)
 
             # compute the input throughput, the input dependency for computing ofmap
-            self.input_throughput = [
-                (throughput_dimension_x*stride, throughput_dimension_y*stride, input_size[-1])
+            self.input_pixels_per_cycle = [
+                (
+                    throughput_dimension_x * stride[0], 
+                    throughput_dimension_y * stride[1], 
+                    input_size[-1] * 1
+                )
             ]
             
             # compute the output throughput
-            self.output_throughput = (throughput_dimension_x, throughput_dimension_y, output_size[-1])
+            self.output_pixels_per_cycle = (throughput_dimension_x, throughput_dimension_y, 1)
 
             # calculate the delay for one compute batch
-            self.delay = kernel_size*kernel_size*output_size[-1]
+            self.delay = kernel_size[0] * kernel_size[1] * 1
         elif op_type == "FC":
-            self.input_throughput = [input_size]
+            self.input_pixels_per_cycle = [input_size]
             
             # compute the output throughput
-            self.output_throughput = output_size
+            self.output_pixels_per_cycle = output_size
 
             fc_mac_cnt = input_size[0] * output_size[0]
             # calculate the delay for one compute batch
@@ -843,8 +1149,8 @@ class NeuralProcessor(object):
 
         if ENABLE_DEBUG:
             print(
-                "[NEURALPROCESSOR] input throughput: ", self.input_throughput,
-                "output throughput: ", self.output_throughput,
+                "[SIMDProcessor] input throughput: ", self.input_pixels_per_cycle,
+                "output throughput: ", self.output_pixels_per_cycle,
                 "compute delay: ", self.delay 
             )
 
@@ -870,18 +1176,18 @@ class NeuralProcessor(object):
     def _set_input_buffer_index(self, src_hw_unit, sw_stage, input_buffer_index):
         self.input_index_list[src_hw_unit, sw_stage] = input_buffer_index
 
-    # # initial output buffer index, here only sw stage is used as index,
-    # # because we consider only one output buffer
-    # def init_output_buffer_index(self, sw_stage, buffer_size):
+    # initial output buffer index, here only sw stage is used as index,
+    # because we consider only one output buffer
+    def _init_output_buffer_index(self, sw_stage, buffer_size):
         
-    #     self.output_throughput = np.ones_like(buffer_size)
-    #     self.output_throughput[0] = self.size_dimension[0]
+        self.output_pixels_per_cycle = np.ones_like(buffer_size)
+        self.output_pixels_per_cycle[0] = self.size_dimension[0]
 
-    #     self.output_buffer_size[sw_stage] = buffer_size
+        self.output_buffer_size[sw_stage] = buffer_size
         
-    #     self.output_index_list[sw_stage] = []
-    #     for i in buffer_size:
-    #         self.output_index_list[sw_stage].append(0)
+        self.output_index_list[sw_stage] = []
+        for i in buffer_size:
+            self.output_index_list[sw_stage].append(0)
 
     def _get_output_buffer_size(self, sw_stage):
         return self.output_buffer_size[sw_stage]
@@ -918,30 +1224,9 @@ class NeuralProcessor(object):
         else:
             return False
 
-    def compute_energy(self):
-        return int(self.energy * self.sys_all_compute_cycle)
-
-    def communication_energy(self):
-        return int(
-            R_W_ENERGY*(self.sys_all_read_cnt+self.sys_all_write_cnt)
-        )
-    '''
+    """
         Functions related to reading stage
-    '''
-    def get_total_read(self):
-        total_read = 0
-        if self.input_throughput != None:
-            for throughput in self.input_throughput:
-                read_for_one_input = 1
-                for i in range(len(throughput)):
-                    read_for_one_input *= throughput[i]
-
-                total_read += read_for_one_input
-
-        self.total_read = total_read
-
-        return self.total_read
-
+    """
     # return number of read still un-read
     def _num_read_remain(self):
         total_read = self.get_total_read()
@@ -958,11 +1243,9 @@ class NeuralProcessor(object):
         if self.read_cnt == -1:
             self.read_cnt = 0
         self.read_cnt += read_cnt
-        self.sys_all_read_cnt += read_cnt
 
     # check if current reading stage is finished
     def _check_read_finish(self):
-        print("[SYSTOLIC]", self.read_cnt, self.get_total_read())
         if self.read_cnt == self.get_total_read():
             # reset num_read before return
             self.read_cnt = -1
@@ -970,22 +1253,9 @@ class NeuralProcessor(object):
         else:
             return False
 
-        '''
+    """
         Functions related to writing stage
-    '''
-    def _get_total_write(self):
-        # need to check if total_write has been initialized
-        # if not, calculate it before return
-        # if self.total_write == -1:
-        total_write = 1
-        if self.output_throughput is not None:
-            for i in range(len(self.output_throughput)):
-                total_write *= self.output_throughput[i]
-
-        self.total_write = total_write
-
-        return self.total_write
-
+    """
     # return number of write still un-read
     def _num_write_remain(self):
         total_write = self.get_total_write()
@@ -1003,7 +1273,6 @@ class NeuralProcessor(object):
             self.write_cnt = 0
         prev_write_cnt = self.write_cnt
         self.write_cnt += write_cnt
-        self.sys_all_write_cnt += write_cnt
         return prev_write_cnt
 
     # check if current writing stage is finished

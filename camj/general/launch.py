@@ -5,7 +5,7 @@ from inspect import signature
 
 # import local modules
 from camj.analog.utils import find_analog_sw_stages, find_analog_sw_mapping, launch_analog_simulation
-from camj.digital.compute import SystolicArray, NeuralProcessor
+from camj.digital.compute import SystolicArray, SIMDProcessor
 from camj.digital.infra import ReservationBoard, BufferMonitor
 from camj.digital.utils import map_sw_hw, check_buffer_consistency, build_buffer_edges, \
                     allocate_output_buffer, increment_buffer_index, check_stage_finish, \
@@ -265,9 +265,9 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
                 # Otherwise, there can be some infinite checkings in the program due to incorrect
                 # systolic array configuration.
                 if not reservation_board.check_reservation(hw_unit):
-                    # check if the hw unit is a systolic array instance or neural processor,
+                    # check if the hw unit is a systolic array instance or SIMD processor,
                     # if yes, needs to modify the input/output throughput.
-                    if isinstance(hw_unit, SystolicArray) or isinstance(hw_unit, NeuralProcessor):
+                    if isinstance(hw_unit, SystolicArray) or isinstance(hw_unit, SIMDProcessor):
                         hw_unit._config_throughput(
                             sw_stage.ifmap_size, 
                             sw_stage.output_size,
