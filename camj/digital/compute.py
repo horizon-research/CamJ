@@ -51,36 +51,36 @@ class ADC(object):
         self.output_buffer = output_buffer
         output_buffer.add_access_unit(self.name)
 
-    def init_output_buffer_index(self, sw_stage, buffer_size):
+    def _init_output_buffer_index(self, sw_stage, buffer_size):
         self.output_buffer_size[sw_stage] = buffer_size
         self.output_index_list[sw_stage] = []
         for i in buffer_size:
             self.output_index_list[sw_stage].append(0)
 
-    def get_output_buffer_size(self, sw_stage):
+    def _get_output_buffer_size(self, sw_stage):
         return self.output_buffer_size[sw_stage]
 
-    def get_output_buffer_index(self, sw_stage):
+    def _get_output_buffer_index(self, sw_stage):
         return self.output_index_list[sw_stage]
 
-    def set_output_buffer_index(self, sw_stage, output_buffer_index):
+    def _set_output_buffer_index(self, sw_stage, output_buffer_index):
         self.output_index_list[sw_stage] = output_buffer_index
 
-        # initialize the cycle number that needs to be elapsed before writing the output
-    def init_elapse_cycle(self):
+    # initialize the cycle number that needs to be elapsed before writing the output
+    def _init_elapse_cycle(self):
         self.elapse_cycle = self.delay
 
     # process one cycle
-    def process_one_cycle(self):
+    def _process_one_cycle(self):
         self.elapse_cycle -= 1
         self.sys_all_compute_cycle += 1
 
     # dummy function
-    def start_init_delay(self):
+    def _start_init_delay(self):
         pass
 
     # check if the compute is finished, if finished, reset the elapse cycle number
-    def finish_computation(self):
+    def _finish_computation(self):
         if self.elapse_cycle == 0:
             self.elapse_cycle = -1
             return True
@@ -108,7 +108,7 @@ class ADC(object):
         return self.total_read
 
     # return number of read still un-read
-    def num_read_remain(self):
+    def _num_read_remain(self):
         total_read = self.get_total_read()
 
         # check if read_cnt has been initialized yet
@@ -118,14 +118,14 @@ class ADC(object):
             return total_read
 
     # log num of reads happened in this reading cycle
-    def read_from_input_buffer(self, read_cnt):
+    def _read_from_input_buffer(self, read_cnt):
         # initialize it before count
         if self.read_cnt == -1:
             self.read_cnt = 0
         self.read_cnt += read_cnt
 
     # check if current reading stage is finished
-    def check_read_finish(self):
+    def _check_read_finish(self):
         if self.read_cnt == self.get_total_read():
             return True
         else:
@@ -148,7 +148,7 @@ class ADC(object):
         return self.total_write
 
     # return number of write still un-read
-    def num_write_remain(self):
+    def _num_write_remain(self):
         total_write = self.get_total_write()
 
         # check if write_cnt has been initialized yet
@@ -158,7 +158,7 @@ class ADC(object):
             return total_write
 
     # log num of writes happened in this writing cycle
-    def write_to_output_buffer(self, write_cnt):
+    def _write_to_output_buffer(self, write_cnt):
         # initialize it before count
         if self.write_cnt == -1:
             self.write_cnt = 0
@@ -167,7 +167,7 @@ class ADC(object):
         return prev_write_cnt
 
     # check if current writing stage is finished
-    def check_write_finish(self):
+    def _check_write_finish(self):
         if self.write_cnt == self.get_total_write():
             # reset num_write before return
             self.write_cnt = -1
@@ -262,7 +262,7 @@ class ComputeUnit(object):
 
     # set the input hw units, the final input hw units is a list,
     # we assume multiple hw units as input
-    def set_input_hw_unit(self, sw_stage, hw_unit):
+    def _set_input_hw_unit(self, sw_stage, hw_unit):
         if sw_stage not in self.input_hw_units:
             self.input_hw_units[sw_stage] = [hw_unit]
         else:
@@ -271,34 +271,34 @@ class ComputeUnit(object):
 
     # initialize input buffer index, so that we know where to the next data
     # the buffer index will be indexed using (source hw unit, sw stage)
-    def init_input_buffer_index(self, src_hw_unit, sw_stage, buffer_size):
+    def _init_input_buffer_index(self, src_hw_unit, sw_stage, buffer_size):
         self.input_index_list[src_hw_unit, sw_stage] = []
         for i in buffer_size:
             self.input_index_list[src_hw_unit, sw_stage].append(0)
 
     # get/set input buffer index
-    def get_input_buffer_index(self, src_hw_unit, sw_stage):
+    def _get_input_buffer_index(self, src_hw_unit, sw_stage):
         return self.input_index_list[src_hw_unit, sw_stage]
 
-    def set_input_buffer_index(self, src_hw_unit, sw_stage, input_buffer_index):
+    def _set_input_buffer_index(self, src_hw_unit, sw_stage, input_buffer_index):
         self.input_index_list[src_hw_unit, sw_stage] = input_buffer_index
 
     # initial output buffer index, here only sw stage is used as index,
     # because we consider only one output buffer
-    def init_output_buffer_index(self, sw_stage, buffer_size):
+    def _init_output_buffer_index(self, sw_stage, buffer_size):
         self.output_buffer_size[sw_stage] = buffer_size
         self.output_index_list[sw_stage] = []
         for i in buffer_size:
             self.output_index_list[sw_stage].append(0)
 
-    def get_output_buffer_size(self, sw_stage):
+    def _get_output_buffer_size(self, sw_stage):
         return self.output_buffer_size[sw_stage]
 
     # get/set output buffer index
-    def get_output_buffer_index(self, sw_stage):
+    def _get_output_buffer_index(self, sw_stage):
         return self.output_index_list[sw_stage]
 
-    def set_output_buffer_index(self, sw_stage, output_buffer_index):
+    def _set_output_buffer_index(self, sw_stage, output_buffer_index):
         self.output_index_list[sw_stage] = output_buffer_index
 
     '''
@@ -308,7 +308,7 @@ class ComputeUnit(object):
         compute are finished based on the defined delay time.
     '''
     # initialize the cycle number that needs to be elapsed before writing the output
-    def init_elapse_cycle(self):
+    def _init_elapse_cycle(self):
         if self.add_init_delay:
             self.elapse_cycle = self.delay + self.initial_delay
             self.add_init_delay = False
@@ -316,17 +316,17 @@ class ComputeUnit(object):
             self.elapse_cycle = self.delay
 
     # process one cycle
-    def process_one_cycle(self):
+    def _process_one_cycle(self):
         self.elapse_cycle -= 1
         self.sys_all_compute_cycle += 1
         if ENABLE_DEBUG:
             print("[PROCESS]", self.name, "just compute 1 cycle, %d cycles left" % self.elapse_cycle)
 
-    def start_init_delay(self):
+    def _start_init_delay(self):
         self.add_init_delay = True
 
     # check if the compute is finished, if finished, reset the elapse cycle number
-    def finish_computation(self):
+    def _finish_computation(self):
         if self.elapse_cycle == 0:
             self.elapse_cycle = -1
             return True
@@ -358,7 +358,7 @@ class ComputeUnit(object):
         return self.total_read
 
     # return number of read still un-read
-    def num_read_remain(self):
+    def _num_read_remain(self):
         total_read = self.get_total_read()
 
         # check if read_cnt has been initialized yet
@@ -368,14 +368,14 @@ class ComputeUnit(object):
             return total_read
 
     # log num of reads happened in this reading cycle
-    def read_from_input_buffer(self, read_cnt):
+    def _read_from_input_buffer(self, read_cnt):
         # initialize it before count
         if self.read_cnt == -1:
             self.read_cnt = 0
         self.read_cnt += read_cnt
 
     # check if current reading stage is finished
-    def check_read_finish(self):
+    def _check_read_finish(self):
         if self.read_cnt == self.get_total_read():
             # reset num_read before return
             self.read_cnt = -1
@@ -400,7 +400,7 @@ class ComputeUnit(object):
         return self.total_write
 
     # return number of write still un-read
-    def num_write_remain(self):
+    def _num_write_remain(self):
         total_write = self.get_total_write()
 
         # check if write_cnt has been initialized yet
@@ -410,7 +410,7 @@ class ComputeUnit(object):
             return total_write
 
     # log num of writes happened in this writing cycle
-    def write_to_output_buffer(self, write_cnt):
+    def _write_to_output_buffer(self, write_cnt):
         # initialize it before count
         if self.write_cnt == -1:
             self.write_cnt = 0
@@ -420,7 +420,7 @@ class ComputeUnit(object):
         return prev_write_cnt
 
     # check if current writing stage is finished
-    def check_write_finish(self):
+    def _check_write_finish(self):
         if self.write_cnt == self.get_total_write():
             # reset num_write before return
             self.write_cnt = -1
@@ -485,7 +485,7 @@ class SystolicArray(object):
         self.output_buffer = output_buffer
         output_buffer.add_access_unit(self.name)
 
-    def config_throughput(self, input_size, output_size, stride, kernel_size, op_type):
+    def _config_throughput(self, input_size, output_size, stride, kernel_size, op_type):
         if ENABLE_DEBUG:
             print(
                 "[SYSTOLIC] config: ", 
@@ -561,7 +561,7 @@ class SystolicArray(object):
 
     # set the input hw units, the final input hw units is a list,
     # we assume multiple hw units as input
-    def set_input_hw_unit(self, sw_stage, hw_unit):
+    def _set_input_hw_unit(self, sw_stage, hw_unit):
         if sw_stage not in self.input_hw_units:
             self.input_hw_units[sw_stage] = [hw_unit]
         else:
@@ -569,21 +569,21 @@ class SystolicArray(object):
 
     # initialize input buffer index, so that we know where to the next data
     # the buffer index will be indexed using (source hw unit, sw stage)
-    def init_input_buffer_index(self, src_hw_unit, sw_stage, buffer_size):
+    def _init_input_buffer_index(self, src_hw_unit, sw_stage, buffer_size):
         self.input_index_list[src_hw_unit, sw_stage] = []
         for i in buffer_size:
             self.input_index_list[src_hw_unit, sw_stage].append(0)
 
     # get/set input buffer index
-    def get_input_buffer_index(self, src_hw_unit, sw_stage):
+    def _get_input_buffer_index(self, src_hw_unit, sw_stage):
         return self.input_index_list[src_hw_unit, sw_stage]
 
-    def set_input_buffer_index(self, src_hw_unit, sw_stage, input_buffer_index):
+    def _set_input_buffer_index(self, src_hw_unit, sw_stage, input_buffer_index):
         self.input_index_list[src_hw_unit, sw_stage] = input_buffer_index
 
     # initial output buffer index, here only sw stage is used as index,
     # because we consider only one output buffer
-    def init_output_buffer_index(self, sw_stage, buffer_size):
+    def _init_output_buffer_index(self, sw_stage, buffer_size):
         
         self.output_pixels_per_cycle = np.ones_like(buffer_size)
         self.output_pixels_per_cycle[0] = self.size_dimension[0]
@@ -594,35 +594,35 @@ class SystolicArray(object):
         for i in buffer_size:
             self.output_index_list[sw_stage].append(0)
 
-    def get_output_buffer_size(self, sw_stage):
+    def _get_output_buffer_size(self, sw_stage):
         return self.output_buffer_size[sw_stage]
 
     # get/set output buffer index
-    def get_output_buffer_index(self, sw_stage):
+    def _get_output_buffer_index(self, sw_stage):
         return self.output_index_list[sw_stage]
 
-    def set_output_buffer_index(self, sw_stage, output_buffer_index):
+    def _set_output_buffer_index(self, sw_stage, output_buffer_index):
         self.output_index_list[sw_stage] = output_buffer_index
 
     # initialize the cycle number that needs to be elapsed before writing the output
-    def init_elapse_cycle(self):
+    def _init_elapse_cycle(self):
         if self.add_init_delay:
             self.elapse_cycle = self.delay + self.initial_delay
             self.add_init_delay = False
         else:
             self.elapse_cycle = self.delay
     # process one cycle
-    def process_one_cycle(self):
+    def _process_one_cycle(self):
         self.elapse_cycle -= 1
         self.sys_all_compute_cycle += 1
         if ENABLE_DEBUG:
             print("[PROCESS]", self.name, "just compute 1 cycle, %d cycles left" % self.elapse_cycle)
 
-    def start_init_delay(self):
+    def _start_init_delay(self):
         self.add_init_delay = True
 
     # check if the compute is finished, if finished, reset the elapse cycle number
-    def finish_computation(self):
+    def _finish_computation(self):
         if self.elapse_cycle == 0:
             self.elapse_cycle = -1
             return True
@@ -650,7 +650,7 @@ class SystolicArray(object):
         return self.total_read
 
     # return number of read still un-read
-    def num_read_remain(self):
+    def _num_read_remain(self):
         total_read = self.get_total_read()
 
         # check if read_cnt has been initialized yet
@@ -660,14 +660,14 @@ class SystolicArray(object):
             return total_read
 
     # log num of reads happened in this reading cycle
-    def read_from_input_buffer(self, read_cnt):
+    def _read_from_input_buffer(self, read_cnt):
         # initialize it before count
         if self.read_cnt == -1:
             self.read_cnt = 0
         self.read_cnt += read_cnt
 
     # check if current reading stage is finished
-    def check_read_finish(self):
+    def _check_read_finish(self):
         if self.read_cnt == self.get_total_read():
             # reset num_read before return
             self.read_cnt = -1
@@ -692,7 +692,7 @@ class SystolicArray(object):
         return self.total_write
 
     # return number of write still un-read
-    def num_write_remain(self):
+    def _num_write_remain(self):
         total_write = self.get_total_write()
 
         # check if write_cnt has been initialized yet
@@ -702,7 +702,7 @@ class SystolicArray(object):
             return total_write
 
     # log num of writes happened in this writing cycle
-    def write_to_output_buffer(self, write_cnt):
+    def _write_to_output_buffer(self, write_cnt):
         # initialize it before count
         if self.write_cnt == -1:
             self.write_cnt = 0
@@ -711,7 +711,7 @@ class SystolicArray(object):
         return prev_write_cnt
 
     # check if current writing stage is finished
-    def check_write_finish(self):
+    def _check_write_finish(self):
         if self.write_cnt == self.get_total_write():
             # reset num_write before return
             self.write_cnt = -1
@@ -782,7 +782,7 @@ class NeuralProcessor(object):
         self.output_buffer = output_buffer
         output_buffer.add_access_unit(self.name)
 
-    def config_throughput(self, input_size, output_size, stride, kernel_size, op_type):
+    def _config_throughput(self, input_size, output_size, stride, kernel_size, op_type):
         if ENABLE_DEBUG:
             print(
                 "[NEURALPROCESSOR] config: ", 
@@ -850,7 +850,7 @@ class NeuralProcessor(object):
 
     # set the input hw units, the final input hw units is a list,
     # we assume multiple hw units as input
-    def set_input_hw_unit(self, sw_stage, hw_unit):
+    def _set_input_hw_unit(self, sw_stage, hw_unit):
         if sw_stage not in self.input_hw_units:
             self.input_hw_units[sw_stage] = [hw_unit]
         else:
@@ -858,16 +858,16 @@ class NeuralProcessor(object):
 
     # initialize input buffer index, so that we know where to the next data
     # the buffer index will be indexed using (source hw unit, sw stage)
-    def init_input_buffer_index(self, src_hw_unit, sw_stage, buffer_size):
+    def _init_input_buffer_index(self, src_hw_unit, sw_stage, buffer_size):
         self.input_index_list[src_hw_unit, sw_stage] = []
         for i in buffer_size:
             self.input_index_list[src_hw_unit, sw_stage].append(0)
 
     # get/set input buffer index
-    def get_input_buffer_index(self, src_hw_unit, sw_stage):
+    def _get_input_buffer_index(self, src_hw_unit, sw_stage):
         return self.input_index_list[src_hw_unit, sw_stage]
 
-    def set_input_buffer_index(self, src_hw_unit, sw_stage, input_buffer_index):
+    def _set_input_buffer_index(self, src_hw_unit, sw_stage, input_buffer_index):
         self.input_index_list[src_hw_unit, sw_stage] = input_buffer_index
 
     # # initial output buffer index, here only sw stage is used as index,
@@ -883,35 +883,35 @@ class NeuralProcessor(object):
     #     for i in buffer_size:
     #         self.output_index_list[sw_stage].append(0)
 
-    def get_output_buffer_size(self, sw_stage):
+    def _get_output_buffer_size(self, sw_stage):
         return self.output_buffer_size[sw_stage]
 
     # get/set output buffer index
-    def get_output_buffer_index(self, sw_stage):
+    def _get_output_buffer_index(self, sw_stage):
         return self.output_index_list[sw_stage]
 
-    def set_output_buffer_index(self, sw_stage, output_buffer_index):
+    def _set_output_buffer_index(self, sw_stage, output_buffer_index):
         self.output_index_list[sw_stage] = output_buffer_index
 
     # initialize the cycle number that needs to be elapsed before writing the output
-    def init_elapse_cycle(self):
+    def _init_elapse_cycle(self):
         if self.add_init_delay:
             self.elapse_cycle = self.delay + self.initial_delay
             self.add_init_delay = False
         else:
             self.elapse_cycle = self.delay
     # process one cycle
-    def process_one_cycle(self):
+    def _process_one_cycle(self):
         self.elapse_cycle -= 1
         self.sys_all_compute_cycle += 1
         if ENABLE_DEBUG:
             print("[PROCESS]", self.name, "just compute 1 cycle, %d cycles left" % self.elapse_cycle)
 
-    def start_init_delay(self):
+    def _start_init_delay(self):
         self.add_init_delay = True
 
     # check if the compute is finished, if finished, reset the elapse cycle number
-    def finish_computation(self):
+    def _finish_computation(self):
         if self.elapse_cycle == 0:
             self.elapse_cycle = -1
             return True
@@ -943,7 +943,7 @@ class NeuralProcessor(object):
         return self.total_read
 
     # return number of read still un-read
-    def num_read_remain(self):
+    def _num_read_remain(self):
         total_read = self.get_total_read()
 
         # check if read_cnt has been initialized yet
@@ -953,7 +953,7 @@ class NeuralProcessor(object):
             return total_read
 
     # log num of reads happened in this reading cycle
-    def read_from_input_buffer(self, read_cnt):
+    def _read_from_input_buffer(self, read_cnt):
         # initialize it before count
         if self.read_cnt == -1:
             self.read_cnt = 0
@@ -961,7 +961,7 @@ class NeuralProcessor(object):
         self.sys_all_read_cnt += read_cnt
 
     # check if current reading stage is finished
-    def check_read_finish(self):
+    def _check_read_finish(self):
         print("[SYSTOLIC]", self.read_cnt, self.get_total_read())
         if self.read_cnt == self.get_total_read():
             # reset num_read before return
@@ -973,7 +973,7 @@ class NeuralProcessor(object):
         '''
         Functions related to writing stage
     '''
-    def get_total_write(self):
+    def _get_total_write(self):
         # need to check if total_write has been initialized
         # if not, calculate it before return
         # if self.total_write == -1:
@@ -987,7 +987,7 @@ class NeuralProcessor(object):
         return self.total_write
 
     # return number of write still un-read
-    def num_write_remain(self):
+    def _num_write_remain(self):
         total_write = self.get_total_write()
 
         # check if write_cnt has been initialized yet
@@ -997,7 +997,7 @@ class NeuralProcessor(object):
             return total_write
 
     # log num of writes happened in this writing cycle
-    def write_to_output_buffer(self, write_cnt):
+    def _write_to_output_buffer(self, write_cnt):
         # initialize it before count
         if self.write_cnt == -1:
             self.write_cnt = 0
@@ -1007,7 +1007,7 @@ class NeuralProcessor(object):
         return prev_write_cnt
 
     # check if current writing stage is finished
-    def check_write_finish(self):
+    def _check_write_finish(self):
         if self.write_cnt == self.get_total_write():
             # reset num_write before return
             self.write_cnt = -1

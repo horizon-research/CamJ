@@ -50,8 +50,8 @@ class DigitalStorage(object):
 
         # initialize the index for both src_hw_unit (producer) and dst_hw_unit (consumer)
         # so that both can find where they have read/written for this sw_stage.
-        src_hw_unit.init_output_buffer_index(sw_stage, buffer_size)
-        dst_hw_unit.init_input_buffer_index(src_hw_unit, sw_stage, virtual_size)
+        src_hw_unit._init_output_buffer_index(sw_stage, buffer_size)
+        dst_hw_unit._init_input_buffer_index(src_hw_unit, sw_stage, virtual_size)
         
     '''
         This function is similar to function, reserve_buffer. However, 
@@ -62,7 +62,7 @@ class DigitalStorage(object):
         if not (src_hw_unit, sw_stage) in self.reserved_buffer:
             self.reserved_buffer[src_hw_unit, sw_stage] = np.zeros(buffer_size)
 
-        src_hw_unit.init_output_buffer_index(sw_stage, buffer_size)
+        src_hw_unit._init_output_buffer_index(sw_stage, buffer_size)
 
     def add_access_unit(self, unit_name):
         self.access_units.append(unit_name)

@@ -80,7 +80,7 @@ def build_buffer_edges(sw_stage_list, hw_dict, sw2hw):
             # print(src_unit, dst_unit)
             if check_buffer_consistency(src_unit, dst_unit):
                 buffer_edge_dict[src_unit, dst_unit] = src_unit.output_buffer
-                dst_unit.set_input_hw_unit(sw_stage, src_unit)
+                dst_unit._set_input_hw_unit(sw_stage, src_unit)
 
     return buffer_edge_dict
 
@@ -187,13 +187,13 @@ def increment_buffer_index(buffer_index, buffer_size, throughput):
 '''
 def check_stage_finish(src_hw_unit, sw_stage, hw2sw):
     # get the output buffer index
-    src_index = src_hw_unit.get_output_buffer_index(sw_stage)
+    src_index = src_hw_unit._get_output_buffer_index(sw_stage)
     # find the output buffer, any sw_stage points to the same output buffer
     src_output_buffer = src_hw_unit.output_buffer
 
     # get the output buffer size
     output_buffer = src_output_buffer.reserved_buffer[src_hw_unit, sw_stage]
-    output_buffer_shape =src_hw_unit.get_output_buffer_size(sw_stage)
+    output_buffer_shape =src_hw_unit._get_output_buffer_size(sw_stage)
 
     if len(output_buffer_shape) != len(src_index):
         raise Exception("the dimensions of Buffer size and source index are not matched.")
@@ -252,10 +252,10 @@ def write_output_throughput(src_hw_unit, sw_stage, hw2sw, write_index, write_cnt
     src_output_buffer = src_hw_unit.output_buffer
     
     # find the reserved buffer and buffer index
-    src_index = src_hw_unit.get_output_buffer_index(sw_stage)
+    src_index = src_hw_unit._get_output_buffer_index(sw_stage)
     src_output_throughput = src_hw_unit.output_pixels_per_cycle
     output_buffer = src_output_buffer.reserved_buffer[src_hw_unit, sw_stage]
-    output_buffer_shape = src_hw_unit.get_output_buffer_size(sw_stage)
+    output_buffer_shape = src_hw_unit._get_output_buffer_size(sw_stage)
     if ENABLE_DEBUG:
         print(
             "[write_output_throughput]", sw_stage, 
@@ -292,7 +292,7 @@ def write_output_throughput(src_hw_unit, sw_stage, hw2sw, write_index, write_cnt
             )
 
         # set the new buffer index.
-        src_hw_unit.set_output_buffer_index(sw_stage, new_buffer_index)
+        src_hw_unit._set_output_buffer_index(sw_stage, new_buffer_index)
 
 '''
     This function is used to check if the input buffer has enough data to be consumed
@@ -369,7 +369,7 @@ def increment_input_buffer_index(dst_hw_unit, sw_stage):
         dst_input_buffer = dst_hw_unit.input_buffer.reserved_buffer[src_hw_unit, input_sw_stage]
         dst_input_throughput = dst_hw_unit.input_pixels_per_cycle[i]
         # get the previous input index
-        dst_input_index = dst_hw_unit.get_input_buffer_index(src_hw_unit, input_sw_stage)
+        dst_input_index = dst_hw_unit._get_input_buffer_index(src_hw_unit, input_sw_stage)
 
         if ENABLE_DEBUG:
             print("[increment_input_buffer_index] src hw unit: ", src_hw_unit, "dst_input_buffer: ", dst_input_buffer.shape)
@@ -399,7 +399,7 @@ def increment_input_buffer_index(dst_hw_unit, sw_stage):
                 "new input index", new_dst_input_index,
                 "dst_input_throughput: ", dst_input_throughput
             )
-        dst_hw_unit.set_input_buffer_index(src_hw_unit, input_sw_stage, new_dst_input_index)
+        dst_hw_unit._set_input_buffer_index(src_hw_unit, input_sw_stage, new_dst_input_index)
     return
 
 '''

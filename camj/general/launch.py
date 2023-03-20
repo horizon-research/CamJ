@@ -82,8 +82,8 @@ def find_analog_interface_stages(sw_stage_list, org_sw_stage_list, org_mapping_d
     # add back those interface stages using artificial input for digital simulation.
     for sw_stage in init_stages:
         input_data = PixelInput(
-            sw_stage.output_size, 
-            name=sw_stage.name,
+            name = sw_stage.name,
+            size = sw_stage.output_size
         )
 
         for output_stage in init_output_stages[sw_stage]:
@@ -156,7 +156,7 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
                     print("[READ]", sw_stage, "in reading stage")
                 # find input buffer and remaining amount of data need to be read
                 input_buffer = hw_unit.input_buffer
-                remain_read_cnt = hw_unit.num_read_remain()
+                remain_read_cnt = hw_unit._num_read_remain()
                 if cycle % PRINT_CYCLE == 0:
                     print("[READ]", "[HW unit : SW stage]", hw_unit, sw_stage, "Input Buffer: ", input_buffer)
                 # this means that this hw_unit doesn't have data dependencies.
@@ -164,29 +164,29 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
                     if cycle % PRINT_CYCLE == 0:
                         print("[READ]", hw_unit, "is ready to compute, no data dependencies")
                     # refresh the compute status in hw_unit
-                    hw_unit.init_elapse_cycle()
+                    hw_unit._init_elapse_cycle()
                     processing_stage[sw_stage] = True
                     reading_stage.pop(sw_stage)
 
                 # check if there is any data can be read from buffer
                 elif input_buffer.have_data_read(remain_read_cnt):
                     input_buffer.read_data(remain_read_cnt)
-                    hw_unit.read_from_input_buffer(remain_read_cnt)
-                    if hw_unit.check_read_finish():
+                    hw_unit._read_from_input_buffer(remain_read_cnt)
+                    if hw_unit._check_read_finish():
                         if cycle % PRINT_CYCLE == 0:
                             print("[READ]", hw_unit, "is ready to compute")
                         # refresh the compute status in hw_unit
-                        hw_unit.init_elapse_cycle()
+                        hw_unit._init_elapse_cycle()
                         processing_stage[sw_stage] = True
                         reading_stage.pop(sw_stage)
                 # here to check if all input stages are finished, if so, this stage uses zero paddings
                 elif check_input_stage_finish(sw_stage, finished_stage):
-                    hw_unit.read_from_input_buffer(remain_read_cnt)
-                    if hw_unit.check_read_finish():
+                    hw_unit._read_from_input_buffer(remain_read_cnt)
+                    if hw_unit._check_read_finish():
                         if cycle % PRINT_CYCLE == 0:
                             print("[READ]", hw_unit, "is ready to compute, previous stage is finished.")
                         # refresh the compute status in hw_unit
-                        hw_unit.init_elapse_cycle()
+                        hw_unit._init_elapse_cycle()
                         processing_stage[sw_stage] = True
                         reading_stage.pop(sw_stage)
                 else:
@@ -199,9 +199,9 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
             if sw_stage in processing_stage:
                 if cycle % PRINT_CYCLE == 0:
                     print("[PROCESS]", sw_stage, "in processing_stage")
-                hw_unit.process_one_cycle()
+                hw_unit._process_one_cycle()
                 # check_input_buffer(hw_unit, sw_stage)
-                if hw_unit.finish_computation():
+                if hw_unit._finish_computation():
                     # # output data to the targeted buffer and increment output buffer index
                     # write_output_throughput(hw_unit, sw_stage, hw2sw)
 
@@ -218,7 +218,7 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
                 if cycle % PRINT_CYCLE == 0:
                     print("[WRITE]", sw_stage, "in writing stage")
                 output_buffer = hw_unit.output_buffer
-                remain_write_cnt = hw_unit.num_write_remain()
+                remain_write_cnt = hw_unit._num_write_remain()
                 if cycle % PRINT_CYCLE == 0:
                     print("[WRITE]", "[HW unit : SW stage]", hw_unit, sw_stage, "Output Buffer: ", output_buffer)
                 # this means that this hw_unit doesn't have any output data.
@@ -232,10 +232,10 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
                 # then, check if there is any space to write
                 elif output_buffer.have_space_to_write(remain_write_cnt):
                     output_buffer.write_data(remain_write_cnt)
-                    write_index = hw_unit.write_to_output_buffer(remain_write_cnt)
+                    write_index = hw_unit._write_to_output_buffer(remain_write_cnt)
                     # output data to the targeted buffer and increment output buffer index
                     write_output_throughput(hw_unit, sw_stage, hw2sw, write_index, remain_write_cnt)
-                    if hw_unit.check_write_finish():
+                    if hw_unit._check_write_finish():
                         if cycle % PRINT_CYCLE == 0:
                             print("[WRITE]", hw_unit, "finishes writing")
                         # set sw_stage to idle stage
@@ -265,19 +265,10 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
                 # Otherwise, there can be some infinite checkings in the program due to incorrect
                 # systolic array configuration.
                 if not reservation_board.check_reservation(hw_unit):
-                    # check if the hw unit is a systolic array instance,
+                    # check if the hw unit is a systolic array instance or neural processor,
                     # if yes, needs to modify the input/output throughput.
-                    if isinstance(hw_unit, SystolicArray):
-                        hw_unit.config_throughput(
-                            sw_stage.ifmap_size, 
-                            sw_stage.output_size,
-                            sw_stage.stride[0],
-                            sw_stage.kernel_size[0],
-                            sw_stage.op_type
-                        )
-                    # same for neural processor instance
-                    elif isinstance(hw_unit, NeuralProcessor):
-                        hw_unit.config_throughput(
+                    if isinstance(hw_unit, SystolicArray) or isinstance(hw_unit, NeuralProcessor):
+                        hw_unit._config_throughput(
                             sw_stage.ifmap_size, 
                             sw_stage.output_size,
                             sw_stage.stride[0],
@@ -297,7 +288,7 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
                         reservation_board.reserve_hw_unit(sw_stage, hw_unit)
                         reserved_cycle_cnt[sw_stage] = 0
                         
-                        hw_unit.start_init_delay()
+                        hw_unit._start_init_delay()
                         # increment the input buffer index
                         increment_input_buffer_index(hw_unit, sw_stage)
                         reading_stage[sw_stage] = True
