@@ -3,7 +3,14 @@ from camj.analog.energy_utils import gm_id, get_pixel_parasitic, parallel_impeda
 
 
 class PinnedPhotodiodePerf(object):
-    """docstring for pixel"""
+    """ Pinned photodiode (PD) energy model.
+
+        It is modeled as the dynamic energy of the PD's internal capacitance.
+    
+        Args:
+            pd_capacitance: the capacitance of PD.
+            pd_supply: supply voltage of pixel.
+    """
 
     def __init__(self,
                  pd_capacitance=100e-15,  # [F]
@@ -18,6 +25,26 @@ class PinnedPhotodiodePerf(object):
 
 
 class ActivePixelSensorPerf(PinnedPhotodiodePerf):
+    """ Active pixel sensor (APS) analog energy model.
+
+        The model includes photodiode (PD), floating diffusion (FD), source follower (SF),
+        and parasitic capacitance on the SF's readout wire.
+
+        Our APS model supports energy estimation for both 3T-APS and 4T-APS. Users need to define
+        `num_transistor` to get the correct energy estimation.
+
+        Args:
+            pd_capacitance: the capacitance of PD.
+            pd_supply: supply voltage of pixel.
+            output_vs: voltage swing at SF's output node. Typically it is one or two units of threshold voltage smaller than pd_supply, depending on the pixel's circuit structure.
+            num_transistor: 3 or 4, denoting 3T APS or 4T APS.
+            num_readout: 2 or 1, denoting enabling CDS or not.
+            load_capacitance: load capacitance at the SF's output node.
+            tech_node: pixel's process node.
+            pitch: pixel pitch size (width or height).
+            array_vsize: the vertical size of the entire pixel array. This is used to estimate the parasitic capacitance on the SF's readout wire.
+    """
+
     def __init__(
         self,
         pd_capacitance,
@@ -28,7 +55,7 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
         fd_capacitance = 10e-15,  # [F]
         num_readout = 2,
         load_capacitance = 1e-12,  # [F]
-        tech_node = 130,  # [um]
+        tech_node = 130,  # [nm]
         pitch = 4,  # [um]
         array_vsize = 128
     ):
