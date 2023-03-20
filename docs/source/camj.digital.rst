@@ -9,14 +9,6 @@ camj.digital.compute module
    :undoc-members:
    :show-inheritance:
 
-camj.digital.infra module
--------------------------
-
-.. automodule:: camj.digital.infra
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 camj.digital.memory module
 --------------------------
 
