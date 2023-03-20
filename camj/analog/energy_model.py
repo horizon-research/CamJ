@@ -168,17 +168,19 @@ class DigitalPixelSensorPerf(ActivePixelSensorPerf):
 
 
 class PulseWidthModulationPixelPerf(PinnedPhotodiodePerf):
-    """
-    @article{hsu20200,
-    title={A 0.5-V real-time computational CMOS image sensor with programmable kernel for feature extraction},
-    author={Hsu, Tzu-Hsiang and Chen, Yi-Ren and Liu, Ren-Shuo and Lo, Chung-Chuan and Tang, Kea-Tiong and Chang, Meng-Fan and Hsieh, Chih-Cheng},
-    journal={IEEE Journal of Solid-State Circuits},
-    volume={56},
-    number={5},
-    pages={1588--1596},
-    year={2020},
-    publisher={IEEE}
-    }
+    """ Pulse-Width-Modulation (PWM) Pixel
+
+        The modeled PWM pixel consists of a photodiode (PD), a ramp signal generator, and a comparator.
+        The comparator output toggles when the ramp signal is smaller than the pixel voltage at PD.
+        [ref: A 0.5-V real-time computational CMOS image sensor with programmable kernel for feature extraction, 2020 JSSC.]
+
+        Args:
+            pd_capacitance: PD capacitance.
+            pd_supply: PD voltage supply.
+            array_vsize: the vertical size of the entire pixel array. This is used to estimate the parasitic capacitance on the SF's readout wire.
+            ramp_capacitance: capacitance of ramp signal generator.
+            gate_capacitance: the gate capacitance of readout transistor.
+            num_readout: number of read from pixel.
     """
 
     def __init__(
@@ -209,19 +211,22 @@ class PulseWidthModulationPixelPerf(PinnedPhotodiodePerf):
 
 ########################################################################################################################
 class ColumnAmplifierPerf(object):
-    """
-    NMOS-based single-input-single-output cascode amplifier.
+    """ Switched-capacitor amplifier.
+    
+        The model is based on Fig. 13.5 in "Design of Analog CMOS Integrated Circuits (Second Edition)".
+        The model includes an input capacitor, a feedback capacitor, a load capacitor, and an amplifier.
+        This amplifier can be used either as pixel array's column amplifier or as a general-purpose switched-capacitor amplifier,
+        such as switched-capacitor integrator, switched-capacitor subtractor, and switched-capacitor multiplier.
 
-    @article{capoccia2019experimental,
-      title={Experimental verification of the impact of analog CMS on CIS readout noise},
-      author={Capoccia, Raffaele and Boukhayma, Assim and Enz, Christian},
-      journal={IEEE Transactions on Circuits and Systems I: Regular Papers},
-      volume={67},
-      number={3},
-      pages={774--784},
-      year={2019},
-      publisher={IEEE}
-    }
+        Args:
+            load_capacitance: load capacitance.
+            input_capacitance: input capacitance.
+            t_sample: sampling time, which mainly consists of the amplifier's settling time.
+            t_hold: holding time, during which the amplifier is turned on and consumes power relentlessly.
+            supply: supply voltage.
+            gain_close: amplifier's closed-loop gain.
+            gain_open: amplifier's open-loop gain.
+            differential: ``bool`` if using differential-input amplifier or single-input amplifier.
     """
 
     def __init__(
@@ -229,7 +234,7 @@ class ColumnAmplifierPerf(object):
         load_capacitance=1e-12,  # [F]
         input_capacitance=1e-12,  # [F]
         t_sample=2e-6,  # [s]
-        t_frame=10e-3,  # [s]
+        t_hold=10e-3,  # [s], FIXME: name changed!
         supply=1.8,  # [V]
         gain=2,
         gain_open=256,
@@ -238,7 +243,7 @@ class ColumnAmplifierPerf(object):
         self.load_capacitance = load_capacitance
         self.input_capacitance = input_capacitance
         self.t_sample = t_sample
-        self.t_frame = t_frame
+        self.t_hold = t_hold
         self.supply = supply
         self.gain = gain
         self.gain_open = gain_open
@@ -253,7 +258,7 @@ class ColumnAmplifierPerf(object):
         self.gd = self.gm / 100  # gd<<gm
 
     def energy(self):
-        energy_opamp = self.supply * self.i_opamp * self.t_frame
+        energy_opamp = self.supply * self.i_opamp * self.t_hold
         energy = energy_opamp + (self.input_capacitance + self.fb_capacitance + self.load_capacitance) \
                  * (self.supply ** 2)
         # print(self.i_opamp, energy_opamp)
