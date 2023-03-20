@@ -120,10 +120,10 @@ class DigitalPixelSensorPerf(ActivePixelSensorPerf):
         The model includes an APS and an ADC.
 
         Args:
-            aps_parameters: same to  ``ActivePixelSensorPerf''.
-            adc_type: the actual ADC type. Please check ADC class for more details.
-            adc_fom: ADC's Figure-of-Merit, expressed by energy per conversion.
-            adc_resolution: ADC's resolution.
+            aps_parameters: same to  "ActivePixelSensorPerf".
+            adc_type (str): the actual ADC type. Please check ADC class for more details.
+            adc_fom (float): ADC's Figure-of-Merit, expressed by energy per conversion.
+            adc_resolution (int): ADC's resolution.
     """
 
     def __init__(
@@ -168,17 +168,19 @@ class DigitalPixelSensorPerf(ActivePixelSensorPerf):
 
 
 class PulseWidthModulationPixelPerf(PinnedPhotodiodePerf):
-    """
-    @article{hsu20200,
-    title={A 0.5-V real-time computational CMOS image sensor with programmable kernel for feature extraction},
-    author={Hsu, Tzu-Hsiang and Chen, Yi-Ren and Liu, Ren-Shuo and Lo, Chung-Chuan and Tang, Kea-Tiong and Chang, Meng-Fan and Hsieh, Chih-Cheng},
-    journal={IEEE Journal of Solid-State Circuits},
-    volume={56},
-    number={5},
-    pages={1588--1596},
-    year={2020},
-    publisher={IEEE}
-    }
+    """ Pulse-Width-Modulation (PWM) Pixel
+
+        The modeled PWM pixel consists of a photodiode (PD), a ramp signal generator, and a comparator.
+        The comparator output toggles when the ramp signal is smaller than the pixel voltage at PD.
+        [ref: A 0.5-V real-time computational CMOS image sensor with programmable kernel for feature extraction, 2020 JSSC.]
+
+        Args:
+            pd_capacitance: PD capacitance.
+            pd_supply: PD voltage supply.
+            array_vsize: the vertical size of the entire pixel array. This is used to estimate the parasitic capacitance on the SF's readout wire.
+            ramp_capacitance: capacitance of ramp signal generator.
+            gate_capacitance: the gate capacitance of readout transistor.
+            num_readout: number of read from pixel.
     """
 
     def __init__(
@@ -209,19 +211,22 @@ class PulseWidthModulationPixelPerf(PinnedPhotodiodePerf):
 
 ########################################################################################################################
 class ColumnAmplifierPerf(object):
-    """
-    NMOS-based single-input-single-output cascode amplifier.
+    """ Switched-capacitor amplifier.
+    
+        The model is based on Fig. 13.5 in "Design of Analog CMOS Integrated Circuits (Second Edition)".
+        The model includes an input capacitor, a feedback capacitor, a load capacitor, and an amplifier.
+        This amplifier can be used either as pixel array's column amplifier or as a general-purpose switched-capacitor amplifier,
+        such as switched-capacitor integrator, switched-capacitor subtractor, and switched-capacitor multiplier.
 
-    @article{capoccia2019experimental,
-      title={Experimental verification of the impact of analog CMS on CIS readout noise},
-      author={Capoccia, Raffaele and Boukhayma, Assim and Enz, Christian},
-      journal={IEEE Transactions on Circuits and Systems I: Regular Papers},
-      volume={67},
-      number={3},
-      pages={774--784},
-      year={2019},
-      publisher={IEEE}
-    }
+        Args:
+            load_capacitance (float): load capacitance.
+            input_capacitance (float): input capacitance.
+            t_sample (float): sampling time, which mainly consists of the amplifier's settling time.
+            t_hold (float): holding time, during which the amplifier is turned on and consumes power relentlessly.
+            supply (float): supply voltage.
+            gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of input_capacitance over feedback capacitance.
+            gain_open (int): amplifier's open-loop gain. This gain is used to determine the amplifier's bias current by gm/id method.
+            differential (bool): if using differential-input amplifier or single-input amplifier.
     """
 
     def __init__(
@@ -229,20 +234,20 @@ class ColumnAmplifierPerf(object):
         load_capacitance=1e-12,  # [F]
         input_capacitance=1e-12,  # [F]
         t_sample=2e-6,  # [s]
-        t_frame=10e-3,  # [s]
+        t_hold=10e-3,  # [s], FIXME: name changed!
         supply=1.8,  # [V]
-        gain=2,
+        gain_close=2, # FIXME: name changed!
         gain_open=256,
         differential = False,
     ):
         self.load_capacitance = load_capacitance
         self.input_capacitance = input_capacitance
         self.t_sample = t_sample
-        self.t_frame = t_frame
+        self.t_hold = t_hold
         self.supply = supply
-        self.gain = gain
+        self.gain_close = gain_close
         self.gain_open = gain_open
-        self.fb_capacitance = self.input_capacitance / self.gain
+        self.fb_capacitance = self.input_capacitance / self.gain_close
         [self.i_opamp, self.gm] = gm_id(
             load_capacitance=self.load_capacitance,
             gain=self.gain_open,
@@ -253,7 +258,7 @@ class ColumnAmplifierPerf(object):
         self.gd = self.gm / 100  # gd<<gm
 
     def energy(self):
-        energy_opamp = self.supply * self.i_opamp * self.t_frame
+        energy_opamp = self.supply * self.i_opamp * self.t_hold
         energy = energy_opamp + (self.input_capacitance + self.fb_capacitance + self.load_capacitance) \
                  * (self.supply ** 2)
         # print(self.i_opamp, energy_opamp)
@@ -274,8 +279,15 @@ class ColumnAmplifierPerf(object):
 
 
 class SourceFollowerPerf(object):
-    """
-    NMOS-based constant current-biased source follower.
+    """ Source follower (SF) with constant current bias.
+
+        This model is applicable to not only the simplest single-transistor source follower but also flipped-voltage-follower (FVF).
+
+        Args:
+            load_capacitance (float): load capacitance.
+            supply (float): supply voltage.
+            output_vs (float): voltage swing at the SF's output node.
+            bias_current (float): bias current.
     """
 
     def __init__(
@@ -309,19 +321,17 @@ class SourceFollowerPerf(object):
 
 
 class ActiveAnalogMemoryPerf(object):
-    """
-    PMOS-based differential-input-single-output amplifier.
+    """ Analog memory with active feedback.
+    
+        The model is based on the design in "(2004, JSSC) A 10-nW 12-bit accurate analog storage cell with 10-aA leakage".
+        The model consists of a sample capacitor, a compensation capacitor, and an amplifier which holds the stored analog data through feedback.
 
-    @article{o200410,
-    title={A 10-nW 12-bit accurate analog storage cell with 10-aA leakage},
-    author={O'Halloran, Micah and Sarpeshkar, Rahul},
-    journal={IEEE journal of solid-state circuits},
-    volume={39},
-    number={11},
-    pages={1985--1996},
-    year={2004},
-    publisher={IEEE}
-    }
+        Args:
+            sample_capacitance (float): sample capacitance.
+            comp_capacitance (float): compensation capacitance
+            t_sample (float): sampling time, which mainly consists of the amplifier's settling time.
+            t_hold (float): holding time, during which the amplifier is turned on and consumes power relentlessly.
+            supply (float): supply voltage.
     """
 
     def __init__(
