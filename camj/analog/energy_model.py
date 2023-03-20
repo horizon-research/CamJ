@@ -226,7 +226,7 @@ class ColumnAmplifierPerf(object):
             supply: supply voltage.
             gain_close: amplifier's closed-loop gain.
             gain_open: amplifier's open-loop gain.
-            differential: ``bool`` if using differential-input amplifier or single-input amplifier.
+            differential (bool): if using differential-input amplifier or single-input amplifier.
     """
 
     def __init__(
