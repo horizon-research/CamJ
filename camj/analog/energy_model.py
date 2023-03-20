@@ -8,8 +8,8 @@ class PinnedPhotodiodePerf(object):
         It is modeled as the dynamic energy of the PD's internal capacitance.
     
         Args:
-            pd_capacitance: the capacitance of PD.
-            pd_supply: supply voltage of pixel.
+            pd_capacitance (float): the capacitance of PD.
+            pd_supply (float): supply voltage of pixel.
     """
 
     def __init__(self,
@@ -34,15 +34,15 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
         `num_transistor` to get the correct energy estimation.
 
         Args:
-            pd_capacitance: the capacitance of PD.
-            pd_supply: supply voltage of pixel.
-            output_vs: voltage swing at SF's output node. Typically it is one or two units of threshold voltage smaller than pd_supply, depending on the pixel's circuit structure.
-            num_transistor: 3 or 4, denoting 3T APS or 4T APS.
-            num_readout: 2 or 1, denoting enabling CDS or not.
-            load_capacitance: load capacitance at the SF's output node.
-            tech_node: pixel's process node.
-            pitch: pixel pitch size (width or height).
-            array_vsize: the vertical size of the entire pixel array. This is used to estimate the parasitic capacitance on the SF's readout wire.
+            pd_capacitance (float): the capacitance of PD.
+            pd_supply (float): supply voltage of pixel.
+            output_vs (float): voltage swing at SF's output node. Typically it is one or two units of threshold voltage smaller than pd_supply, depending on the pixel's circuit structure.
+            num_transistor (int): 3 or 4, denoting 3T APS or 4T APS.
+            num_readout (int): 2 or 1, denoting enabling CDS or not.
+            load_capacitance (float): load capacitance at the SF's output node.
+            tech_node (int): pixel's process node.
+            pitch (float): pixel pitch size (width or height).
+            array_vsize (int): the vertical size of the entire pixel array. This is used to estimate the parasitic capacitance on the SF's readout wire.
     """
 
     def __init__(
@@ -170,17 +170,17 @@ class DigitalPixelSensorPerf(ActivePixelSensorPerf):
 class PulseWidthModulationPixelPerf(PinnedPhotodiodePerf):
     """ Pulse-Width-Modulation (PWM) Pixel
 
-        The modeled PWM pixel consists of a photodiode (PD), a ramp signal generator, and a comparator.
+        The model is based on the design in "(2020, JSSC) A 0.5-V Real-Time Computational CMOS Image Sensor With Programmable Kernel for Feature Extraction".
+        The model consists of a photodiode (PD), a ramp signal generator, and a comparator.
         The comparator output toggles when the ramp signal is smaller than the pixel voltage at PD.
-        [ref: A 0.5-V real-time computational CMOS image sensor with programmable kernel for feature extraction, 2020 JSSC.]
 
         Args:
-            pd_capacitance: PD capacitance.
-            pd_supply: PD voltage supply.
-            array_vsize: the vertical size of the entire pixel array. This is used to estimate the parasitic capacitance on the SF's readout wire.
-            ramp_capacitance: capacitance of ramp signal generator.
-            gate_capacitance: the gate capacitance of readout transistor.
-            num_readout: number of read from pixel.
+            pd_capacitance (float): PD capacitance.
+            pd_supply (float): PD voltage supply.
+            array_vsize (int): the vertical size of the entire pixel array. This is used to estimate the parasitic capacitance on the SF's readout wire.
+            ramp_capacitance (float): capacitance of ramp signal generator.
+            gate_capacitance (float): the gate capacitance of readout transistor.
+            num_readout (int): number of read from pixel.
     """
 
     def __init__(
@@ -380,18 +380,25 @@ class ActiveAnalogMemoryPerf(object):
 
 
 class PassiveAnalogMemoryPerf(object):
+    """ Analog memory without active feedback.
+    
+        The model only contains a sample capacitor. Compared to ActiveAnalogMemory it has higher data leakage.
+
+        Args:
+            sample_capacitance (float): sample capacitance.
+            supply (float): supply voltage.
+    """
+
     def __init__(
         self,
-        capacitance=1e-12,  # [F]
+        sample_capacitance=1e-12,  # [F] FIXME: name changed!
         supply=1.8,  # [V]
-        # eqv_reso  # equivalent resolution
     ):
-        self.capacitance = capacitance
+        self.sample_capacitance = sample_capacitance
         self.supply = supply
-        # self.eqv_reso = eqv_reso
 
     def energy(self):
-        energy = self.capacitance * (self.supply ** 2)
+        energy = self.sample_capacitance * (self.supply ** 2)
         return energy
 
     def impedance(self):
@@ -400,36 +407,51 @@ class PassiveAnalogMemoryPerf(object):
         return [input_impedance, output_impedance]
 
     def capacitance(self):
-        input_capacitance = self.capacitance
+        input_capacitance = self.sample_capacitance
         output_capacitance = 0
         return [input_capacitance, output_capacitance]
 
 
 ########################################################################################################################
-class DigitalToCurrentConverterPerf(object):
+class DigitalToCurrentConverterPerf(object): # FIXME: function changed! may delete this class.
+    """ Current digital-to-analog converter.
+    
+        The model consists of a constant current path and a load capacitor.
+
+        Args:
+            supply (float): supply voltage.
+            load_capacitance (float): load capacitance.
+            t_readout (float): readout time, during which the constant current drives the load capacitance from 0 to VDD.
+    """
+
     def __init__(
         self,
         supply=1.8,  # [V]
         load_capacitance=2e-12,  # [F]
         t_readout=16e-6,  # [s]
-        resolution=4,
-        i_dc=None  # [A]
     ):
         self.supply = supply
         self.load_capacitance = load_capacitance
         self.t_readout = t_readout
-        self.resolution = resolution  # aka num_current_path
-        if i_dc is None:
-            self.i_dc = self.load_capacitance * self.supply / self.t_readout
-        else:
-            self.i_dc = i_dc
+        self.i_dc = self.load_capacitance * self.supply / self.t_readout
 
     def energy(self):
-        energy = self.supply * self.i_dc * self.t_readout * (2 ** self.resolution)
+        energy = self.supply * self.i_dc * self.t_readout
         return energy
 
 
 class CurrentMirrorPerf(object):
+    """ Current mirror.
+    
+        The model consists of a constant current path and a load capacitor.
+
+        Args:
+            supply (float): supply voltage.
+            load_capacitance (float): load capacitance.
+            t_readout (float): readout time, during which the constant current drives the load capacitance from 0 to VDD.
+            i_dc (float): the constant current. If ``i_dc == None``, then i_dc is estimated from the other parameters.
+    """
+
     def __init__(
         self,
         supply=1.8,
@@ -446,7 +468,8 @@ class CurrentMirrorPerf(object):
             self.i_dc = i_dc
 
     def energy(self):
-        return self.supply * self.i_dc * self.t_readout
+        energy = self.supply * self.i_dc * self.t_readout
+        return energy
 
 
 
