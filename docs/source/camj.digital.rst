@@ -17,11 +17,4 @@ camj.digital.memory module
    :undoc-members:
    :show-inheritance:
 
-camj.digital.utils module
--------------------------
-
-.. automodule:: camj.digital.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
