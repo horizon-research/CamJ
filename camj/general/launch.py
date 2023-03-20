@@ -17,9 +17,17 @@ from camj.general.flags import *
 from camj.sw.interface import PixelInput
 from camj.sw.utils import build_sw_graph
 
-
-# The overall harness function to simulate analog and digital computation.
+ 
 def launch_simulation(hw_desc, mapping, sw_desc):
+    """Launch Energy Simulation
+
+    The overall harness function to simulate analog and digital computation.
+
+    Args:
+        hw_desc (dict): hardware description.
+        mapping (dict): mapping between software stages and hardware structures.
+        sw_desc (list): software pipeline list.
+    """
     # deep copy in case the function modify the orginal data
     hw_dict = copy.deepcopy(hw_desc)
     mapping_dict = copy.deepcopy(mapping)
@@ -42,76 +50,34 @@ def launch_simulation(hw_desc, mapping, sw_desc):
 
     return total_energy, ret_energy_dict
 
-# This function finds those functions that are at the interface between analog and digital
-# and creates the input object for digital domain if necessary. 
-# If there is analog component, it will create artificial digital input for digital simulation.
-# If there is no analog component, it won't create that input since user already created one.
-def find_analog_interface_stages(sw_stage_list, org_sw_stage_list, org_mapping_dict):
-    # if equals, it means that there is no analog component in this pipeline.
-    # no need to create digital input.
-    if len(sw_stage_list) == len(org_sw_stage_list):
-        return sw_stage_list, org_mapping_dict
 
-    # First find which stages are at the interface and their direct output stages.
-    init_stages = [] # interface stages
-    mapping_dict = {}
-    init_output_stages = {} # direct output stages
-    for sw_stage in sw_stage_list:
-        for in_stage in sw_stage.input_stages:
-            if in_stage not in sw_stage_list:
-                if in_stage not in init_stages:
-                    init_stages.append(in_stage)
+def launch_digital_simulation(hw_desc, mapping, sw_desc):
+    """Launch Digital Simulation
 
-                # map interface stages to ADC.
-                mapping_dict[in_stage.name] = "ADC"
-                # find its direct output stages
-                if in_stage not in init_output_stages:
-                    init_output_stages[in_stage] = [sw_stage]
-                else:
-                    init_output_stages[in_stage].append(sw_stage)
+    The function to simulate digital computation.
 
-    # remove original interface stages from input_stages 
-    for sw_stage in sw_stage_list:
-        for in_stage in init_stages:
-            if in_stage in sw_stage.input_stages:
-                sw_stage.input_stages.remove(in_stage)
-
-    for sw_stage in sw_stage_list:
-        mapping_dict[sw_stage.name] = org_mapping_dict[sw_stage.name]
-
-    # add back those interface stages using artificial input for digital simulation.
-    for sw_stage in init_stages:
-        input_data = PixelInput(
-            name = sw_stage.name,
-            size = sw_stage.output_size
-        )
-
-        for output_stage in init_output_stages[sw_stage]:
-            output_stage.set_input_stage(input_data)
-
-        sw_stage_list.append(input_data)
-
-    return sw_stage_list, mapping_dict
-
-
-def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
+    Args:
+        hw_desc (dict): hardware description.
+        mapping (dict): mapping between software stages and hardware structures.
+        sw_desc (list): software pipeline list.
+    """
     # some infras for digital simulation
-    reservation_board = ReservationBoard(hw_dict["compute"])
+    reservation_board = ReservationBoard(hw_desc["compute"])
     # find software stages that are only in digital simulation
-    sw_stage_list = find_digital_sw_stages(org_sw_stage_list, hw_dict["compute"], org_mapping_dict)
-    # find interface stages 
-    sw_stage_list, mapping_dict = find_analog_interface_stages(
+    sw_stage_list = find_digital_sw_stages(sw_desc, hw_desc["compute"], mapping)
+    # find interface stages
+    sw_stage_list, mapping_dict = _find_analog_interface_stages(
         sw_stage_list, 
-        org_sw_stage_list, 
-        org_mapping_dict
+        sw_desc, 
+        mapping
     )
 
     # this function will build the connection between input stage and output stage.
     build_sw_graph(sw_stage_list)
 
-    sw2hw, hw2sw = map_sw_hw(mapping_dict, sw_stage_list, hw_dict)
+    sw2hw, hw2sw = map_sw_hw(mapping_dict, sw_stage_list, hw_desc)
 
-    buffer_edge_dict = build_buffer_edges(sw_stage_list, hw_dict, sw2hw)
+    buffer_edge_dict = build_buffer_edges(sw_stage_list, hw_desc, sw2hw)
 
     allocate_output_buffer(
         sw_stages = sw_stage_list,
@@ -309,7 +275,7 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
             print("[Finished stage]: ", finished_stage)
 
         if len(finished_stage.keys()) == len(sw_stage_list):
-            hw_list = hw_dict["compute"]
+            hw_list = hw_desc["compute"]
             print("\n\n[Summary]")
             print("Overall system cycle count: ", cycle)
             print("[Cycle distribution]", reserved_cycle_cnt)
@@ -320,7 +286,7 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
                     "total compute cycle: ", hw_unit.sys_all_compute_cycle,
                     "total compute energy: %d pJ" % hw_unit.compute_energy())
 
-            for mem_unit in hw_dict["memory"]:
+            for mem_unit in hw_desc["memory"]:
                 print(mem_unit, "total memory energy: %d pJ" % mem_unit.total_memory_access_energy())
 
             print("[End] Digitial Simulation is DONE!")
@@ -331,6 +297,16 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
 
 
 def launch_functional_simulation(sw_desc, hw_desc, mapping, input_mapping):
+    """Launch Functional Simulation
+
+    The function to simulate functional computation.
+
+    Args:
+        hw_desc (dict): hardware description.
+        mapping (dict): mapping between software stages and hardware structures.
+        sw_desc (list): software pipeline list.
+        input_mapping (dict): input data mapping.
+    """
     # deep copy in case the function modify the orginal data
     hw_dict = copy.deepcopy(hw_desc)
     mapping_dict = copy.deepcopy(mapping)
@@ -409,4 +385,57 @@ def launch_functional_simulation(sw_desc, hw_desc, mapping, input_mapping):
     return simulation_res
 
 
+def _find_analog_interface_stages(sw_stage_list, org_sw_stage_list, org_mapping_dict):
+    """
+    This function finds those functions that are at the interface between analog and digital
+    and creates the input object for digital domain if necessary. 
+    If there is analog component, it will create artificial digital input for digital simulation.
+    If there is no analog component, it won't create that input since user already created one.
+
+    """
+    # if equals, it means that there is no analog component in this pipeline.
+    # no need to create digital input.
+    if len(sw_stage_list) == len(org_sw_stage_list):
+        return sw_stage_list, org_mapping_dict
+
+    # First find which stages are at the interface and their direct output stages.
+    init_stages = [] # interface stages
+    mapping_dict = {}
+    init_output_stages = {} # direct output stages
+    for sw_stage in sw_stage_list:
+        for in_stage in sw_stage.input_stages:
+            if in_stage not in sw_stage_list:
+                if in_stage not in init_stages:
+                    init_stages.append(in_stage)
+
+                # map interface stages to ADC.
+                mapping_dict[in_stage.name] = "ADC"
+                # find its direct output stages
+                if in_stage not in init_output_stages:
+                    init_output_stages[in_stage] = [sw_stage]
+                else:
+                    init_output_stages[in_stage].append(sw_stage)
+
+    # remove original interface stages from input_stages 
+    for sw_stage in sw_stage_list:
+        for in_stage in init_stages:
+            if in_stage in sw_stage.input_stages:
+                sw_stage.input_stages.remove(in_stage)
+
+    for sw_stage in sw_stage_list:
+        mapping_dict[sw_stage.name] = org_mapping_dict[sw_stage.name]
+
+    # add back those interface stages using artificial input for digital simulation.
+    for sw_stage in init_stages:
+        input_data = PixelInput(
+            name = sw_stage.name,
+            size = sw_stage.output_size
+        )
+
+        for output_stage in init_output_stages[sw_stage]:
+            output_stage.set_input_stage(input_data)
+
+        sw_stage_list.append(input_data)
+
+    return sw_stage_list, mapping_dict
 
