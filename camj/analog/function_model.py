@@ -17,13 +17,13 @@ class PhotodiodeNoise(object):
     and dark current non-uniformity.
 
     Mathematical Expression:
-        output_signal = Poisson(x_in) + Norm(DCNU * dark_current) 
+        output_signal = Poisson(x_in) + Norm(DCNU * dark_current)
 
     Args:
         name (str): the name of this noise.
         dark_current_noise (float): average dark current noise in unit of electrons (e).
-        enable_dcnu: flag to enable dark current non-uniformity, the default value is False.
-        dcnu_std: dcnu standard deviation percentage. it is relative number respect
+        enable_dcnu (bool): flag to enable dark current non-uniformity, the default value is ``False``.
+        dcnu_std (float): dcnu standard deviation percentage. it is relative number respect
             to ``dark_current_noise``, the dcnu standard deviation is,
             ``dcnu_std`` * ``dark_current_noise``, the default value is 0.001.
 
