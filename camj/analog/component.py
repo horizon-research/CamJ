@@ -315,13 +315,14 @@ class ColumnAmplifier(object):
         load_capacitance = 1e-12,  # [F]
         input_capacitance = 1e-12,  # [F]
         t_sample = 2e-6,  # [s]
-        t_frame = 10e-3,  # [s]
+        t_hold = 10e-3,  # [s]
         supply = 1.8,  # [V]
-        gain = 2,
+        gain_close = 2,
         gain_open = 256,
         differential = False,
         # noise parameters
         noise = 0.,
+        gain = 1,
         enable_prnu = False,
         prnu_std = 0.001,
         enable_offset = False,
@@ -332,9 +333,9 @@ class ColumnAmplifier(object):
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
             t_sample = t_sample,
-            t_frame = t_frame,
+            t_hold = t_hold,
             supply = supply,
-            gain = gain,
+            gain_close = gain_close,
             gain_open = gain_open,
             differential = differential
         )
@@ -790,8 +791,9 @@ class Adder(object):
         load_capacitance = 1e-12,  # [F]
         input_capacitance = 1e-12,  # [F]
         t_sample = 2e-6,  # [s]
-        t_frame = 10e-3,  # [s]
+        t_hold = 10e-3,  # [s]
         supply = 1.8,  # [V]
+        gain_close = 1.0,
         gain_open = 256,
         differential = False,
         # noise parameters
@@ -804,9 +806,9 @@ class Adder(object):
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
             t_sample = t_sample,
-            t_frame = t_frame,
+            t_hold = t_hold,
             supply = supply,
-            gain = 1.0,    # adder no need to amplify the signal
+            gain_close = gain_close,
             gain_open = gain_open,
             differential = differential
         )
@@ -853,8 +855,9 @@ class Subtractor(object):
         load_capacitance = 1e-12,  # [F]
         input_capacitance = 1e-12,  # [F]
         t_sample = 2e-6,  # [s]
-        t_frame = 10e-3,  # [s]
+        t_hold = 10e-3,  # [s]
         supply = 1.8,  # [V]
+        gain_close = 1.0,
         gain_open = 256,
         differential = False,
         # noise parameters
@@ -867,9 +870,9 @@ class Subtractor(object):
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
             t_sample = t_sample,
-            t_frame = t_frame,
+            t_hold = t_hold,
             supply = supply,
-            gain = 1.0,    # adder no need to amplify the signal
+            gain_close = gain_close,
             gain_open = gain_open,
             differential = differential
         )
@@ -918,8 +921,9 @@ class AbsoluteDifference(object):
         load_capacitance = 1e-12,  # [F]
         input_capacitance = 1e-12,  # [F]
         t_sample = 2e-6,  # [s]
-        t_frame = 10e-3,  # [s]
+        t_hold = 10e-3,  # [s]
         supply = 1.8,  # [V]
+        gain_close = 1.0,
         gain_open = 256,
         differential = False,
         # noise parameters
@@ -931,9 +935,9 @@ class AbsoluteDifference(object):
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
             t_sample = t_sample,
-            t_frame = t_frame,
+            t_hold = t_hold,
             supply = supply,
-            gain = 1.0,    # adder no need to amplify the signal
+            gain_close = gain_close,
             gain_open = gain_open,
             differential = differential
         )
@@ -1212,9 +1216,9 @@ class ActiveAverage(object):
         load_capacitance = 1e-12,  # [F]
         input_capacitance = 1e-12,  # [F]
         t_sample = 2e-6,  # [s]
-        t_frame = 10e-3,  # [s]
+        t_hold = 10e-3,  # [s]
         supply = 1.8,  # [V]
-        gain = 1,
+        gain_close = 1,
         gain_open = 256,
         differential = False,
         # noise parameters
@@ -1229,16 +1233,16 @@ class ActiveAverage(object):
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
             t_sample = t_sample,
-            t_frame = t_frame,
+            t_hold = t_hold,
             supply = supply,
-            gain = gain,
+            gain_close = gain_close,
             gain_open = gain_open,
             differential = differential
         )
 
         self.noise_model = ColumnwiseNoise(
             name = "ColumnAmplifier",
-            gain = gain,
+            gain = 1.0,
             noise = noise,
             enable_prnu = enable_prnu,
             prnu_std = prnu_std
@@ -1280,9 +1284,9 @@ class ActiveBinning(object):
         load_capacitance = 1e-12,  # [F]
         input_capacitance = 1e-12,  # [F]
         t_sample = 2e-6,  # [s]
-        t_frame = 10e-3,  # [s]
+        t_hold = 10e-3,  # [s]
         supply = 1.8,  # [V]
-        gain = 2,
+        gain_close = 2,
         gain_open = 256,
         differential = False,
         # noise parameters
@@ -1297,16 +1301,16 @@ class ActiveBinning(object):
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
             t_sample = t_sample,
-            t_frame = t_frame,
+            t_hold = t_hold,
             supply = supply,
-            gain = gain,
+            gain_close = gain_close,
             gain_open = gain_open,
             differential = differential
         )
 
         self.noise_model = ColumnwiseNoise(
             name = "ColumnAmplifier",
-            gain = gain,
+            gain = 1.0,
             noise = noise,
             enable_prnu = enable_prnu,
             prnu_std = prnu_std
@@ -1671,9 +1675,9 @@ class BinaryWeightConv(object):
         load_capacitance = 1e-12,  # [F]
         input_capacitance = 1e-12,  # [F]
         t_sample = 2e-6,  # [s]
-        t_frame = 10e-3,  # [s]
+        t_hold = 10e-3,  # [s]
         supply = 1.8,  # [V]
-        gain = 2,
+        gain_close = 2,
         gain_open = 256,
         differential = False,
         # noise parameters
@@ -1693,16 +1697,16 @@ class BinaryWeightConv(object):
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
             t_sample = t_sample,
-            t_frame = t_frame,
+            t_hold = t_hold,
             supply = supply,
-            gain = gain,
+            gain_close = gain_close,
             gain_open = gain_open,
             differential = differential
         )
 
         self.noise_model = ColumnwiseNoise(
             name = "ColumnAmplifier",
-            gain = gain,
+            gain = 1.0,
             noise = noise,
             enable_prnu = enable_prnu,
             prnu_std = prnu_std

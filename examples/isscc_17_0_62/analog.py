@@ -84,9 +84,9 @@ def analog_config():
                     load_capacitance = 174e-15,  # [F]
                     input_capacitance = 55.6*4e-15,  # [F]
                     t_sample = 1e-6,  # [s]
-                    t_frame = 1e-6,  # [s] # TODO: wrong implementation
+                    t_hold = 1e-6,  # [s] # TODO: wrong implementation
                     supply = 2.5,  # [V]
-                    gain = 4,
+                    gain_close = 4,
                     gain_open = 300,
                     # noise parameters
                     noise = 0.,
@@ -149,9 +149,9 @@ def analog_config():
                     load_capacitance = 100e-15,  # [F]
                     input_capacitance = 55.6*2e-15,  # [F]
                     t_sample = 1e-6,  # [s]
-                    t_frame = 1e-6,  # [s] # TODO: wrong implementation
+                    t_hold = 1e-6,  # [s] # TODO: wrong implementation
                     supply = 2.5,  # [V]
-                    gain = 1/64,
+                    gain_close = 1/64,
                     gain_open = 300,
                     differential = True,
                     # noise parameters
@@ -202,8 +202,10 @@ if __name__ == '__main__':
     analog_arrays = analog_config()
     mapping_dict = mapping_function()
     sw_stage_list = sw_pipeline()
+
     # build sw stage connection
     build_sw_graph(sw_stage_list)
+    
     # check connection consistency
     check_analog_connect_consistency(analog_arrays)
 
