@@ -120,7 +120,7 @@ class DigitalPixelSensorPerf(ActivePixelSensorPerf):
         The model includes an APS and an ADC.
 
         Args:
-            APS input parameters: same to  ``ActivePixelSensorPerf''.
+            aps_parameters: same to  ``ActivePixelSensorPerf''.
             adc_type: the actual ADC type. Please check ADC class for more details.
             adc_fom: ADC's Figure-of-Merit, expressed by energy per conversion.
             adc_resolution: ADC's resolution.

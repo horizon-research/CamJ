@@ -18,8 +18,7 @@ from camj.analog.function_model import ColumnwiseNoise, PixelwiseNoise, Floating
 
 # Active pxiel sensor
 class ActivePixelSensor(object):
-    """
-        Pixel sensor analog energy model
+    """Pixel sensor analog energy model
 
         Our APS model includes modeling photodiode (PD), floating diffusion (FD), source follower (SF,
         and parasitic during the readout.
@@ -303,18 +302,11 @@ class PulseWidthModulationPixel(object):
 
 class ColumnAmplifier(object):
     """
-    NMOS-based single-input-single-output cascode amplifier.
+        NMOS-based single-input-single-output cascode amplifier.
+        [ref: Experimental verification of the impact of analog CMS on CIS readout noise, 2019 TCAS-I]
 
-    @article{capoccia2019experimental,
-      title={Experimental verification of the impact of analog CMS on CIS readout noise},
-      author={Capoccia, Raffaele and Boukhayma, Assim and Enz, Christian},
-      journal={IEEE Transactions on Circuits and Systems I: Regular Papers},
-      volume={67},
-      number={3},
-      pages={774--784},
-      year={2019},
-      publisher={IEEE}
-    }
+        Args:
+
     """
 
     def __init__(
