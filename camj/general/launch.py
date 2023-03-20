@@ -169,8 +169,8 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
                     reading_stage.pop(sw_stage)
 
                 # check if there is any data can be read from buffer
-                elif input_buffer.have_data_read(remain_read_cnt):
-                    input_buffer.read_data(remain_read_cnt)
+                elif input_buffer._have_data_read(remain_read_cnt):
+                    input_buffer._read_data(remain_read_cnt)
                     hw_unit._read_from_input_buffer(remain_read_cnt)
                     if hw_unit._check_read_finish():
                         if cycle % PRINT_CYCLE == 0:
@@ -230,8 +230,8 @@ def launch_digital_simulation(hw_dict, org_mapping_dict, org_sw_stage_list):
                     writing_stage.pop(sw_stage)
 
                 # then, check if there is any space to write
-                elif output_buffer.have_space_to_write(remain_write_cnt):
-                    output_buffer.write_data(remain_write_cnt)
+                elif output_buffer._have_space_to_write(remain_write_cnt):
+                    output_buffer._write_data(remain_write_cnt)
                     write_index = hw_unit._write_to_output_buffer(remain_write_cnt)
                     # output data to the targeted buffer and increment output buffer index
                     write_output_throughput(hw_unit, sw_stage, hw2sw, write_index, remain_write_cnt)

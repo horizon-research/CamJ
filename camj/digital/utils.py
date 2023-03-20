@@ -123,7 +123,7 @@ def allocate_output_buffer(sw_stages, hw2sw, sw2hw, buffer_edge_dict):
             if ENABLE_DEBUG:
                 print("[allocate_output_buffer] virtual_size: ", virtual_size)
             # allocate a buffer size as the same size of the output dimension.
-            buffer.reserve_buffer(
+            buffer._reserve_buffer(
                 src_hw_unit = src_unit, 
                 dst_hw_unit = dst_unit, 
                 sw_stage = in_stage,
@@ -147,7 +147,7 @@ def allocate_output_buffer(sw_stages, hw2sw, sw2hw, buffer_edge_dict):
                     "stage:", sw_stage, "size: ", sw_stage.output_size
                 )
 
-            buffer.reserve_solo_buffer(
+            buffer._reserve_solo_buffer(
                 src_hw_unit = src_unit, 
                 sw_stage = sw_stage, 
                 buffer_size = sw_stage.output_size

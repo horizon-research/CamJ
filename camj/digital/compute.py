@@ -76,7 +76,7 @@ class ADC(object):
             None
         """
         self.input_buffer = input_buffer
-        input_buffer.add_access_unit(self.name)
+        input_buffer._add_access_unit(self.name)
 
     def set_output_buffer(self, output_buffer):
         """Set Output Buffer
@@ -92,7 +92,7 @@ class ADC(object):
             None
         """
         self.output_buffer = output_buffer
-        output_buffer.add_access_unit(self.name)
+        output_buffer._add_access_unit(self.name)
 
     def get_total_read(self):
         """Calculate number of reads before output the given number of pixels defined by users.
@@ -294,7 +294,6 @@ class ComputeUnit(object):
         super(ComputeUnit, self).__init__()
         # assign variables
         self.name = name
-        self.domain = domain
         self.location = location
         self.energy_per_cycle = energy_per_cycle
 
@@ -354,7 +353,7 @@ class ComputeUnit(object):
             None
         """
         self.input_buffer = input_buffer
-        input_buffer.add_access_unit(self.name)
+        input_buffer._add_access_unit(self.name)
 
     def set_output_buffer(self, output_buffer):
         """Set Output Buffer
@@ -370,7 +369,7 @@ class ComputeUnit(object):
             None
         """
         self.output_buffer = output_buffer
-        output_buffer.add_access_unit(self.name)
+        output_buffer._add_access_unit(self.name)
 
     def compute_energy(self):
         """Total Compute Energy
@@ -643,7 +642,7 @@ class SystolicArray(object):
             None
         """
         self.input_buffer = input_buffer
-        input_buffer.add_access_unit(self.name)
+        input_buffer._add_access_unit(self.name)
 
     def set_output_buffer(self, output_buffer):
         """Set Output Buffer
@@ -659,7 +658,7 @@ class SystolicArray(object):
             None
         """
         self.output_buffer = output_buffer
-        output_buffer.add_access_unit(self.name)
+        output_buffer._add_access_unit(self.name)
 
     def compute_energy(self):
         """Total Compute Energy
@@ -1008,7 +1007,7 @@ class SIMDProcessor(object):
             None
         """
         self.input_buffer = input_buffer
-        input_buffer.add_access_unit(self.name)
+        input_buffer._add_access_unit(self.name)
 
     def set_output_buffer(self, output_buffer):
         """Set Output Buffer
@@ -1024,7 +1023,7 @@ class SIMDProcessor(object):
             None
         """
         self.output_buffer = output_buffer
-        output_buffer.add_access_unit(self.name)
+        output_buffer._add_access_unit(self.name)
 
     def compute_energy(self):
         """Total Compute Energy
