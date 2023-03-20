@@ -19,7 +19,7 @@ from camj.analog.function_model import ColumnwiseNoise, PixelwiseNoise, Floating
 # Active pxiel sensor
 class ActivePixelSensor(object):
     """
-        Pixel sensor analog enery model
+        Pixel sensor analog energy model
 
         Our APS model includes modeling photodiode (PD), floating diffusion (FD), source follower (SF,
         and parasitic during the readout.
@@ -131,7 +131,7 @@ class DigitalPixelSensor(object):
         It is basically a wrapper function to include one APS and one ADC. That is the actual
         implementation of DPS.
 
-        Input parameters:
+        Args:
             pd_capacitance: the capacitance of PD.
             pd_supply: voltage supply of PD.
             output_vs: output voltage swing.
@@ -262,16 +262,17 @@ class DigitalPixelSensor(object):
 
 class PulseWidthModulationPixel(object):
     """
-        Pulse Width Modulation Pixel
+        Pulse-Width-Modulation (PWM) Pixel
 
-        This class models pulse width modulation pixel
+        The modeled PWM pixel consists of a photodiode (PD), a ramp signal generator, and a comparator.
+        The comparator output toggles when the ramp signal is smaller than the pixel voltage at PD.
 
-        Input:
-            pd_capacitance: PD capacitance
-            pd_supply: PD voltage supply
-            ramp_capacitance: capacitance of ramp generator
-            gate_capacitance: the gate capacitance of readout transistor
-            num_readout: number of read from pixel, can only be 1 or 2.
+        Args:
+            pd_capacitance: PD capacitance.
+            pd_supply: PD voltage supply.
+            ramp_capacitance: capacitance of ramp signal generator.
+            gate_capacitance: the gate capacitance of readout transistor.
+            num_readout: number of read from pixel.
 
     """
     def __init__(
