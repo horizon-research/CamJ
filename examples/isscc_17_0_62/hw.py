@@ -40,13 +40,11 @@ def hw_config():
 
     mp_unit = ComputeUnit(
         name = "MPUnit",
-        domain = ProcessDomain.DIGITAL,
         location = ProcessorLocation.COMPUTE_LAYER,
         input_pixels_per_cycle = [(2, 16, 1)],
         output_pixels_per_cycle = (1, 8, 1),
         energy_per_cycle = 3 * 8 * compute_op_power,
         num_of_stages = 2,
-        area = 10
     )
     mp_unit.set_input_buffer(double_buffer)
     mp_unit.set_output_buffer(double_buffer)
@@ -54,11 +52,9 @@ def hw_config():
 
     in_sensor_dnn_acc = SystolicArray(
         name = "InSensorSystolicArray",
-        domain = ProcessDomain.DIGITAL,
         location = ProcessorLocation.COMPUTE_LAYER,
         size_dimension = (32, 32),
         energy_per_cycle = 32 * 32 * 2 * compute_op_power,
-        area = 160
     )
     hw_dict["compute"].append(in_sensor_dnn_acc)
 
