@@ -9,13 +9,6 @@ camj.general.enum module
    :undoc-members:
    :show-inheritance:
 
-camj.general.flags module
--------------------------
-
-.. automodule:: camj.general.flags
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 camj.general.launch module
 --------------------------
