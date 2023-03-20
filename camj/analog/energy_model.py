@@ -474,6 +474,16 @@ class CurrentMirrorPerf(object):
 
 
 class PassiveSwitchedCapacitorArrayPerf(object):
+    """ Passive switched-capacitor array.
+    
+        The model consists of a list of capacitors and a list of voltages that corresponds to the voltage swing at each capacitor.
+        The model is used to represent all passive switched-capacitor computational circuits, including charge-redistribution-based MAC operation.
+
+        Args:
+            capacitance_array (float): a list of capacitors.
+            vs_array (float): a list of voltages that corresponds to the voltage swing at each capacitor.
+    """
+
     def __init__(
         self,
         capacitance_array,
@@ -488,37 +498,60 @@ class PassiveSwitchedCapacitorArrayPerf(object):
 
 
 class MaximumVoltagePerf(object):
-    # source: https://www.mdpi.com/1424-8220/20/11/3101
+    """ A circuit that outputs the maximum voltage among the input voltages.
+        
+        The model is based on the design in "(2020, Sensors) Design of an Always-On Image Sensor Using an Analog Lightweight Convolutional Neural Network".
+        The model consists of a constant current path, a group of common-source amplifiers, and a load capacitor.
+        The number of common-source amplifiers matches the number of input voltages.
+        Note that all common-source amplifiers share one bias current so the bias current doesn't scale with the number of input voltages.
+
+        Args:
+            supply (float): supply voltage.
+            t_hold (float): holding time, during which the circuit is turned on and consumes power relentlessly.
+            t_readout (float): readout time, during which the maximum voltage is output.
+            load_capacitance (float): load capacitance
+            gain (float): open-loop gain of the common-source amplifier.
+    """
+
     def __init__(
         self,
         supply=1.8,  # [V]
-        t_frame=30e-3,  # [s]
-        t_acomp=1e-6,  # [s]
+        t_hold=30e-3,  # [s] FIXME: name changed!
+        t_readout=1e-6,  # [s] FIXME: name changed!
         load_capacitance=1e-12,  # [F]
         gain=10
     ):
         self.supply = supply
         self.load_capacitance = load_capacitance
-        self.t_frame = t_frame
-        self.t_acomp = t_acomp
+        self.t_hold = t_hold
+        self.t_readout = t_readout
         self.gain = gain
 
     def energy(self):
         i_bias, _ = gm_id(
             self.load_capacitance, 
             gain = self.gain, 
-            bandwidth = 1 / self.t_acomp, 
+            bandwidth = 1 / self.t_readout, 
             differential = True,
             inversion_level = 'moderate'
         )
-        energy_bias = self.supply * (0.5 * i_bias) * self.t_frame
-        energy_amplifier = self.supply * i_bias * self.t_acomp
+        energy_bias = self.supply * (0.5 * i_bias) * self.t_hold
+        energy_amplifier = self.supply * i_bias * self.t_readout
         energy = energy_bias + energy_amplifier
         return energy
 
 
 ########################################################################################################################
 class ComparatorPerf(object):
+    """ Dynamic voltage comparator.
+
+        Args:
+            supply (float): supply voltage.
+            i_bias (float): bias current of the circuit.
+            t_readout (float): readout time, during which the comparison is finished.
+    """
+
+
     def __init__(
         self,
         supply=1.8,  # [V]
@@ -535,7 +568,14 @@ class ComparatorPerf(object):
 
 
 class AnalogToDigitalConverterPerf(object):
-    """docstring for differential-input rail-to-rail ADC"""
+    """ Analog-to-digital converter.
+
+        Args:
+            supply (float): supply voltage.
+            type (str): ADC type.
+            fom (float): ADC's Figure-of-Merit, expressed by energy per conversion.
+            resolution (int): ADC resolution.
+    """
 
     def __init__(
         self,
@@ -563,6 +603,14 @@ class AnalogToDigitalConverterPerf(object):
 
 
 class GeneralCircuitPerf(object):
+    """ Energy model for general circuits from first principle.
+
+        Args:
+            supply (float): supply voltage.
+            i_dc (float): direct current of the circuit.
+            t_operation (float): operation time, during which the circuit completes its particular operation.
+    """
+
     def __init__(
         self,
         supply=1.8,  # [V]
