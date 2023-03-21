@@ -480,8 +480,8 @@ class PassiveSwitchedCapacitorArrayPerf(object):
         The model is used to represent all passive switched-capacitor computational circuits, including charge-redistribution-based MAC operation.
 
         Args:
-            capacitance_array (float): a list of capacitors.
-            vs_array (float): a list of voltages that corresponds to the voltage swing at each capacitor.
+            capacitance_array (array, float): a list of capacitors.
+            vs_array (array, float): a list of voltages that corresponds to the voltage swing at each capacitor.
     """
 
     def __init__(
