@@ -13,7 +13,7 @@ Thus, **CamJ** enables end-to-end modeling and optimization of the CIS architect
 
 
 Cite Us
-================================
+------------------------------
 
 To know more about **CamJ**, please check out our `paper <https://horizon-lab.org/pubs.html>`_ and cite us::
 
