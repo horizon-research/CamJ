@@ -2,7 +2,7 @@ CamJ APIs
 ============
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
 
    camj.analog
    camj.digital
