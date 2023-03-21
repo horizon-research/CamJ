@@ -11,7 +11,7 @@ def sw_pipeline():
 
     sw_desc = []
     # define input data
-    input_data = PixelInput((36, 36, 1), name="Input")
+    input_data = PixelInput(name = "Input", size = (36, 36, 1))
     
     # define a 3x3 convolution stage with stride of 1
     conv1_stage = ProcessStage(
