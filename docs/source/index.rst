@@ -3,18 +3,20 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CamJ's documentation!
+CamJ
 ================================
 
+At its core, CamJ simulates the noise and energy consumption of an CMOS Image Sensor (CIS) in seconds under a Frame Per Second (FPS) target.
+CamJ allow users to describe the CIS hardware, both the analog and digital components, and the (imaging, image processing, and computer vision) algorithm to be executed on the CIS using a declarative interface in Python.
+Under the surface, CamJ models the interplay across main structures of a computational CIS pipeline: pixel sensing → analog processing → digital processing.
+Thus, CamJ enables end-to-end modeling and optimization of the CIS architecture from photon ingestion to semantic results.
+
+
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
+   intro
+   tutorial
    camj
 
-
-Indices and tables
-==================
-
-* :ref:`modindex`
-* :ref:`search`

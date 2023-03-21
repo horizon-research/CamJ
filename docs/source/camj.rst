@@ -1,4 +1,4 @@
-camj package
+CamJ APIs
 ============
 
 .. toctree::
