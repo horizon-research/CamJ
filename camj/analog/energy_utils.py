@@ -3,10 +3,22 @@ import numpy as np
 def gm_id(
         load_capacitance,
         gain,
-        bandwidth,
+        bandwidth, # [Hz]
         differential=True,
         inversion_level='moderate'
     ):
+    """ Compute transconductance (gm) and drain current (id) of linear amplifiers.
+
+        The method is based on "(2017, CAMBRIDGE) SYSTEMATIC DESIGN OF ANALOG CMOS CIRCUITS -- Using Pre-Computed Lookup Tables".
+
+        Args:
+            load_capacitance (float): amplifier's load capacitance.
+            gain (float): amplifier's open-loop gain.
+            bandwidth (float): amplifier's bandwidth.
+            differential (bool): if using differential-input amplifier or single-input amplifier.
+            inversion_level (str): 'weak', 'moderate', or 'strong'. It describes the inversion level of the transistors in the amplifier.
+    """
+
     if inversion_level == 'strong':
         gm_id_ratio = 10
     elif inversion_level == 'moderate':
@@ -25,11 +37,27 @@ def get_pixel_parasitic(
         tech_node,  # [nm]
         pitch  # [um]
     ):
+    """ Compute parasitic capacitance on the pixel's output node.
+
+        The parasitic capacitance usually dominates the load capacitance if the pixel's readout circuitry is placed beside the pixel array.
+
+        Args:
+            array_v (int): vertical size of the pixel array.
+            tech_node (int): pixel's process node.
+            pitch (float): pixel's pitch size.
+    """
+
     C_p = 9e-15 / 130 / 5 * tech_node * pitch * array_v
     return C_p
 
 
 def get_nominal_supply(tech_node):
+    """ Compute nominal supply voltage under different process nodes.
+
+        Args:
+            tech_node (int): pixel's process node.
+    """
+
     if 130 < tech_node <= 180:
         supply = 1.8
     if 65 < tech_node <= 130:
