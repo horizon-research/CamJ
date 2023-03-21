@@ -3,13 +3,13 @@ from camj.analog.energy_utils import gm_id, get_pixel_parasitic, parallel_impeda
 
 
 class PinnedPhotodiodePerf(object):
-    """ Pinned photodiode (PD) energy model.
+    """Pinned photodiode (PD) energy model.
 
-        It is modeled as the dynamic energy of the PD's internal capacitance.
-    
-        Args:
-            pd_capacitance (float): the capacitance of PD.
-            pd_supply (float): supply voltage of pixel.
+    It is modeled as the dynamic energy of the PD's internal capacitance.
+
+    Args:
+        pd_capacitance (float): the capacitance of PD.
+        pd_supply (float): supply voltage of pixel.
     """
 
     def __init__(self,
@@ -25,24 +25,24 @@ class PinnedPhotodiodePerf(object):
 
 
 class ActivePixelSensorPerf(PinnedPhotodiodePerf):
-    """ Active pixel sensor (APS) analog energy model.
+    """Active pixel sensor (APS) analog energy model.
 
-        The model includes photodiode (PD), floating diffusion (FD), source follower (SF),
-        and parasitic capacitance on the SF's readout wire.
+    The model includes photodiode (PD), floating diffusion (FD), source follower (SF),
+    and parasitic capacitance on the SF's readout wire.
 
-        Our APS model supports energy estimation for both 3T-APS and 4T-APS. Users need to define
-        `num_transistor` to get the correct energy estimation.
+    Our APS model supports energy estimation for both 3T-APS and 4T-APS. Users need to define
+    `num_transistor` to get the correct energy estimation.
 
-        Args:
-            pd_capacitance (float): the capacitance of PD.
-            pd_supply (float): supply voltage of pixel.
-            output_vs (float): voltage swing at SF's output node. Typically it is one or two units of threshold voltage smaller than pd_supply, depending on the pixel's circuit structure.
-            num_transistor (int): 3 or 4, denoting 3T APS or 4T APS.
-            num_readout (int): 2 or 1, denoting enabling CDS or not.
-            load_capacitance (float): load capacitance at the SF's output node.
-            tech_node (int): pixel's process node.
-            pitch (float): pixel pitch size (width or height).
-            array_vsize (int): the vertical size of the entire pixel array. This is used to estimate the parasitic capacitance on the SF's readout wire.
+    Args:
+        pd_capacitance (float): the capacitance of PD.
+        pd_supply (float): supply voltage of pixel.
+        output_vs (float): voltage swing at SF's output node. Typically it is one or two units of threshold voltage smaller than pd_supply, depending on the pixel's circuit structure.
+        num_transistor (int): 3 or 4, denoting 3T APS or 4T APS.
+        num_readout (int): 2 or 1, denoting enabling CDS or not.
+        load_capacitance (float): load capacitance at the SF's output node.
+        tech_node (int): pixel's process node.
+        pitch (float): pixel pitch size (width or height).
+        array_vsize (int): the vertical size of the entire pixel array. This is used to estimate the parasitic capacitance on the SF's readout wire.
     """
 
     def __init__(
@@ -115,15 +115,15 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
 
 
 class DigitalPixelSensorPerf(ActivePixelSensorPerf):
-    """ Digital pixel sensor (DPS) energy model.
+    """Digital pixel sensor (DPS) energy model.
 
-        The model includes an APS and an ADC.
+    The model includes an APS and an ADC.
 
-        Args:
-            aps_parameters: same to  "ActivePixelSensorPerf".
-            adc_type (str): the actual ADC type. Please check ADC class for more details.
-            adc_fom (float): ADC's Figure-of-Merit, expressed by energy per conversion.
-            adc_resolution (int): ADC's resolution.
+    Args:
+        aps_parameters: same to  "ActivePixelSensorPerf".
+        adc_type (str): the actual ADC type. Please check ADC class for more details.
+        adc_fom (float): ADC's Figure-of-Merit, expressed by energy per conversion.
+        adc_resolution (int): ADC's resolution.
     """
 
     def __init__(
@@ -168,19 +168,19 @@ class DigitalPixelSensorPerf(ActivePixelSensorPerf):
 
 
 class PulseWidthModulationPixelPerf(PinnedPhotodiodePerf):
-    """ Pulse-Width-Modulation (PWM) Pixel
+    """Pulse-Width-Modulation (PWM) Pixel
 
-        The model is based on the design in "(2020, JSSC) A 0.5-V Real-Time Computational CMOS Image Sensor With Programmable Kernel for Feature Extraction".
-        The model consists of a photodiode (PD), a ramp signal generator, and a comparator.
-        The comparator output toggles when the ramp signal is smaller than the pixel voltage at PD.
+    The model is based on the design in "(2020, JSSC) A 0.5-V Real-Time Computational CMOS Image Sensor With Programmable Kernel for Feature Extraction".
+    The model consists of a photodiode (PD), a ramp signal generator, and a comparator.
+    The comparator output toggles when the ramp signal is smaller than the pixel voltage at PD.
 
-        Args:
-            pd_capacitance (float): PD capacitance.
-            pd_supply (float): PD voltage supply.
-            array_vsize (int): the vertical size of the entire pixel array. This is used to estimate the parasitic capacitance on the SF's readout wire.
-            ramp_capacitance (float): capacitance of ramp signal generator.
-            gate_capacitance (float): the gate capacitance of readout transistor.
-            num_readout (int): number of read from pixel.
+    Args:
+        pd_capacitance (float): PD capacitance.
+        pd_supply (float): PD voltage supply.
+        array_vsize (int): the vertical size of the entire pixel array. This is used to estimate the parasitic capacitance on the SF's readout wire.
+        ramp_capacitance (float): capacitance of ramp signal generator.
+        gate_capacitance (float): the gate capacitance of readout transistor.
+        num_readout (int): number of read from pixel.
     """
 
     def __init__(
@@ -211,22 +211,22 @@ class PulseWidthModulationPixelPerf(PinnedPhotodiodePerf):
 
 ########################################################################################################################
 class ColumnAmplifierPerf(object):
-    """ Switched-capacitor amplifier.
+    """Switched-capacitor amplifier.
     
-        The model is based on Fig. 13.5 in "Design of Analog CMOS Integrated Circuits (Second Edition)".
-        The model includes an input capacitor, a feedback capacitor, a load capacitor, and an amplifier.
-        This amplifier can be used either as pixel array's column amplifier or as a general-purpose switched-capacitor amplifier,
-        such as switched-capacitor integrator, switched-capacitor subtractor, and switched-capacitor multiplier.
+    The model is based on Fig. 13.5 in "Design of Analog CMOS Integrated Circuits (Second Edition)".
+    The model includes an input capacitor, a feedback capacitor, a load capacitor, and an amplifier.
+    This amplifier can be used either as pixel array's column amplifier or as a general-purpose switched-capacitor amplifier,
+    such as switched-capacitor integrator, switched-capacitor subtractor, and switched-capacitor multiplier.
 
-        Args:
-            load_capacitance (float): load capacitance.
-            input_capacitance (float): input capacitance.
-            t_sample (float): sampling time, which mainly consists of the amplifier's settling time.
-            t_hold (float): holding time, during which the amplifier is turned on and consumes power relentlessly.
-            supply (float): supply voltage.
-            gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of input_capacitance over feedback capacitance.
-            gain_open (int): amplifier's open-loop gain. This gain is used to determine the amplifier's bias current by gm/id method.
-            differential (bool): if using differential-input amplifier or single-input amplifier.
+    Args:
+        load_capacitance (float): load capacitance.
+        input_capacitance (float): input capacitance.
+        t_sample (float): sampling time, which mainly consists of the amplifier's settling time.
+        t_hold (float): holding time, during which the amplifier is turned on and consumes power relentlessly.
+        supply (float): supply voltage.
+        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of input_capacitance over feedback capacitance.
+        gain_open (int): amplifier's open-loop gain. This gain is used to determine the amplifier's bias current by gm/id method.
+        differential (bool): if using differential-input amplifier or single-input amplifier.
     """
 
     def __init__(
@@ -279,15 +279,15 @@ class ColumnAmplifierPerf(object):
 
 
 class SourceFollowerPerf(object):
-    """ Source follower (SF) with constant current bias.
+    """Source follower (SF) with constant current bias.
 
-        This model is applicable to not only the simplest single-transistor source follower but also flipped-voltage-follower (FVF).
+    This model is applicable to not only the simplest single-transistor source follower but also flipped-voltage-follower (FVF).
 
-        Args:
-            load_capacitance (float): load capacitance.
-            supply (float): supply voltage.
-            output_vs (float): voltage swing at the SF's output node.
-            bias_current (float): bias current.
+    Args:
+        load_capacitance (float): load capacitance.
+        supply (float): supply voltage.
+        output_vs (float): voltage swing at the SF's output node.
+        bias_current (float): bias current.
     """
 
     def __init__(
@@ -321,17 +321,17 @@ class SourceFollowerPerf(object):
 
 
 class ActiveAnalogMemoryPerf(object):
-    """ Analog memory with active feedback.
+    """Analog memory with active feedback.
     
-        The model is based on the design in "(2004, JSSC) A 10-nW 12-bit accurate analog storage cell with 10-aA leakage".
-        The model consists of a sample capacitor, a compensation capacitor, and an amplifier which holds the stored analog data through feedback.
+    The model is based on the design in "(2004, JSSC) A 10-nW 12-bit accurate analog storage cell with 10-aA leakage".
+    The model consists of a sample capacitor, a compensation capacitor, and an amplifier which holds the stored analog data through feedback.
 
-        Args:
-            sample_capacitance (float): sample capacitance.
-            comp_capacitance (float): compensation capacitance
-            t_sample (float): sampling time, which mainly consists of the amplifier's settling time.
-            t_hold (float): holding time, during which the amplifier is turned on and consumes power relentlessly.
-            supply (float): supply voltage.
+    Args:
+        sample_capacitance (float): sample capacitance.
+        comp_capacitance (float): compensation capacitance
+        t_sample (float): sampling time, which mainly consists of the amplifier's settling time.
+        t_hold (float): holding time, during which the amplifier is turned on and consumes power relentlessly.
+        supply (float): supply voltage.
     """
 
     def __init__(
@@ -380,13 +380,13 @@ class ActiveAnalogMemoryPerf(object):
 
 
 class PassiveAnalogMemoryPerf(object):
-    """ Analog memory without active feedback.
+    """Analog memory without active feedback.
     
-        The model only contains a sample capacitor. Compared to ActiveAnalogMemory it has higher data leakage.
+    The model only contains a sample capacitor. Compared to ActiveAnalogMemory it has higher data leakage.
 
-        Args:
-            sample_capacitance (float): sample capacitance.
-            supply (float): supply voltage.
+    Args:
+        sample_capacitance (float): sample capacitance.
+        supply (float): supply voltage.
     """
 
     def __init__(
@@ -414,14 +414,14 @@ class PassiveAnalogMemoryPerf(object):
 
 ########################################################################################################################
 class DigitalToCurrentConverterPerf(object): # FIXME: function changed! may delete this class.
-    """ Current digital-to-analog converter.
+    """Current digital-to-analog converter.
     
-        The model consists of a constant current path and a load capacitor.
+    The model consists of a constant current path and a load capacitor.
 
-        Args:
-            supply (float): supply voltage.
-            load_capacitance (float): load capacitance.
-            t_readout (float): readout time, during which the constant current drives the load capacitance from 0 to VDD.
+    Args:
+        supply (float): supply voltage.
+        load_capacitance (float): load capacitance.
+        t_readout (float): readout time, during which the constant current drives the load capacitance from 0 to VDD.
     """
 
     def __init__(
@@ -441,15 +441,15 @@ class DigitalToCurrentConverterPerf(object): # FIXME: function changed! may dele
 
 
 class CurrentMirrorPerf(object):
-    """ Current mirror.
+    """Current mirror.
     
-        The model consists of a constant current path and a load capacitor.
+    The model consists of a constant current path and a load capacitor.
 
-        Args:
-            supply (float): supply voltage.
-            load_capacitance (float): load capacitance.
-            t_readout (float): readout time, during which the constant current drives the load capacitance from 0 to VDD.
-            i_dc (float): the constant current. If ``i_dc == None``, then i_dc is estimated from the other parameters.
+    Args:
+        supply (float): supply voltage.
+        load_capacitance (float): load capacitance.
+        t_readout (float): readout time, during which the constant current drives the load capacitance from 0 to VDD.
+        i_dc (float): the constant current. If ``i_dc == None``, then i_dc is estimated from the other parameters.
     """
 
     def __init__(
@@ -474,14 +474,14 @@ class CurrentMirrorPerf(object):
 
 
 class PassiveSwitchedCapacitorArrayPerf(object):
-    """ Passive switched-capacitor array.
+    """Passive switched-capacitor array.
     
-        The model consists of a list of capacitors and a list of voltages that corresponds to the voltage swing at each capacitor.
-        The model is used to represent all passive switched-capacitor computational circuits, including charge-redistribution-based MAC operation.
+    The model consists of a list of capacitors and a list of voltages that corresponds to the voltage swing at each capacitor.
+    The model is used to represent all passive switched-capacitor computational circuits, including charge-redistribution-based MAC operation.
 
-        Args:
-            capacitance_array (array, float): a list of capacitors.
-            vs_array (array, float): a list of voltages that corresponds to the voltage swing at each capacitor.
+    Args:
+        capacitance_array (array, float): a list of capacitors.
+        vs_array (array, float): a list of voltages that corresponds to the voltage swing at each capacitor.
     """
 
     def __init__(
@@ -498,19 +498,19 @@ class PassiveSwitchedCapacitorArrayPerf(object):
 
 
 class MaximumVoltagePerf(object):
-    """ A circuit that outputs the maximum voltage among the input voltages.
+    """A circuit that outputs the maximum voltage among the input voltages.
         
-        The model is based on the design in "(2020, Sensors) Design of an Always-On Image Sensor Using an Analog Lightweight Convolutional Neural Network".
-        The model consists of a constant current path, a group of common-source amplifiers, and a load capacitor.
-        The number of common-source amplifiers matches the number of input voltages.
-        Note that all common-source amplifiers share one bias current so the bias current doesn't scale with the number of input voltages.
+    The model is based on the design in "(2020, Sensors) Design of an Always-On Image Sensor Using an Analog Lightweight Convolutional Neural Network".
+    The model consists of a constant current path, a group of common-source amplifiers, and a load capacitor.
+    The number of common-source amplifiers matches the number of input voltages.
+    Note that all common-source amplifiers share one bias current so the bias current doesn't scale with the number of input voltages.
 
-        Args:
-            supply (float): supply voltage.
-            t_hold (float): holding time, during which the circuit is turned on and consumes power relentlessly.
-            t_readout (float): readout time, during which the maximum voltage is output.
-            load_capacitance (float): load capacitance
-            gain (float): open-loop gain of the common-source amplifier.
+    Args:
+        supply (float): supply voltage.
+        t_hold (float): holding time, during which the circuit is turned on and consumes power relentlessly.
+        t_readout (float): readout time, during which the maximum voltage is output.
+        load_capacitance (float): load capacitance
+        gain (float): open-loop gain of the common-source amplifier.
     """
 
     def __init__(
@@ -543,12 +543,12 @@ class MaximumVoltagePerf(object):
 
 ########################################################################################################################
 class ComparatorPerf(object):
-    """ Dynamic voltage comparator.
+    """Dynamic voltage comparator.
 
-        Args:
-            supply (float): supply voltage.
-            i_bias (float): bias current of the circuit.
-            t_readout (float): readout time, during which the comparison is finished.
+    Args:
+        supply (float): supply voltage.
+        i_bias (float): bias current of the circuit.
+        t_readout (float): readout time, during which the comparison is finished.
     """
 
 
@@ -568,13 +568,13 @@ class ComparatorPerf(object):
 
 
 class AnalogToDigitalConverterPerf(object):
-    """ Analog-to-digital converter.
+    """Analog-to-digital converter.
 
-        Args:
-            supply (float): supply voltage.
-            type (str): ADC type.
-            fom (float): ADC's Figure-of-Merit, expressed by energy per conversion.
-            resolution (int): ADC resolution.
+    Args:
+        supply (float): supply voltage.
+        type (str): ADC type.
+        fom (float): ADC's Figure-of-Merit, expressed by energy per conversion.
+        resolution (int): ADC resolution.
     """
 
     def __init__(
@@ -603,12 +603,12 @@ class AnalogToDigitalConverterPerf(object):
 
 
 class GeneralCircuitPerf(object):
-    """ Energy model for general circuits from first principle.
+    """Energy model for general circuits from first principle.
 
-        Args:
-            supply (float): supply voltage.
-            i_dc (float): direct current of the circuit.
-            t_operation (float): operation time, during which the circuit completes its particular operation.
+    Args:
+        supply (float): supply voltage.
+        i_dc (float): direct current of the circuit.
+        t_operation (float): operation time, during which the circuit completes its particular operation.
     """
 
     def __init__(

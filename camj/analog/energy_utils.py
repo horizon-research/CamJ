@@ -7,19 +7,19 @@ def gm_id(
         differential=True,
         inversion_level='moderate'
     ):
-    """ Compute transconductance (gm) and drain current (id) of linear amplifiers.
+    """Compute transconductance (gm) and drain current (id) of linear amplifiers.
 
-        The method is based on "(2017, CAMBRIDGE) SYSTEMATIC DESIGN OF ANALOG CMOS CIRCUITS -- Using Pre-Computed Lookup Tables".
+    The method is based on "(2017, CAMBRIDGE) SYSTEMATIC DESIGN OF ANALOG CMOS CIRCUITS -- Using Pre-Computed Lookup Tables".
 
-        Args:
-            load_capacitance (float): amplifier's load capacitance.
-            gain (float): amplifier's open-loop gain.
-            bandwidth (float): amplifier's bandwidth.
-            differential (bool): if using differential-input amplifier or single-input amplifier.
-            inversion_level (str): 'weak', 'moderate', or 'strong'. It describes the inversion level of the transistors in the amplifier.
-        
-        Returns:
-            [drain current (id), transconductance (gm)]
+    Args:
+        load_capacitance (float): amplifier's load capacitance.
+        gain (float): amplifier's open-loop gain.
+        bandwidth (float): amplifier's bandwidth.
+        differential (bool): if using differential-input amplifier or single-input amplifier.
+        inversion_level (str): 'weak', 'moderate', or 'strong'. It describes the inversion level of the transistors in the amplifier.
+    
+    Returns:
+        [drain current (id), transconductance (gm)]
     """
 
     if inversion_level == 'strong':
@@ -42,20 +42,20 @@ def get_pixel_parasitic(
         tech_node,  # [nm]
         pitch  # [um]
     ):
-    """ Compute column parasitic capacitance (Farad per column) on the pixel's output node.
+    """Compute column parasitic capacitance (Farad per column) on the pixel's output node.
 
-        This parasitic capacitance usually dominates the load capacitance if the pixel's follow-up circuitry (e.g., readout or processing) is placed at the column level.
-        Based on "(2019, JSSC) A Data-Compressive 1.5/2.75-bit Log-Gradient QVGA Image Sensor With Multi-Scale Readout for Always-On Object Detection" where the
-        parasitic capacitance is 9fF/pixel under 130nm process node and 5um pixel pitch, this model assumes the parasitic capacitance scales with process node,
-        pixel pitch, and pixel array's vertical size (i.e., the number of pixels in one column).
+    This parasitic capacitance usually dominates the load capacitance if the pixel's follow-up circuitry (e.g., readout or processing) is placed at the column level.
+    Based on "(2019, JSSC) A Data-Compressive 1.5/2.75-bit Log-Gradient QVGA Image Sensor With Multi-Scale Readout for Always-On Object Detection" where the
+    parasitic capacitance is 9fF/pixel under 130nm process node and 5um pixel pitch, this model assumes the parasitic capacitance scales with process node,
+    pixel pitch, and pixel array's vertical size (i.e., the number of pixels in one column).
 
-        Args:
-            array_v (int): vertical size of the pixel array.
-            tech_node (int): pixel's process node.
-            pitch (float): pixel's pitch size.
+    Args:
+        array_v (int): vertical size of the pixel array.
+        tech_node (int): pixel's process node.
+        pitch (float): pixel's pitch size.
 
-        Returns:
-            parasitic capacitance
+    Returns:
+        parasitic capacitance
     """
 
     C_p = 9e-15 / 130 / 5 * tech_node * pitch * array_v
@@ -63,13 +63,13 @@ def get_pixel_parasitic(
 
 
 def get_nominal_supply(tech_node):
-    """ Compute nominal supply voltage under different process nodes.
+    """Compute nominal supply voltage under different process nodes.
 
-        Args:
-            tech_node (int): pixel's process node.
+    Args:
+        tech_node (int): pixel's process node.
 
-        Returns:
-            supply voltage
+    Returns:
+        supply voltage
     """
 
     if 130 < tech_node <= 180:
@@ -84,13 +84,13 @@ def get_nominal_supply(tech_node):
 
 
 def parallel_impedance(impedance_array):
-    """ Compute parallel impedance of an array of input impedance.
+    """Compute parallel impedance of an array of input impedance.
 
-        Args:
-            impedance_array (array, float): input impedance array.
+    Args:
+        impedance_array (array, float): input impedance array.
 
-        Returns:
-            parallel impedance
+    Returns:
+        parallel impedance
     """
      
     impedance = np.reciprocal(np.sum(np.reciprocal(impedance_array)))
