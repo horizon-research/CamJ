@@ -9,7 +9,7 @@ from pprint import pprint
 sys.path.append(os.path.dirname(os.path.dirname(os.getcwd())))
 
 # import local modules
-from camj.general.launch import launch_simulation
+from camj.general.launch import energy_simulation
 
 from examples.isscc_21_back_illuminated.mapping import mapping_function
 from examples.isscc_21_back_illuminated.sw import sw_pipeline
@@ -17,7 +17,7 @@ from examples.isscc_21_back_illuminated.hw import hw_config
 
 def run_energy_simulation(hw_desc, mapping, sw_desc):
 
-    total_energy, energy_breakdown = launch_simulation(
+    total_energy, energy_breakdown = energy_simulation(
         hw_desc = hw_desc,
         mapping = mapping,
         sw_desc = sw_desc

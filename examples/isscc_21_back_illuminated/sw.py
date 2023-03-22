@@ -11,9 +11,14 @@ from camj.sw.utils import build_sw_graph
 
 def sw_pipeline():
 
-    scaler = 4
-
     sw_stage_list = []
+
+    input_data = PixelInput(name = "Input", size = (3040, 4056, 1))
+    sw_stage_list.append(input_data)
+
+    resized_input_data = PixelInput(name = "ResizedInput", size = (224, 224, 3))
+    sw_stage_list.append(resized_input_data)
+
     conv2d_1_stage = DNNProcessStage(
         name = "Conv2D-1",
         op_type = "Conv2D",
@@ -276,18 +281,11 @@ def sw_pipeline():
     )
     sw_stage_list.append(fc_1_stage)
 
-    input_data = PixelInput((224, 224, 3), name="ResizedInput")
-    input_data = PixelInput((3040, 4056, 1), name="Input")
-    sw_stage_list.append(input_data)
-
-    conv2d_1_stage.set_input_stage(input_data)
+    conv2d_1_stage.set_input_stage(resized_input_data)
     dwconv2d_1_stage.set_input_stage(conv2d_1_stage)
 
     conv2d_2_stage.set_input_stage(dwconv2d_1_stage)
     dwconv2d_2_stage.set_input_stage(conv2d_2_stage)
-
-    conv2d_3_stage.set_input_stage(dwconv2d_2_stage)
-    dwconv2d_3_stage.set_input_stage(conv2d_3_stage)
 
     conv2d_3_stage.set_input_stage(dwconv2d_2_stage)
     dwconv2d_3_stage.set_input_stage(conv2d_3_stage)
