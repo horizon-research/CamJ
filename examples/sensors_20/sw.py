@@ -13,6 +13,9 @@ def sw_pipeline():
 
     sw_stage_list = []
 
+    input_data = PixelInput(name = "Input", size = (128, 128, 1))
+    sw_stage_list.append(input_data)
+
     conv1_stage = ProcessStage(
         name = "Conv-1",
         input_size = [(120, 160, 1)],
@@ -64,9 +67,6 @@ def sw_pipeline():
     sw_stage_list.append(fc_stage)
 
     # build the connections among different sw stages
-    input_data = PixelInput((128, 128, 1), name="Input")
-    sw_stage_list.append(input_data)
-
     conv1_stage.set_input_stage(input_data)
     mp1_stage.set_input_stage(conv1_stage)
     conv2_stage.set_input_stage(mp1_stage)

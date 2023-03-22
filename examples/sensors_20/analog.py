@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(parent_directory))
 from camj.analog.component import ActivePixelSensor, Voltage2VoltageConv, MaxPool
 from camj.analog.infra import AnalogArray, AnalogComponent
 from camj.analog.utils import check_analog_connect_consistency, compute_total_energy,\
-                            launch_analog_simulation
+                            analog_energy_simulation
 from camj.general.enum import ProcessorLocation, ProcessDomain
 from camj.sw.utils import build_sw_graph
 
@@ -117,8 +117,8 @@ def analog_config():
             (
                 MaxPool(
                     supply = 3.3,  # [V]
-                    t_frame = 1/60,  # [s]
-                    t_acomp = 20e-6,  # [s]
+                    t_hold = 1/60,  # [s]
+                    t_readout = 20e-6,  # [s]
                     load_capacitance = 1e-12,  # [F]
                     gain = 10
                 ),
@@ -182,8 +182,8 @@ def analog_config():
             (
                 MaxPool(
                     supply = 3.3,  # [V]
-                    t_frame = 1/60,  # [s]
-                    t_acomp = 20e-6,  # [s]
+                    t_hold = 1/60,  # [s]
+                    t_readout = 20e-6,  # [s]
                     load_capacitance = 1e-12,  # [F]
                     gain = 10
                 ),
@@ -226,6 +226,6 @@ if __name__ == '__main__':
 
     check_analog_connect_consistency(analog_arrays)
     # analog energy simulation
-    total_energy = launch_analog_simulation(analog_arrays, sw_stage_list, mapping_dict)
+    total_energy = analog_energy_simulation(analog_arrays, sw_stage_list, mapping_dict)
     print("total energy:", total_energy, "pJ")
 

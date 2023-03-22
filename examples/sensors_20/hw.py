@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(parent_directory))
 
 # import local modules
 from camj.general.enum import ProcessorLocation, ProcessDomain
-from camj.digital.memory import FIFO, LineBuffer
+from camj.digital.memory import FIFO
 from camj.digital.compute import ADC, ComputeUnit
 
 # import customized configs
@@ -55,13 +55,11 @@ def hw_config():
 
     fc_unit = ComputeUnit(
         name="FCUnit",
-        domain=ProcessDomain.DIGITAL,
         location=ProcessorLocation.COMPUTE_LAYER,
         input_pixels_per_cycle = [(1, 1, 10)],
         output_pixels_per_cycle = (1, 1, 1),
         energy_per_cycle = 1 * compute_op_power,
         num_of_stages = 1 * 1 * 10,
-        area = 10,
     )
     fc_unit.set_input_buffer(fifo_buffer1)
     fc_unit.set_output_buffer(fifo_buffer2)
