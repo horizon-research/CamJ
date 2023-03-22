@@ -162,7 +162,7 @@ class AbsoluteDifferenceNoise(object):
     Args:
         name (str): the name of the noise.
         gain (float): the gain applied in absolute difference, the default value is ``1.0``.
-        noise (float): the read noise happened during readout absolute result in the unit of voltage (V).
+        noise (float): the read noise standard deviation during readout in the unit of voltage (V).
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): relative PRNU standard deviation respect to gain. 
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
@@ -247,7 +247,7 @@ class CurrentMirrorNoise(object):
     Args:
         name (str): the name of the noise.
         gain (float): the average gain. Default value is ``1.0``.
-        noise (float): average noise value. Default value is ``None``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
         enable_compute (bool): flag to enable compute and output charges. Default value is ``False``.
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative prnu standard deviation respect to gain.
@@ -341,7 +341,7 @@ class PassiveSwitchedCapacitorArrayNoise(object):
     Args:
         name (str): the name of the noise.
         num_capacitor (int): number of capacitor in capacitor array.
-        noise (float): average noise value. Default value is ``None``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
     """
     def __init__(
         self,
@@ -414,7 +414,7 @@ class MaximumVoltageNoise(object):
 
     Args:
         name (str): the name of the noise.
-        noise (float): average noise value. Default value is ``None``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
     """
     def __init__(
         self,
@@ -479,7 +479,7 @@ class PixelwiseNoise(object):
     Args:
         name (str): the name of the noise.
         gain (float): the average gain. Default value is ``1.0``.
-        noise (float): average noise value. Default value is ``None``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative prnu standard deviation respect to gain.
                   prnu gain standard deviation = prnu_std * gain.
@@ -560,7 +560,7 @@ class FloatingDiffusionNoise(object):
     Args:
         name (str): the name of the noise.
         gain (float): the average gain. Default value is ``1.0``.
-        noise (float): average reset noise value. Default value is ``None``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
         enable_cds (bool): flag to enable CDS (correlated double sampling). Default value is ``False``.
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative prnu standard deviation respect to gain.
@@ -644,7 +644,7 @@ class CorrelatedDoubleSamplingNoise(object):
     Args:
         name (str): the name of the noise.
         gain (float): the average gain. Default value is ``1.0``.
-        noise (float): average noise value. Default value is ``None``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
         enable_prnu: flag to enable PRNU. Default value is ``False``.
         prnu_std: the relative prnu standard deviation respect to gain.
                   prnu gain standard deviation = prnu_std * gain. The default value is ``0.001``.
@@ -729,7 +729,7 @@ class ComparatorNoise(object):
     Args:
         name (str): the name of the noise.
         gain (float): the average gain. Default value is ``1.0``.
-        noise (float): average noise value. Default value is ``None``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative PRNU standard deviation respect to gain.
             PRNU gain standard deviation = prnu_std * gain. The default value is 0.001
@@ -818,7 +818,7 @@ class ColumnwiseNoise(object):
     Args:
         name (str): the name of the noise.
         gain (float): the average gain. Default value is ``1.0``.
-        noise (float): average noise value. Default value is ``None``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
         ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative PRNU standard deviation respect to gain.
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
