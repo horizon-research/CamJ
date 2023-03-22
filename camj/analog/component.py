@@ -481,7 +481,7 @@ class PassiveAnalogMemory(object):
     def __init__(
         self,
         # performance parameters
-        capacitance = 1e-12,  # [F]
+        sample_capacitance = 1e-12,  # [F]
         supply = 1.8,  # [V]
         # eqv_reso  # equivalent resolution
         # noise parameters
@@ -491,7 +491,7 @@ class PassiveAnalogMemory(object):
         prnu_std = 0.001,
     ):
         self.perf_model = PassiveAnalogMemoryPerf(
-            capacitance = capacitance,
+            sample_capacitance = sample_capacitance,
             supply = supply
         )
 
