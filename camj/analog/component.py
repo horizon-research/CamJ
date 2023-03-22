@@ -970,8 +970,8 @@ class MaxPool(object):
     def __init__(
         self, 
         supply = 1.8,  # [V]
-        t_frame = 30e-3,  # [s]
-        t_acomp = 1e-6,  # [s]
+        t_hold = 30e-3,  # [s]
+        t_readout = 1e-6,  # [s]
         load_capacitance = 1e-12,  # [F]
         gain = 10,
         # noise parameters
@@ -981,8 +981,8 @@ class MaxPool(object):
 
         self.perf_model = MaximumVoltagePerf(
             supply = supply,  # [V]
-            t_frame = t_frame,  # [s]
-            t_acomp = t_acomp,  # [s]
+            t_hold = t_hold,  # [s]
+            t_readout = t_readout,  # [s]
             load_capacitance = load_capacitance,  # [F]
             gain = gain
         )
