@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.getcwd()))
 from camj.analog.component import ActivePixelSensor, ColumnAmplifier, AnalogToDigitalConverter
 from camj.analog.infra import AnalogArray, AnalogComponent
 from camj.general.enum import ProcessorLocation, ProcessDomain
-from camj.general.launch import launch_analog_simulation
+from camj.general.launch import analog_energy_simulation
 
 # import customized configs
 from tutorial.mapping import mapping_function
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     sw_stages = sw_pipeline()
     mapping_dict = mapping_function()
 
-    total_energy = launch_analog_simulation(analog_arrays, sw_stages, mapping_dict)
+    total_energy = analog_energy_simulation(analog_arrays, sw_stages, mapping_dict)
 
     print("total energy:", total_energy)
 
