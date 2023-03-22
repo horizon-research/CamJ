@@ -10,7 +10,7 @@ from pprint import pprint
 sys.path.append(os.path.dirname(os.path.dirname(os.getcwd())))
 
 # import local modules
-from camj.general.launch import launch_simulation, launch_functional_simulation
+from camj.general.launch import energy_simulation, functional_simulation
 
 # import customized modules
 from examples.isscc_17_0_62.mapping import mapping_function
@@ -19,7 +19,7 @@ from examples.isscc_17_0_62.hw import hw_config
 
 def run_energy_simulation(hw_desc, mapping, sw_desc):
 
-    total_energy, energy_breakdown = launch_simulation(
+    total_energy, energy_breakdown = energy_simulation(
         hw_desc = hw_desc,
         mapping = mapping,
         sw_desc = sw_desc
@@ -42,7 +42,7 @@ def run_functional_simulation(hw_desc, mapping, sw_desc, test_img_name):
         "Weight" : [weight_input],
     }
 
-    simulation_res = launch_functional_simulation(
+    simulation_res = functional_simulation(
         sw_desc = sw_desc,
         hw_desc = hw_desc,
         mapping = mapping,
