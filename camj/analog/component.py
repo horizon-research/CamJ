@@ -996,7 +996,7 @@ class MaxPool(object):
             noise = noise
         )
 
-    def set_binning_config(self, kernel_size):
+    def _set_binning_config(self, kernel_size):
         if len(kernel_size) != 1:
             raise Exception("The length of kernel_size, num_kernels and stride should be 1.")
 
@@ -1155,7 +1155,7 @@ class PassiveBinning(object):
             prnu_std = sf_prnu_std
         )
 
-    def set_binning_config(self, kernel_size):
+    def _set_binning_config(self, kernel_size):
         if len(kernel_size) != 1:
             raise Exception("The length of kernel_size, num_kernels and stride should be 1.")
 
@@ -1248,7 +1248,7 @@ class ActiveAverage(object):
             prnu_std = prnu_std
         )
 
-    def set_binning_config(self, kernel_size):
+    def _set_binning_config(self, kernel_size):
         if len(kernel_size) != 1:
             raise Exception("The length of kernel_size, num_kernels and stride should be 1.")
 
@@ -1316,7 +1316,7 @@ class ActiveBinning(object):
             prnu_std = prnu_std
         )
 
-    def set_binning_config(self, kernel_size):
+    def _set_binning_config(self, kernel_size):
         if len(kernel_size) != 1:
             raise Exception("The length of kernel_size, num_kernels and stride should be 1.")
 
@@ -1427,7 +1427,7 @@ class Voltage2VoltageConv(object):
     def energy(self):
         return self.psca_perf_model.energy() + self.sf_perf_model.energy()
 
-    def set_conv_config(self, kernel_size, num_kernels, stride):
+    def _set_conv_config(self, kernel_size, num_kernels, stride):
         if len(kernel_size) != 1 or len(num_kernels) != 1 or len(stride) != 1:
             raise Exception("The length of kernel_size, num_kernels and stride should be 1.")
 
@@ -1444,7 +1444,7 @@ class Voltage2VoltageConv(object):
                  % (self.len_capacitance_array, self.kernel_size[0], self.kernel_size[1]))
 
 
-    def single_channel_convolution(self, input_signal, weight_signal):
+    def _single_channel_convolution(self, input_signal, weight_signal):
         in_height, in_width = input_signal.shape    # Input shape
         w_height, w_width = weight_signal.shape     # weight shape
         s_height, s_width = self.stride             # stride shape
@@ -1493,7 +1493,7 @@ class Voltage2VoltageConv(object):
 
         conv_result_list = []
         for i in range(self.num_kernels):
-            conv_result = self.single_channel_convolution(image_input, kernel_input[:, :, i])
+            conv_result = self._single_channel_convolution(image_input, kernel_input[:, :, i])
             output_height, output_width = conv_result.shape
 
             # apply noise to convolution result.
@@ -1585,7 +1585,7 @@ class Time2VoltageConv(object):
         mac_cnt = self.kernel_size[0] * self.kernel_size[1]
         return self.cm_perf_model.energy() * mac_cnt + self.am_perf_model.energy() * 2
 
-    def set_conv_config(self, kernel_size, num_kernels, stride):
+    def _set_conv_config(self, kernel_size, num_kernels, stride):
         if len(kernel_size) != 1 or len(num_kernels) != 1 or len(stride) != 1:
             raise Exception("In 'Time2VoltageConv', the length of kernel_size, num_kernels and stride should be 1.")
 
@@ -1597,7 +1597,7 @@ class Time2VoltageConv(object):
         self.stride = stride[0][:2]
 
 
-    def single_channel_convolution(self, input_signal, weight_signal):
+    def _single_channel_convolution(self, input_signal, weight_signal):
         in_height, in_width = input_signal.shape    # Input shape
         w_height, w_width = weight_signal.shape     # weight shape
         s_height, s_width = self.stride             # stride shape
@@ -1650,7 +1650,7 @@ class Time2VoltageConv(object):
 
         conv_result_list = []
         for i in range(self.num_kernels):
-            conv_result = self.single_channel_convolution(image_input, kernel_input[:, :, i])
+            conv_result = self._single_channel_convolution(image_input, kernel_input[:, :, i])
             output_height, output_width = conv_result.shape
             conv_result_list.append(
                 self.am_noise_model.apply_gain_and_noise(
@@ -1715,7 +1715,7 @@ class BinaryWeightConv(object):
     def energy(self):
         return self.perf_model.energy()
 
-    def set_conv_config(self, kernel_size, num_kernels, stride):
+    def _set_conv_config(self, kernel_size, num_kernels, stride):
         if len(kernel_size) != 1 or len(num_kernels) != 1 or len(stride) != 1:
             raise Exception("The length of kernel_size, num_kernels and stride should be 1.")
 
@@ -1729,7 +1729,7 @@ class BinaryWeightConv(object):
         self.num_kernels = num_kernels[0]
         self.stride = stride[0][:2]
 
-    def single_channel_convolution(self, input_signal, weight_signal):
+    def _single_channel_convolution(self, input_signal, weight_signal):
         in_height, in_width = input_signal.shape    # Input shape
         w_height, w_width = weight_signal.shape     # weight shape
         s_height, s_width = self.stride             # stride shape
@@ -1778,7 +1778,7 @@ class BinaryWeightConv(object):
             # squeeze image input to be 2D matrix
             image_input = np.squeeze(image_input)
         
-        positive_conv_signal, negative_conv_signal = self.single_channel_convolution(image_input, kernel_input[:, :, 0])
+        positive_conv_signal, negative_conv_signal = self._single_channel_convolution(image_input, kernel_input[:, :, 0])
         output_height, output_width = positive_conv_signal.shape
         positive_conv_result = np.expand_dims(positive_conv_signal, axis = 2)
         negative_conv_result = np.expand_dims(negative_conv_signal, axis = 2)

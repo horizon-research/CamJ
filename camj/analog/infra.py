@@ -98,14 +98,14 @@ class AnalogComponent(object):
     def _configure_operation(self, sw_stage):
         for comp, _ in self.component_list:
             if isinstance(comp, Voltage2VoltageConv) or isinstance(comp, Time2VoltageConv) or isinstance(comp, BinaryWeightConv):
-                comp.set_conv_config(
+                comp._set_conv_config(
                     kernel_size = sw_stage.kernel_size,
                     num_kernels = sw_stage.num_kernels,
                     stride = sw_stage.stride
                 )
             elif isinstance(comp, PassiveBinning) or isinstance(comp, ActiveBinning) \
                 or isinstance(comp, ActiveAverage) or isinstance(comp, MaxPool):
-                comp.set_binning_config(
+                comp._set_binning_config(
                     kernel_size = sw_stage.kernel_size
                 )
 
