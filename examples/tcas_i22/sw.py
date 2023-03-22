@@ -15,8 +15,9 @@ def sw_pipeline():
 
     # build the connections among different sw stages
     input_data = PixelInput(
-        (1, 1, 1), # here it defines output size, in this case is 1x1. 
-        name="Input"
+        name = "Input", 
+        size = (1, 1, 1), # here it defines output size, in this case is 1x1. 
+        
     )
     sw_stage_list.append(input_data)
 
