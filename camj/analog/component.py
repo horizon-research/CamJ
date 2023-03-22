@@ -688,8 +688,6 @@ class DigitalToCurrentConverter(object):
         supply = 1.8,  # [V]
         load_capacitance = 2e-12,  # [F]
         t_readout = 16e-6,  # [s]
-        resolution = 4,
-        i_dc = None,  # [A]
         # noise parameters
         gain = 1.0,
         noise = 0.,
@@ -700,8 +698,6 @@ class DigitalToCurrentConverter(object):
             supply = supply,
             load_capacitance = load_capacitance,
             t_readout = t_readout,
-            resolution = resolution,
-            i_dc = i_dc
         )
 
         self.noise_model = PixelwiseNoise(
@@ -1529,7 +1525,7 @@ class Time2VoltageConv(object):
         cm_t_readout = 1e-6,  # [s]
         cm_i_dc = 1e-6,  # [A]
         # performance parameters for analog memory
-        am_capacitance = 1e-12,  # [F]
+        am_sample_capacitance = 1e-12,  # [F]
         am_supply = 1.8,  # [V]
         # eqv_reso  # equivalent resolution
         # noise parameters for current mirror
@@ -1557,7 +1553,7 @@ class Time2VoltageConv(object):
         )
 
         self.am_perf_model = PassiveAnalogMemoryPerf(
-            capacitance = am_capacitance,
+            sample_capacitance = am_sample_capacitance,
             supply = am_supply
         )
 
