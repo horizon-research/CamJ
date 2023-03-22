@@ -66,13 +66,11 @@ def hw_config():
 
     mp_unit = ComputeUnit(
         name = "MPUnit",
-        domain = ProcessDomain.DIGITAL,
         location = ProcessorLocation.COMPUTE_LAYER,
         input_pixels_per_cycle = [(2, 2, 1)],
         output_pixels_per_cycle = (1, 1, 1),
         energy_per_cycle = 2 * compute_op_power,
-        num_of_stages = 2,
-        area = 10,
+        num_of_stages = 2
     )
     mp_unit.set_input_buffer(fifo_buffer1)
     mp_unit.set_output_buffer(fifo_buffer2)
@@ -80,13 +78,11 @@ def hw_config():
 
     fc_unit = ComputeUnit(
         name="FCUnit",
-        domain=ProcessDomain.DIGITAL,
         location=ProcessorLocation.COMPUTE_LAYER,
         input_pixels_per_cycle = [(21, 21, 8)],
         output_pixels_per_cycle = (1, 1, 1),
         energy_per_cycle = 1 * compute_op_power,
-        num_of_stages = 21 * 21 * 8,
-        area = 10,
+        num_of_stages = 21 * 21 * 8
     )
     fc_unit.set_input_buffer(fifo_buffer2)
     fc_unit.set_output_buffer(fifo_buffer3)

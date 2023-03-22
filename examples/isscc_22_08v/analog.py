@@ -10,7 +10,7 @@ from camj.analog.component import PulseWidthModulationPixel, DigitalToCurrentCon
                                 CurrentMirror, AnalogReLU, PassiveAnalogMemory, Time2VoltageConv
 from camj.analog.infra import AnalogArray, AnalogComponent
 from camj.analog.utils import check_analog_connect_consistency, compute_total_energy,\
-                            launch_analog_simulation
+                            analog_energy_simulation
 from camj.general.enum import ProcessorLocation, ProcessDomain
 from camj.sw.utils import build_sw_graph
 
@@ -69,8 +69,6 @@ def analog_config():
                     supply = 0.8,  # [V]
                     load_capacitance = 2e-12,  # [F]
                     t_readout = 7.9e-6,  # [s]
-                    resolution = 4,
-                    i_dc = None,  # [A]
                     # noise parameters
                     gain = 1.0,
                     noise = 0.0,
@@ -104,7 +102,7 @@ def analog_config():
                     cm_t_readout = 7.9e-6,  # [s]
                     cm_i_dc = None,  # [A]
                     # performance parameters for analog memory
-                    am_capacitance = 2e-12,  # [F]
+                    am_sample_capacitance = 2e-12,  # [F]
                     am_supply = 0.8,  # [V]
                     # eqv_reso  # equivalent resolution
                     # noise parameters for current mirror
@@ -184,6 +182,6 @@ if __name__ == '__main__':
 
     check_analog_connect_consistency(analog_arrays)
     # analog energy simulation
-    total_energy = launch_analog_simulation(analog_arrays, sw_stage_list, mapping_dict)
+    total_energy = analog_energy_simulation(analog_arrays, sw_stage_list, mapping_dict)
     print("total energy:", total_energy, "pJ")
 
