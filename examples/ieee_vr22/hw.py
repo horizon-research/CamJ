@@ -63,7 +63,7 @@ def hw_config():
         name = "ResizeUnit",
         location = ProcessorLocation.SENSOR_LAYER,
         input_pixels_per_cycle = [(2, 2, 1)],
-        output_per_cycle = (1, 1, 1), 
+        output_pixels_per_cycle = (1, 1, 1), 
         energy_per_cycle = 4 * compute_op_power,
         num_of_stages = 2,
     )
@@ -76,7 +76,7 @@ def hw_config():
         name = "Eventification",
         location = ProcessorLocation.SENSOR_LAYER,
         input_pixels_per_cycle = [(2, 1, 1), (2, 1, 1)],
-        output_per_cycle = (2, 1, 1),
+        output_pixels_per_cycle = (2, 1, 1),
         energy_per_cycle = 2*compute_op_power,
         num_of_stages = 2,
     )
