@@ -8,8 +8,8 @@ class PinnedPhotodiodePerf(object):
         It is modeled as the dynamic energy of the PD's internal capacitance.
     
         Args:
-            pd_capacitance (float): the capacitance of PD.
-            pd_supply (float): supply voltage of pixel.
+            pd_capacitance (float): [unit: F] the capacitance of PD.
+            pd_supply (float): [unit: V] supply voltage of pixel.
     """
 
     def __init__(self,
@@ -34,14 +34,14 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
         `num_transistor` to get the correct energy estimation.
 
         Args:
-            pd_capacitance (float): the capacitance of PD.
-            pd_supply (float): supply voltage of pixel.
-            output_vs (float): voltage swing at SF's output node. Typically it is one or two units of threshold voltage smaller than pd_supply, depending on the pixel's circuit structure.
+            pd_capacitance (float): [unit: F] the capacitance of PD.
+            pd_supply (float): [unit: V] supply voltage of pixel.
+            output_vs (float): [unit: V] voltage swing at SF's output node. Typically it is one or two units of threshold voltage smaller than pd_supply, depending on the pixel's circuit structure.
             num_transistor (int): 3 or 4, denoting 3T APS or 4T APS.
             num_readout (int): 2 or 1, denoting enabling CDS or not.
-            load_capacitance (float): load capacitance at the SF's output node.
-            tech_node (int): pixel's process node.
-            pitch (float): pixel pitch size (width or height).
+            load_capacitance (float): [unit: F] load capacitance at the SF's output node.
+            tech_node (int): [unit: nm] pixel's process node.
+            pitch (float): [unit: um] pixel pitch size (width or height).
             array_vsize (int): the vertical size of the entire pixel array. This is used to estimate the parasitic capacitance on the SF's readout wire.
     """
 
@@ -50,7 +50,7 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
         pd_capacitance,
         pd_supply,
         dynamic_sf = False,
-        output_vs = 1,  # output voltage swing [V]
+        output_vs = 1,  # [V]
         num_transistor = 4,
         fd_capacitance = 10e-15,  # [F]
         num_readout = 2,
@@ -97,7 +97,7 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
 
         return energy
 
-    def impedance(
+    def _impedance(
         self,
         sf_bias_current=2e-6  # [A]
     ):
@@ -108,7 +108,7 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
         output_impedance = 1 / gm_n
         return [input_impedance, output_impedance]
 
-    def capacitance(self):
+    def _capacitance(self):
         input_capacitance = None
         output_capacitance = self.load_capacitance
         return [input_capacitance, output_capacitance]
@@ -122,7 +122,7 @@ class DigitalPixelSensorPerf(ActivePixelSensorPerf):
         Args:
             aps_parameters: same to  "ActivePixelSensorPerf".
             adc_type (str): the actual ADC type. Please check ADC class for more details.
-            adc_fom (float): ADC's Figure-of-Merit, expressed by energy per conversion.
+            adc_fom (float): [unit: J/conversion] ADC's Figure-of-Merit, expressed by energy per conversion.
             adc_resolution (int): ADC's resolution.
     """
 
@@ -175,11 +175,11 @@ class PulseWidthModulationPixelPerf(PinnedPhotodiodePerf):
         The comparator output toggles when the ramp signal is smaller than the pixel voltage at PD.
 
         Args:
-            pd_capacitance (float): PD capacitance.
-            pd_supply (float): PD voltage supply.
+            pd_capacitance (float): [unit: F] PD capacitance.
+            pd_supply (float): [unit: V] PD voltage supply.
             array_vsize (int): the vertical size of the entire pixel array. This is used to estimate the parasitic capacitance on the SF's readout wire.
-            ramp_capacitance (float): capacitance of ramp signal generator.
-            gate_capacitance (float): the gate capacitance of readout transistor.
+            ramp_capacitance (float): [unit: F] capacitance of ramp signal generator.
+            gate_capacitance (float): [unit: F] the gate capacitance of readout transistor.
             num_readout (int): number of read from pixel.
     """
 
@@ -219,11 +219,11 @@ class ColumnAmplifierPerf(object):
         such as switched-capacitor integrator, switched-capacitor subtractor, and switched-capacitor multiplier.
 
         Args:
-            load_capacitance (float): load capacitance.
-            input_capacitance (float): input capacitance.
-            t_sample (float): sampling time, which mainly consists of the amplifier's settling time.
-            t_hold (float): holding time, during which the amplifier is turned on and consumes power relentlessly.
-            supply (float): supply voltage.
+            load_capacitance (float): [unit: F] load capacitance.
+            input_capacitance (float): [unit: F] input capacitance.
+            t_sample (float): [unit: s] sampling time, which mainly consists of the amplifier's settling time.
+            t_hold (float): [unit: s] holding time, during which the amplifier is turned on and consumes power relentlessly.
+            supply (float): [unit: V] supply voltage.
             gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of input_capacitance over feedback capacitance.
             gain_open (int): amplifier's open-loop gain. This gain is used to determine the amplifier's bias current by gm/id method.
             differential (bool): if using differential-input amplifier or single-input amplifier.
@@ -264,7 +264,7 @@ class ColumnAmplifierPerf(object):
         # print(self.i_opamp, energy_opamp)
         return energy
 
-    def impedance(self):
+    def _impedance(self):
         input_impedance = float('inf')
 
         gm_n = gm_p = self.gm
@@ -272,7 +272,7 @@ class ColumnAmplifierPerf(object):
         output_impedance = parallel_impedance([gm_n * (1 / gd_n) ** 2, gm_p * (1 / gd_p) ** 2])
         return [input_impedance, output_impedance]
 
-    def capacitance(self):
+    def _capacitance(self):
         input_capacitance = self.input_capacitance
         output_capacitance = self.load_capacitance
         return [input_capacitance, output_capacitance]
@@ -284,10 +284,10 @@ class SourceFollowerPerf(object):
         This model is applicable to not only the simplest single-transistor source follower but also flipped-voltage-follower (FVF).
 
         Args:
-            load_capacitance (float): load capacitance.
-            supply (float): supply voltage.
-            output_vs (float): voltage swing at the SF's output node.
-            bias_current (float): bias current.
+            load_capacitance (float): [unit: F] load capacitance.
+            supply (float): [unit: V] supply voltage.
+            output_vs (float): [unit: V] voltage swing at the SF's output node.
+            bias_current (float): [unit: A] bias current.
     """
 
     def __init__(
@@ -306,7 +306,7 @@ class SourceFollowerPerf(object):
         energy = self.load_capacitance * self.supply * self.output_vs
         return energy
 
-    def impedance(self):
+    def _impedance(self):
         input_impedance = float('inf')
 
         gm_id_ratio = 16
@@ -314,7 +314,7 @@ class SourceFollowerPerf(object):
         output_impedance = 1 / gm_n
         return [input_impedance, output_impedance]
 
-    def capacitance(self):
+    def _capacitance(self):
         input_capacitance = 0
         output_capacitance = self.load_capacitance
         return [input_capacitance, output_capacitance]
@@ -327,11 +327,11 @@ class ActiveAnalogMemoryPerf(object):
         The model consists of a sample capacitor, a compensation capacitor, and an amplifier which holds the stored analog data through feedback.
 
         Args:
-            sample_capacitance (float): sample capacitance.
-            comp_capacitance (float): compensation capacitance
-            t_sample (float): sampling time, which mainly consists of the amplifier's settling time.
-            t_hold (float): holding time, during which the amplifier is turned on and consumes power relentlessly.
-            supply (float): supply voltage.
+            sample_capacitance (float): [unit: F] sample capacitance.
+            comp_capacitance (float): [unit: F] compensation capacitance
+            t_sample (float): [unit: s] sampling time, which mainly consists of the amplifier's settling time.
+            t_hold (float): [unit: s] holding time, during which the amplifier is turned on and consumes power relentlessly.
+            supply (float): [unit: V] supply voltage.
     """
 
     def __init__(
@@ -341,16 +341,12 @@ class ActiveAnalogMemoryPerf(object):
         t_sample=1e-6,  # [s]
         t_hold=10e-3,  # [s]
         supply=1.8,  # [V]
-        # eqv_reso,# equivalent resolution
-        # opamp_dcgain
     ):
         self.sample_capacitance = sample_capacitance
         self.comp_capacitance = comp_capacitance
         self.t_sample = t_sample
         self.t_hold = t_hold
         self.supply = supply
-        # self.eqv_reso = eqv_reso
-        # self.opamp_dcgain = opamp_dcgain
         [self.i_opamp, self.gm] = gm_id(
             load_capacitance=self.comp_capacitance,
             gain=300,
@@ -365,7 +361,7 @@ class ActiveAnalogMemoryPerf(object):
         energy = energy_opamp + (self.sample_capacitance + self.comp_capacitance) * (self.supply ** 2)
         return energy
 
-    def impedance(self):
+    def _impedance(self):
         input_impedance = float('inf')
 
         gm_n = gm_p = self.gm
@@ -373,7 +369,7 @@ class ActiveAnalogMemoryPerf(object):
         output_impedance = parallel_impedance([gm_n * (1 / gd_n) ** 2, gm_p * (1 / gd_p) ** 2])
         return [input_impedance, output_impedance]
 
-    def capacitance(self):
+    def _capacitance(self):
         input_capacitance = self.sample_capacitance
         output_capacitance = self.comp_capacitance
         return [input_capacitance, output_capacitance]
@@ -385,8 +381,8 @@ class PassiveAnalogMemoryPerf(object):
         The model only contains a sample capacitor. Compared to ActiveAnalogMemory it has higher data leakage.
 
         Args:
-            sample_capacitance (float): sample capacitance.
-            supply (float): supply voltage.
+            sample_capacitance (float): [unit: F] sample capacitance.
+            supply (float): [unit: V] supply voltage.
     """
 
     def __init__(
@@ -401,12 +397,12 @@ class PassiveAnalogMemoryPerf(object):
         energy = self.sample_capacitance * (self.supply ** 2)
         return energy
 
-    def impedance(self):
+    def _impedance(self):
         input_impedance = float('inf')
         output_impedance = float('inf')
         return [input_impedance, output_impedance]
 
-    def capacitance(self):
+    def _capacitance(self):
         input_capacitance = self.sample_capacitance
         output_capacitance = 0
         return [input_capacitance, output_capacitance]
@@ -419,9 +415,9 @@ class DigitalToCurrentConverterPerf(object): # FIXME: function changed! may dele
         The model consists of a constant current path and a load capacitor.
 
         Args:
-            supply (float): supply voltage.
-            load_capacitance (float): load capacitance.
-            t_readout (float): readout time, during which the constant current drives the load capacitance from 0 to VDD.
+            supply (float): [unit: V] supply voltage.
+            load_capacitance (float): [unit: F] load capacitance.
+            t_readout (float): [unit: s] readout time, during which the constant current drives the load capacitance from 0 to VDD.
     """
 
     def __init__(
@@ -446,10 +442,10 @@ class CurrentMirrorPerf(object):
         The model consists of a constant current path and a load capacitor.
 
         Args:
-            supply (float): supply voltage.
-            load_capacitance (float): load capacitance.
-            t_readout (float): readout time, during which the constant current drives the load capacitance from 0 to VDD.
-            i_dc (float): the constant current. If ``i_dc == None``, then i_dc is estimated from the other parameters.
+            supply (float): [unit: V] supply voltage.
+            load_capacitance (float): [unit: F] load capacitance.
+            t_readout (float): [unit: s] readout time, during which the constant current drives the load capacitance from 0 to VDD.
+            i_dc (float): [unit: A] the constant current. If ``i_dc == None``, then i_dc is estimated from the other parameters.
     """
 
     def __init__(
@@ -480,8 +476,8 @@ class PassiveSwitchedCapacitorArrayPerf(object):
         The model is used to represent all passive switched-capacitor computational circuits, including charge-redistribution-based MAC operation.
 
         Args:
-            capacitance_array (array, float): a list of capacitors.
-            vs_array (array, float): a list of voltages that corresponds to the voltage swing at each capacitor.
+            capacitance_array (array, float): [unit: F] a list of capacitors.
+            vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing at each capacitor.
     """
 
     def __init__(
@@ -506,10 +502,10 @@ class MaximumVoltagePerf(object):
         Note that all common-source amplifiers share one bias current so the bias current doesn't scale with the number of input voltages.
 
         Args:
-            supply (float): supply voltage.
-            t_hold (float): holding time, during which the circuit is turned on and consumes power relentlessly.
-            t_readout (float): readout time, during which the maximum voltage is output.
-            load_capacitance (float): load capacitance
+            supply (float): [unit: V] supply voltage.
+            t_hold (float): [unit: s] holding time, during which the circuit is turned on and consumes power relentlessly.
+            t_readout (float): [unit: s] readout time, during which the maximum voltage is output.
+            load_capacitance (float): [unit: F] load capacitance
             gain (float): open-loop gain of the common-source amplifier.
     """
 
@@ -546,9 +542,9 @@ class ComparatorPerf(object):
     """ Dynamic voltage comparator.
 
         Args:
-            supply (float): supply voltage.
-            i_bias (float): bias current of the circuit.
-            t_readout (float): readout time, during which the comparison is finished.
+            supply (float): [unit: V] supply voltage.
+            i_bias (float): [unit: A] bias current of the circuit.
+            t_readout (float): [unit: s] readout time, during which the comparison is finished.
     """
 
 
@@ -571,9 +567,9 @@ class AnalogToDigitalConverterPerf(object):
     """ Analog-to-digital converter.
 
         Args:
-            supply (float): supply voltage.
+            supply (float): [unit: V] supply voltage.
             type (str): ADC type.
-            fom (float): ADC's Figure-of-Merit, expressed by energy per conversion.
+            fom (float): [unit: J/conversion] ADC's Figure-of-Merit, expressed by energy per conversion.
             resolution (int): ADC resolution.
     """
 
@@ -593,10 +589,7 @@ class AnalogToDigitalConverterPerf(object):
         energy = self.fom * (2 ** self.resolution)
         return energy
 
-    def delay(self):
-        pass
-
-    def quantization_noise(self):  # [unit: V]
+    def _quantization_noise(self):  # [unit: V]
         LSB = self.supply / 2 ** (self.resolution - 1)
         return 1 / 12 * LSB ** 2
 
@@ -606,9 +599,9 @@ class GeneralCircuitPerf(object):
     """ Energy model for general circuits from first principle.
 
         Args:
-            supply (float): supply voltage.
-            i_dc (float): direct current of the circuit.
-            t_operation (float): operation time, during which the circuit completes its particular operation.
+            supply (float): [unit: V] supply voltage.
+            i_dc (float): [unit: A] direct current of the circuit.
+            t_operation (float): [unit: s] operation time, during which the circuit completes its particular operation.
     """
 
     def __init__(
