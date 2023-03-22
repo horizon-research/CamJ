@@ -361,7 +361,7 @@ def functional_simulation(sw_desc, hw_desc, mapping, input_mapping):
                         curr_input_list.append(input_data)
                 # include any input from input mapping file
                 for k in input_mapping.keys():
-                    if analog_array == analog_sw_mapping[k]:
+                    if analog_array == analog_sw_mapping[k] and k == sw_stage.name:
                         for input_data in input_mapping[k]:
                             curr_input_list.append(input_data)
 

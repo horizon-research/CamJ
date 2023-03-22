@@ -345,7 +345,10 @@ class ColumnAmplifier(object):
             gain = gain,
             noise = noise,
             enable_prnu = enable_prnu,
-            prnu_std = prnu_std
+            prnu_std = prnu_std,
+            enable_offset = enable_offset,
+            pixel_offset_voltage = pixel_offset_voltage,
+            col_offset_voltage = col_offset_voltage
         )
 
     def energy(self):

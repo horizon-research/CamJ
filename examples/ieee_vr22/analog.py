@@ -24,7 +24,7 @@ def analog_config():
 
     full_scale_input_voltage = 1.8 # V
     pixel_full_well_capacity = 10000 # e
-    conversion_gain = full_scale_input_voltage/pixel_full_well_capacity
+    conversion_gain = full_scale_input_voltage / pixel_full_well_capacity
     analog_arrays = []
 
     pixel_array = AnalogArray(
