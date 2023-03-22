@@ -14,6 +14,13 @@ from camj.sw.utils import build_sw_graph
 def sw_pipeline():
 
     sw_stage_list = []
+
+    input_data = PixelInput(name = "Input", size = (128, 128, 1))
+    sw_stage_list.append(input_data)
+
+    weight_data = PixelInput(name = "Weight", size = (3, 3, 1))
+    sw_stage_list.append(weight_data)
+    
     conv_stage = ProcessStage(
         name = "Conv",
         input_size = [(128, 128, 1)],
@@ -24,10 +31,6 @@ def sw_pipeline():
     )
     sw_stage_list.append(conv_stage)
 
-    input_data = PixelInput((128, 128, 1), name="Input")
-    weight_data = PixelInput((3, 3, 1), name="Weight")
-    sw_stage_list.append(input_data)
-    sw_stage_list.append(weight_data)
     conv_stage.set_input_stage(input_data)
     conv_stage.set_input_stage(weight_data)
 
