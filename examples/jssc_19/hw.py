@@ -5,11 +5,6 @@ parent_directory = os.path.dirname(os.getcwd())
 # setting path
 sys.path.append(os.path.dirname(parent_directory))
 
-# import local modules
-from camj.digital.compute import ADC, ComputeUnit
-from camj.digital.memory import FIFO, LineBuffer
-from camj.general.enum import ProcessorLocation, ProcessDomain
-
 # import customized modules
 from examples.jssc_19.analog import analog_config
 

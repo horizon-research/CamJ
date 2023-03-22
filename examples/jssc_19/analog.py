@@ -10,7 +10,7 @@ from camj.analog.component import ActivePixelSensor, GeneralCircuit, Voltage2Vol
                                 ColumnAmplifier, Comparator, PassiveSwitchedCapacitorArray
 from camj.analog.infra import AnalogArray, AnalogComponent
 from camj.analog.utils import check_analog_connect_consistency, compute_total_energy,\
-                            check_analog_pipeline, launch_analog_simulation
+                            analog_energy_simulation
 from camj.general.enum import ProcessorLocation, ProcessDomain
 from camj.sw.utils import build_sw_graph
 
@@ -123,13 +123,14 @@ def analog_config():
                     load_capacitance = 100e-15,  # [F]
                     input_capacitance = 0,  # [F]
                     t_sample = 1e-7,  # [s]
-                    t_frame = 2.3e-6,  # [s] # TODO: wrong implementation
+                    t_hold = 2.3e-6,  # [s]
                     supply = 2.5,  # [V]
-                    gain = 1,
+                    gain_close = 1,
                     gain_open = 6,
                     differential = True,
                     # noise parameters
                     noise = 0.,
+                    gain = 1,
                     enable_prnu = False,
                     prnu_std = 0.001,
                     enable_offset = False,
@@ -175,9 +176,7 @@ if __name__ == '__main__':
     sw_stage_list = sw_pipeline()
     # build sw stage connection
     build_sw_graph(sw_stage_list)
-    # check connection consistency
-    check_analog_connect_consistency(analog_arrays)
 
-    total_energy = launch_analog_simulation(analog_arrays, sw_stage_list, mapping_dict)
+    total_energy = analog_energy_simulation(analog_arrays, sw_stage_list, mapping_dict)
     print("total energy:", total_energy)
 
