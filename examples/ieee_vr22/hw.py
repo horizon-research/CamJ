@@ -1,8 +1,8 @@
 
 # import local modules
-from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
-from camj.sim_core.digital_memory import FIFO, DoubleBuffer
-from camj.sim_core.digital_compute import ADC, ComputeUnit, SystolicArray
+from camj.general.enum import ProcessorLocation, ProcessDomain
+from camj.digital.memory import FIFO, DoubleBuffer
+from camj.digital.compute import ADC, ComputeUnit, SystolicArray
 
 from examples.ieee_vr22.analog import analog_config
 
@@ -52,7 +52,7 @@ def hw_config():
 
     adc = ADC(
         name = "ADC",
-        output_per_cycle = (1, 4, 1),
+        output_pixels_per_cycle = (1, 4, 1),
         location = ProcessorLocation.SENSOR_LAYER,
         energy_per_pixel = 600,
     )
@@ -61,13 +61,11 @@ def hw_config():
 
     resize_unit = ComputeUnit(
         name = "ResizeUnit",
-        domain = ProcessDomain.DIGITAL,
         location = ProcessorLocation.SENSOR_LAYER,
         input_pixels_per_cycle = [(2, 2, 1)],
         output_per_cycle = (1, 1, 1), 
         energy_per_cycle = 4 * compute_op_power,
         num_of_stages = 2,
-        area = 30
     )
     hw_dict["compute"].append(resize_unit)
 
@@ -76,13 +74,11 @@ def hw_config():
 
     eventification_unit = ComputeUnit(
         name = "Eventification",
-        domain = ProcessDomain.DIGITAL,
         location = ProcessorLocation.SENSOR_LAYER,
         input_pixels_per_cycle = [(2, 1, 1), (2, 1, 1)],
         output_per_cycle = (2, 1, 1),
         energy_per_cycle = 2*compute_op_power,
         num_of_stages = 2,
-        area = 10,
     )
     hw_dict["compute"].append(eventification_unit)
 
@@ -91,13 +87,11 @@ def hw_config():
 
     thresholding_unit = ComputeUnit(
         name = "ThresholdingUnit",
-        domain = ProcessDomain.DIGITAL,
         location = ProcessorLocation.SENSOR_LAYER,
         input_pixels_per_cycle = [(4, 1, 1), (320, 200, 1)],
         output_pixels_per_cycle = (1, 1, 1),
-        energy_per_cycle = 100*compute_op_power,
-        area = 10,
-        num_of_stages = 640,
+        energy_per_cycle = 100 * compute_op_power,
+        num_of_stages = 100,
     )
     hw_dict["compute"].append(thresholding_unit)
 
@@ -106,11 +100,9 @@ def hw_config():
 
     in_sensor_dnn_acc = SystolicArray(
         name = "InSensorSystolicArray",
-        domain = ProcessDomain.DIGITAL,
         location = ProcessorLocation.COMPUTE_LAYER,
         size_dimension = (16, 16),
         energy_per_cycle = 16 * 16 * compute_op_power,
-        area = 160
     )
     hw_dict["compute"].append(in_sensor_dnn_acc)
 
@@ -132,37 +124,32 @@ def hw_config_w_analog():
     }
 
     double_buffer = DoubleBuffer(
-        name="DoubleBuffer",
-        size=(4, 4, 4096),
-        clock = 500,    # MHz
-        read_port = 16,
-        write_port = 16,
-        read_write_port = 16,
-        write_energy = 3,
-        read_energy = 1,
+        name = "DoubleBuffer",
+        size = (4, 4, 4096),
+        write_energy_per_word = 3,
+        read_energy_per_word = 1,
+        pixels_per_write_word = 1,
+        pixels_per_read_word = 1,
         location = ProcessorLocation.COMPUTE_LAYER,
     )
     hw_dict["memory"].append(double_buffer)
 
     adc = ADC(
         name = "ADC",
-        output_throughput = (320, 1, 1),
+        output_pixels_per_cycle = (1, 4, 1),
         location = ProcessorLocation.SENSOR_LAYER,
+        energy_per_pixel = 600,
     )
     adc.set_output_buffer(double_buffer)
     hw_dict["compute"].append(adc)
 
     thresholding_unit = ComputeUnit(
-        name="ThresholdingUnit",
-        domain=ProcessDomain.DIGITAL,
-        location=ProcessorLocation.SENSOR_LAYER,
-        input_throughput = [(4, 1, 1), (320, 200, 1)],
-        output_throughput = (1, 1, 1), 
-        clock = 500, # MHz
-        energy = 320*200*compute_op_power,
-        area = 10,
-        initial_delay = 0,
-        delay = 640,
+        name = "ThresholdingUnit",
+        location = ProcessorLocation.SENSOR_LAYER,
+        input_pixels_per_cycle = [(4, 1, 1), (320, 200, 1)],
+        output_pixels_per_cycle = (1, 1, 1),
+        energy_per_cycle = 100 * compute_op_power,
+        num_of_stages = 100,
     )
     hw_dict["compute"].append(thresholding_unit)
 
@@ -170,13 +157,10 @@ def hw_config_w_analog():
     thresholding_unit.set_output_buffer(double_buffer)  
 
     in_sensor_dnn_acc = SystolicArray(
-        name="InSensorSystolicArray",
-        domain=ProcessDomain.DIGITAL,
-        location=ProcessorLocation.COMPUTE_LAYER,
-        size_dimension=(16, 16),
-        clock=500,
-        energy=16*16*compute_op_power,
-        area=160
+        name = "InSensorSystolicArray",
+        location = ProcessorLocation.COMPUTE_LAYER,
+        size_dimension = (16, 16),
+        energy_per_cycle = 16 * 16 * compute_op_power,
     )
     hw_dict["compute"].append(in_sensor_dnn_acc)
 

@@ -1,20 +1,19 @@
 import os
 import sys
+
 # directory reach
-directory = os.getcwd()
-parent_directory = os.path.dirname(directory)
-# setting path
-sys.path.append(os.path.dirname(directory))
+parent_directory = os.path.dirname(os.getcwd())
 sys.path.append(os.path.dirname(parent_directory))
 
 
-from camj.sim_core.analog_infra import AnalogArray, AnalogComponent
-from camj.sim_core.enum_const import ProcessorLocation, ProcessDomain
-from camj.sim_core.analog_utils import launch_analog_simulation
-from camj.sim_core.pixel_libs import ActivePixelSensor
-from camj.sim_core.analog_libs import ActiveAnalogMemory, ColumnAmplifier, \
-                                 Comparator, SourceFollower
+# import local modules
+from camj.analog.infra import AnalogArray, AnalogComponent
+from camj.general.enum import ProcessorLocation, ProcessDomain
+from camj.analog.utils import analog_energy_simulation
+from camj.analog.component import ActivePixelSensor, ActiveAnalogMemory, ColumnAmplifier, \
+                                Comparator, SourceFollower
 
+# import customized config
 from examples.ieee_vr22.mapping import mapping_function_w_analog
 from examples.ieee_vr22.sw import sw_pipeline_w_analog
 from examples.ieee_vr22.customized_analog_component import EventificationUnit
@@ -148,13 +147,19 @@ def analog_config():
                     load_capacitance = 1e-12,  # [F]
                     input_capacitance = 1e-12,  # [F]
                     t_sample = 2e-6,  # [s]
-                    t_frame = 10e-3,  # [s]
+                    t_hold = 10e-3,  # [s]
                     supply = 1.8,  # [V]
-                    gain = 1,
+                    gain_close = 1,
+                    gain_open = 256,
+                    differential = False,
                     # noise parameters
-                    noise = 0.005,
-                    enable_prnu = True,
+                    noise = 0.,
+                    gain = 1.0,
+                    enable_prnu = False,
                     prnu_std = 0.001,
+                    enable_offset = False,
+                    pixel_offset_voltage = 0.1,
+                    col_offset_voltage = 0.05
                 ),
                 1
             ),
@@ -195,7 +200,7 @@ if __name__ == '__main__':
 
     mapping_dict = mapping_function_w_analog()
 
-    total_energy = launch_analog_simulation(analog_arrays, sw_stages, mapping_dict)
+    total_energy = analog_energy_simulation(analog_arrays, sw_stages, mapping_dict)
     print("total energy:", total_energy)
 
     
