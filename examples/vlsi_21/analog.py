@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(parent_directory))
 from camj.analog.component import DigitalPixelSensor, GeneralCircuit
 from camj.analog.infra import AnalogArray, AnalogComponent
 from camj.analog.utils import check_analog_connect_consistency, compute_total_energy,\
-                            check_analog_pipeline, launch_analog_simulation
+                            analog_energy_simulation
 from camj.general.enum import ProcessorLocation, ProcessDomain
 from camj.sw.utils import build_sw_graph
 
@@ -101,6 +101,6 @@ if __name__ == '__main__':
     # check connection consistency
     check_analog_connect_consistency(analog_arrays)
 
-    total_energy = launch_analog_simulation(analog_arrays, sw_stage_list, mapping_dict)
+    total_energy = analog_energy_simulation(analog_arrays, sw_stage_list, mapping_dict)
     print("total energy:", total_energy)
 

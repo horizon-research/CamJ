@@ -5,11 +5,6 @@ parent_directory = os.path.dirname(os.getcwd())
 # setting path
 sys.path.append(os.path.dirname(parent_directory))
 
-# import local modules
-from camj.general.enum import ProcessorLocation, ProcessDomain
-from camj.digital.memory import FIFO, LineBuffer
-from camj.digital.compute import ADC, ComputeUnit
-
 # import customized configs
 from examples.vlsi_21.analog import analog_config
 
