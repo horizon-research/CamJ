@@ -4,7 +4,7 @@ import numpy as np
 from inspect import signature
 
 # import local modules
-from camj.analog.utils import find_analog_sw_stages, find_analog_sw_mapping, launch_analog_simulation
+from camj.analog.utils import _find_analog_sw_stages, _find_analog_sw_mapping, analog_energy_simulation
 from camj.digital.compute import SystolicArray, SIMDProcessor
 from camj.digital.infra import ReservationBoard, BufferMonitor
 from camj.digital.utils import map_sw_hw, check_buffer_consistency, build_buffer_edges, \
@@ -18,7 +18,7 @@ from camj.sw.interface import PixelInput
 from camj.sw.utils import build_sw_graph
 
  
-def launch_simulation(hw_desc, mapping, sw_desc):
+def energy_simulation(hw_desc, mapping, sw_desc):
     """Launch Energy Simulation
 
     The overall harness function to simulate analog and digital computation.
@@ -33,10 +33,10 @@ def launch_simulation(hw_desc, mapping, sw_desc):
     mapping_dict = copy.deepcopy(mapping)
     sw_stage_list = copy.deepcopy(sw_desc)
     print("###  Launch analog simulation  ###")
-    analog_energy_dict = launch_analog_simulation(hw_dict["analog"], sw_stage_list, mapping_dict)
+    analog_energy_dict = analog_energy_simulation(hw_dict["analog"], sw_stage_list, mapping_dict)
 
     print("\n\n###  Launch digital simulation  ###")
-    digital_energy_dict = launch_digital_simulation(hw_dict, mapping_dict, sw_stage_list)
+    digital_energy_dict = digital_energy_simulation(hw_dict, mapping_dict, sw_stage_list)
 
     ret_energy_dict = {}
     total_energy = 0
@@ -51,7 +51,7 @@ def launch_simulation(hw_desc, mapping, sw_desc):
     return total_energy, ret_energy_dict
 
 
-def launch_digital_simulation(hw_desc, mapping, sw_desc):
+def digital_energy_simulation(hw_desc, mapping, sw_desc):
     """Launch Digital Simulation
 
     The function to simulate digital computation.
@@ -296,7 +296,7 @@ def launch_digital_simulation(hw_desc, mapping, sw_desc):
     print("\nSimulation is not finished, increase your cycle counts or debug your code.")
 
 
-def launch_functional_simulation(sw_desc, hw_desc, mapping, input_mapping):
+def functional_simulation(sw_desc, hw_desc, mapping, input_mapping):
     """Launch Functional Simulation
 
     The function to simulate functional computation.
@@ -315,8 +315,8 @@ def launch_functional_simulation(sw_desc, hw_desc, mapping, input_mapping):
     build_sw_graph(sw_stage_list)
 
     # find software stages that are computed in analog domain
-    analog_sw_stages = find_analog_sw_stages(sw_stage_list, hw_dict["analog"], mapping_dict)
-    analog_sw_mapping = find_analog_sw_mapping(sw_stage_list, hw_dict["analog"], mapping_dict)
+    analog_sw_stages = _find_analog_sw_stages(sw_stage_list, hw_dict["analog"], mapping_dict)
+    analog_sw_mapping = _find_analog_sw_mapping(sw_stage_list, hw_dict["analog"], mapping_dict)
 
     finished_stages = []
     ready_input = {}
@@ -373,7 +373,7 @@ def launch_functional_simulation(sw_desc, hw_desc, mapping, input_mapping):
                 # else we will perform functional simulation routine.
                 else:
                     # check if the analog array contains the Conv instance and config the convolution instance
-                    analog_array.configure_operation(sw_stage = sw_stage)
+                    analog_array._configure_operation(sw_stage = sw_stage)
                     noise_res_list = analog_array.noise(curr_input_list)
                     for pair in noise_res_list:
                         simulation_res[pair[0]] = pair[1]

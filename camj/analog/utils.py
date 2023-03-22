@@ -5,7 +5,7 @@ from camj.analog.infra import AnalogArray, AnalogComponent
 from camj.general.enum import ProcessDomain
 
 
-def check_component_internal_connect_consistency(analog_component):
+def _check_component_internal_connect_consistency(analog_component):
     # if there is no component or one component inside the analog component,
     # no need to check the consistency
     if len(analog_component.components) <= 1:
@@ -26,10 +26,14 @@ def check_component_internal_connect_consistency(analog_component):
         head_list = new_head_list
         new_head_list = []
 
-def check_array_internal_connect_consistency(analog_array):
+    return True
+
+
+def _check_array_internal_connect_consistency(analog_array):
+    """Check analog internal connection correctness"""
     # first check the correctness of every component internal connection
     for analog_component in analog_array.components:
-        check_component_internal_connect_consistency(analog_component)
+        _check_component_internal_connect_consistency(analog_component)
 
     # then check the correctness of inter-component internal connection
     head_list = analog_array.source_components
@@ -46,7 +50,8 @@ def check_array_internal_connect_consistency(analog_array):
         head_list = new_head_list
         new_head_list = []
 
-def find_head_analog_array(analog_arrays):
+def _find_head_analog_array(analog_arrays):
+    """find the header analog array in the analog configuration"""
     head_analog_arrays = []
     for analog_array in analog_arrays:
         if len(analog_array.input_arrays) == 0:
@@ -54,7 +59,14 @@ def find_head_analog_array(analog_arrays):
 
     return head_analog_arrays
 
-def check_input_output_requirement_consistency(analog_array):
+def _check_input_output_requirement_consistency(analog_array):
+    """check the input-output analog array pair matches
+
+    This function just check if the length of input and output domain list is correct.
+
+    Returns:
+        None
+    """
     refined_input_domain = []
     for domain in analog_array.input_domain:
         if domain != ProcessDomain.OPTICAL and domain != ProcessDomain.DIGITAL:
@@ -64,13 +76,26 @@ def check_input_output_requirement_consistency(analog_array):
         raise Exception("Analog array: '%s' input domain size is not equal to its input_array size" % analog_array.name)
 
 
-def check_analog_connect_consistency(analog_arrays):
+def check_analog_connect_consistency(analog_arrays: list):
+    """Check analog connection correctness
+
+    This function checks the correctness of two connected analog components.
+    It checks if the output domain of any producer analog component matches
+    the input domain of the consumer analog component.
+
+    Args:
+        analog_arrays (list): a list of analog arrays.
+
+    Returns:
+        None
+    """
     # find those analog stages that don't need any dependencies.
-    head_analog_arrays = find_head_analog_array(analog_arrays)
+    head_analog_arrays = _find_head_analog_array(analog_arrays)
     new_head_analog_arrays = []
     while len(head_analog_arrays) > 0:
         for analog_array in head_analog_arrays:
-            check_input_output_requirement_consistency(analog_array)
+            _check_input_output_requirement_consistency(analog_array)
+            # this checks if analog input/output domain matchness
             for output_array in analog_array.output_arrays:
                 if analog_array.output_domain not in output_array.input_domain:
                     print(analog_array.output_domain, output_array.input_domain)
@@ -85,7 +110,7 @@ def check_analog_connect_consistency(analog_arrays):
         head_analog_arrays = new_head_analog_arrays
         new_head_analog_arrays = []
 
-def reverse_sw_to_analog_mapping(analog_arrays, analog_sw_stages, mapping_dict):
+def _reverse_sw_to_analog_mapping(analog_arrays, analog_sw_stages, mapping_dict):
     analog_to_sw = {}
     analog_dict = {}
 
@@ -101,7 +126,7 @@ def reverse_sw_to_analog_mapping(analog_arrays, analog_sw_stages, mapping_dict):
 
     return analog_to_sw
 
-def find_analog_output_stages(sw_stages):
+def _find_analog_output_stages(sw_stages):
     output_stages = []
 
     # iterate the sw stages that maps to the same analog array,
@@ -123,14 +148,26 @@ def find_analog_output_stages(sw_stages):
     return output_stages
 
 
-def compute_total_energy(analog_arrays, analog_sw_stages, mapping_dict):
+def compute_total_energy(analog_arrays, analog_sw_desc, mapping):
+    """Compute Energy in Analog Domain
+
+    This function calculates the overall energy consumption of simulated CIS in analog domain.
+
+    Args:
+        analog_arrays: a list of analog arrays.
+        sw_desc: software pipeline description corresponding to analog domain.
+        mapping: software-hardware mapping.
+
+    Returns:
+        Energy Result (dict): energy numbers from simulation, stores in a dictionary.
+    """
     
-    analog_to_sw = reverse_sw_to_analog_mapping(analog_arrays, analog_sw_stages, mapping_dict)
+    analog_to_sw = _reverse_sw_to_analog_mapping(analog_arrays, analog_sw_desc, mapping)
 
     ret_dict = {}
     for analog_array in analog_to_sw.keys():
         # check data dependency
-        output_stages = find_analog_output_stages(analog_to_sw[analog_array])
+        output_stages = _find_analog_output_stages(analog_to_sw[analog_array])
         for output_stage in output_stages:
             sw_size = output_stage.output_size
             hw_size = analog_array.num_output
@@ -139,17 +176,16 @@ def compute_total_energy(analog_arrays, analog_sw_stages, mapping_dict):
             # check if the analog array contains the Conv instance and config the convolution instance
             # if the analog_to_sw contains multiple sw_stages, we will still use the first sw stage parameters
             # to configure the analog array computation
-            analog_array.configure_operation(sw_stage = analog_to_sw[analog_array][0])
+            analog_array._configure_operation(sw_stage = analog_to_sw[analog_array][0])
             analog_array_energy = analog_array.energy()
             ret_dict[analog_array.name] = int(cnt * analog_array_energy * 1e12) # concert J to pJ
-            print(cnt, sw_size, hw_size)
             print("[Energy]", analog_array.name, int(cnt * analog_array_energy * 1e12), "pJ")
 
     return ret_dict
 
-def check_analog_pipeline(analog_arrays):
+def _check_analog_pipeline(analog_arrays):
 
-    head_analog_arrays = find_head_analog_array(analog_arrays)
+    head_analog_arrays = _find_head_analog_array(analog_arrays)
     finished_analog_arrays = []
     new_head_analog_arrays = []
     idx = 1
@@ -176,7 +212,7 @@ def check_analog_pipeline(analog_arrays):
         head_analog_arrays = new_head_analog_arrays
         new_head_analog_arrays = []
 
-def find_analog_sw_stages(sw_stages, analog_arrays, mapping_dict):
+def _find_analog_sw_stages(sw_stages, analog_arrays, mapping_dict):
     analog_sw_stages = []
 
     for sw_stage in sw_stages:
@@ -189,7 +225,7 @@ def find_analog_sw_stages(sw_stages, analog_arrays, mapping_dict):
 
     return analog_sw_stages
 
-def find_analog_sw_mapping(sw_stages, analog_arrays, mapping_dict):
+def _find_analog_sw_mapping(sw_stages, analog_arrays, mapping_dict):
     analog_sw_mapping = {}
 
     for sw_stage in sw_stages:
@@ -202,15 +238,29 @@ def find_analog_sw_mapping(sw_stages, analog_arrays, mapping_dict):
 
     return analog_sw_mapping
 
-def launch_analog_simulation(analog_arrays, sw_stages, mapping_dict):
+def analog_energy_simulation(analog_arrays, sw_desc, mapping):
+    """Launch Energy Simulation in Analog Domain
+
+    The harness function for analog energy simulation.
+
+    Args:
+        analog_arrays: a list of analog arrays.
+        sw_desc: software pipeline description.
+        mapping: software-hardware mapping.
+
+    Returns:
+        Energy Result (dict): energy numbers from simulation, stores in a dictionary.
+
+    """
+
     # check analog connection correctness
     check_analog_connect_consistency(analog_arrays)
     # find stages corresponding to analog computing
-    analog_sw_stages = find_analog_sw_stages(sw_stages, analog_arrays, mapping_dict)
+    analog_sw_stages = _find_analog_sw_stages(sw_desc, analog_arrays, mapping)
     print("Software stages in analog domain: ", analog_sw_stages)
     # check analog pipeline correctness
-    check_analog_pipeline(analog_arrays)
+    _check_analog_pipeline(analog_arrays)
     # compute analog computing energy
-    energy_dict = compute_total_energy(analog_arrays, analog_sw_stages, mapping_dict)
+    energy_dict = compute_total_energy(analog_arrays, analog_sw_stages, mapping)
     
     return energy_dict

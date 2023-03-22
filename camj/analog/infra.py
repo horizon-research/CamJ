@@ -5,7 +5,36 @@ from camj.analog.component import Voltage2VoltageConv, Time2VoltageConv, BinaryW
                                 PassiveBinning, ActiveAverage, ActiveBinning, MaxPool
 
 class AnalogComponent(object):
-    """docstring for AnalogComponent"""
+    """Analog Component
+
+    This is the low-level interface to define an analog component. This class serves as a container
+    that consists of mulitple analog components which are provided from ``analog.component`` module.
+
+    Args:
+        name (str): the name of this analog component.
+        input_domain (list): a list contains input domains.
+        output_domain (enum): output domain of this analog component.
+        component_list (list): a list of analog components that construct this ``AnalogComponent`` instance.
+        num_input (list): a list of tuple, each tuple represents an input shape.
+        num_output (tuple): output shape.
+
+    Examples:
+        To create a mega-pixel component with 2x2 binning capability.
+
+        >>> AnalogComponent(
+            name = "BiningPixel",
+            input_domain =[ProcessDomain.OPTICAL],
+            output_domain = ProcessDomain.VOLTAGE,
+            component_list = [(ActivePixelSensor(...), 4)],
+            num_input = [],
+            num_output = (1, 1, 1)
+        )
+
+        Here, ``ProcessDomain.OPTICAL`` shows pixel takes photons as input and converts to 
+        ``ProcessDomain.VOLTAGE`` as shown in ``output_domain``. ``component_list`` shows
+        how this analog component is implemented. In this case, it is ``ActivePixelSensor``.
+        Each Pixel needs 4 ``ActivePixelSensor`` to achieve 2x2 binning.
+    """
     def __init__(
         self,
         name : str,
@@ -37,17 +66,28 @@ class AnalogComponent(object):
         (energy of each component) * (the number of such component)
     """
     def energy(self):
+        """Calculate the energy consumption of this analog compoenent
+
+        Returns:
+            Energy (float) in pJ.
+        """
         total_energy = 0
         for i in range(len(self.component_list)):
             total_energy += self.component_list[i][0].energy() * self.component_list[i][1]
 
         return total_energy
 
-    """
-        The noise function performs the noise simulation based on 
-        the noise model of each component one-by-one.
-    """
+    
     def noise(self, input_signal_list):
+        """Noise Simulation
+
+        The noise function performs the noise simulation based on the noise model
+        of each component in ``component_list``. The input signal will pass through
+        each component's noise model one-by-one.
+
+        Returns:
+            Simulated output signal after each analog component (dict)
+        """
         output_signal_list = copy.deepcopy(input_signal_list)
 
         for component in self.component_list:
@@ -55,7 +95,7 @@ class AnalogComponent(object):
 
         return output_signal_list
 
-    def configure_operation(self, sw_stage):
+    def _configure_operation(self, sw_stage):
         for comp, _ in self.component_list:
             if isinstance(comp, Voltage2VoltageConv) or isinstance(comp, Time2VoltageConv) or isinstance(comp, BinaryWeightConv):
                 comp.set_conv_config(
@@ -77,7 +117,18 @@ class AnalogComponent(object):
 
 
 class AnalogArray(object):
-    """docstring for AnalogArray"""
+    """AnalogArray
+
+    The High-level interface to define analog structures. In ``CamJ``, each analog array is
+    defined as a 2D structure. In this structure, it contains multiple ``AnalogComponent``s.
+    Additionally, each ``AnalogArray`` has a regular input/output rate.
+
+    Args:
+        name (str): the name of this analog array.
+        layer (int): the location of this analog array. Please see ``general.ProcessorLocation``.
+        num_input (list): a list of input shapes. Each input shape is a 3D tuple in (H, W, C) format.
+        num_output (tuple): output shape in 3D shape (H, W, C).
+    """
     def __init__(
         self,
         name : str,
@@ -109,10 +160,21 @@ class AnalogArray(object):
         self.source_component = []
         self.destination_component = []
         self.num_component = {}
-    """
-        Key function to add components attributes to array
-    """
+
     def add_component(self, component: AnalogComponent, component_size: tuple):
+        """Add components to its component list
+
+        This function adds the analog components that construct this analog array.
+        Multiple calls of this function will add multiple components to this analog array.
+
+        Args:
+            component (AnalogComponent): the analog component that construct this analog array.
+            component_size (tuple): the number of compoenent needs in this analog array.
+                ``Component_size`` needs in a 3D shape (H, W, C).
+
+        Returns:
+            None
+        """
 
         assert len(component_size) == 3, "'%s' component size needs to be a size of 3." % self.name
 
@@ -122,66 +184,49 @@ class AnalogArray(object):
         # if it is the first element in the component list, set this element as the source
         # so that we can check the input/output domain consistency across different analog array.
         if len(self.components) == 1:
-            self.set_source_component([component])
+            self._set_source_component([component])
         # always the last added component as the destination component
-        self.set_destination_component([component])
-
-    """
-        for each analog array, we need to set source component so that
-        we know which component is the header to start simulation.
-        Also, source components can allow us to know the input domain
-        or analog array.
-    """
-    def set_source_component(self, source_components: list):
-        self.source_components = source_components
-        for component in source_components:
-            for domain in component.input_domain:
-                self.input_domain.append(domain)
-
-    """
-        for each analog array, define the destination component so that
-        we can know the computation ends at the destination component.
-        Also, we can know the output domain of this analog array.
-    """
-    def set_destination_component(self, destination_components: list):
-        self.destination_components = destination_components
-        self.output_domain = []
-        for component in destination_components:
-            self.output_domain = component.output_domain
+        self._set_destination_component([component])
 
     def add_input_array(self, analog_array):
+        """Add producer of this analog array
+
+        Define the producer of this analog array. If multiple producers are needed, call
+        this function multiple times.
+
+        Args:
+            analog_array (AnalogArray): the producer of this analog array.
+
+        Returns:
+            None
+        """
         self.input_arrays.append(analog_array)
 
     def add_output_array(self, analog_array):
+        """Add consumer of this analog array
+
+        Define the consumer of this analog array. If multiple consumers are needed, call
+        this function multiple times.
+
+        Args:
+            analog_array (AnalogArray): the consumer of this analog array.
+
+        Returns:
+            None
+        """
         self.output_arrays.append(analog_array)
 
-    def configure_operation(self, sw_stage):
-        for component in self.components:
-            component.configure_operation(sw_stage)
-        
-    def calc_num(self, num_component):
-        cnt = 1
-        for i in num_component:
-            cnt *= i
-
-        return cnt
-
-    def calc_output_ratio(self, array_ouput, comp_output):
-        array_throughput = 1
-        comp_throughput = 1
-        for i in array_ouput:
-            array_throughput *= i
-
-        for i in comp_output:
-            comp_throughput *= i
-
-        return array_throughput / comp_throughput
-
     def energy(self):
+        """Energy consumption
+
+        Calculate the energy needed to generate the given output shape.
+
+        Return:
+            Energy (float): energy consumption in J.
+        """
         total_compute_energy = 0
         for component in self.components:
-            # num_component = self.calc_num(self.num_component[component])
-            output_ratio = self.calc_output_ratio(
+            output_ratio = self._calc_output_ratio(
                 self.num_output, 
                 component.num_output
             )
@@ -189,7 +234,19 @@ class AnalogArray(object):
 
         return total_compute_energy
 
-    def noise(self, input_signal_list):
+    def noise(self, input_signal_list: list):
+        """Function and Noise Simulation
+
+        This function will iterate each component in the component list and perform
+        functional and noise simulation for each component.
+
+        Args:
+            input_signal_list (list): a list of input signal to this analog array.
+
+        Returns:
+            Simulation result (list): the signal simulation result after each analog component.
+            Each item in this list is a tuple in (component_name, output_signal_list) format.
+        """
         output_signal_list = copy.deepcopy(input_signal_list)
         simulation_res = []
         # iterate components in order and model noise suquentially
@@ -206,11 +263,52 @@ class AnalogArray(object):
 
         return simulation_res
 
+    def _set_source_component(self, source_components: list):
+        """Set Source Component
+
+        For each analog array, we need to set source component so that
+        we know which component is the header to start simulation.
+        Also, source components can allow us to know the input domain
+        or analog array.
+        """
+        self.source_components = source_components
+        for component in source_components:
+            for domain in component.input_domain:
+                self.input_domain.append(domain)
+
+    def _set_destination_component(self, destination_components: list):
+        """Set Destination Component
+
+        For each analog array, define the destination component so that
+        we can know the computation ends at the destination component.
+        Also, we can know the output domain of this analog array.
+        """
+        self.destination_components = destination_components
+        self.output_domain = []
+        for component in destination_components:
+            self.output_domain = component.output_domain
+
+    def _configure_operation(self, sw_stage):
+        for component in self.components:
+            component._configure_operation(sw_stage)
+
+    def _calc_output_ratio(self, array_ouput, comp_output):
+        array_throughput = 1
+        comp_throughput = 1
+        for i in array_ouput:
+            array_throughput *= i
+
+        for i in comp_output:
+            comp_throughput *= i
+
+        return array_throughput / comp_throughput
+
     def __str__(self):
         return self.name
 
     def __repr__(self):
         return self.name
+
 
 # this function is used to convert size (H, W, C) to (X, Y, Z)
 # it is hard to change the internal simulation code, this is an easy fix!
