@@ -76,10 +76,11 @@ def analog_config():
                     load_capacitance = 1e-23,  # [F]
                     input_capacitance = 1e-15,  # [F]
                     t_sample = 2e-6,  # [s]
-                    t_frame = 10e-3,  # [s]
+                    t_hold = 10e-3,  # [s]
                     supply = full_scale_input_voltage,  # [V]
-                    gain = 1,
+                    gain_close = 1,
                     # noise parameters
+                    gain = 1,
                     noise = 0.05,
                     enable_prnu = True,
                     prnu_std = 0.01,

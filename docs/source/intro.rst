@@ -1,0 +1,8 @@
+What is CamJ Useful For?
+================================
+
+CamJ is meant to be used for system-level exploration after each component design is sketched out; an analogy would be Systems-on-a-Chip (SoC) vs. accelerator design. Before system-level exploration, a team usually has at hand a range of component-level designs, which could be licensed Intellectual Property (IP) blocks, reference designs from the literature, or earlier designs from other teams in the organization; in all cases the component-level energy behavior is known or can be modeled using external tools.
+
+CamJ helps designers make design decisions when assembling the individual (digital and analog) components into an optimal system. Ideally, a designer uses CamJ to estimate the system energy given initial designs of individual components; using the estimation, a designer can iteratively refine the components/system design. For instance, CamJ can identify energy bottlenecks and guide the re-design of corresponding components. Orthogonally, a designer can use CamJ to explore optimal mapping and partitioning of the algorithms between analog vs. digital domains or in vs. off CIS to minimize overall system energy under performance targets.
+
+CamJ is not a synthesis tool; it does not generate a digital accelerator (or analog circuits for that matter), which is the goal of a High-Level Synthesis (HLS) tool. Rather, CamJ can be used in conjunction with HLS: one could use HLS to first generate an accelerator and then use CamJ to explore, in the bigger system, how/whether that accelerator would fit in a computational CIS to maximize end-to-end application gains.

@@ -72,13 +72,11 @@ def hw_config():
 
     conv1_unit = ComputeUnit(
         name="ConvUnit-1",
-        domain=ProcessDomain.DIGITAL,
         location=ProcessorLocation.SENSOR_LAYER,
         input_pixels_per_cycle = [(3, 1, 1)],          # take (3, 1, 1) of pixel per cycle
         output_pixels_per_cycle = (1, 1, 1),           # output (1, 1, 1) of pixel per cycle
         energy_per_cycle = 9*compute_op_power,  # the average energy per cycle
         num_of_stages = 3,                      # num of stages to output result, latency
-        area = 30
     )
     hw_desc["compute"].append(conv1_unit)
 
@@ -87,13 +85,11 @@ def hw_config():
 
     conv2_unit = ComputeUnit(
         name="ConvUnit-2",
-        domain=ProcessDomain.DIGITAL,
         location=ProcessorLocation.SENSOR_LAYER,
         input_pixels_per_cycle = [(3, 3, 1)],          # take (3, 3, 1) of pixel per cycle
         output_pixels_per_cycle = (1, 1, 1),           # output (1, 1, 1) of pixel per cycle
         energy_per_cycle = 9*compute_op_power,  # average energy per cycle
         num_of_stages = 3,                      # num of stage to output result. latency 
-        area = 30
     )
     hw_desc["compute"].append(conv2_unit)
 
@@ -102,13 +98,11 @@ def hw_config():
 
     abs_unit = ComputeUnit(
         name="AbsUnit",
-        domain=ProcessDomain.DIGITAL,
         location=ProcessorLocation.SENSOR_LAYER,
         input_pixels_per_cycle = [(1, 1, 1)],          # take (1, 1, 1) of pixel per cycle
         output_pixels_per_cycle = (1, 1, 1),           # output (1, 1, 1) of pixel per cycle
         energy_per_cycle = 1*compute_op_power,  # average energy per cycle
         num_of_stages = 1,                      # num of stage to output result. latency 
-        area = 10
     )
     hw_desc["compute"].append(abs_unit)
 
