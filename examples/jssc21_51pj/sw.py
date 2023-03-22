@@ -6,12 +6,16 @@ parent_directory = os.path.dirname(os.getcwd())
 # setting path
 sys.path.append(os.path.dirname(parent_directory))
 
-from camj.sw.interface import ProcessStage, DNNProcessStage, PixelInput
+from camj.sw.interface import ProcessStage, PixelInput
 from camj.sw.utils import build_sw_graph
 
 def sw_pipeline():
 
     sw_stage_list = []
+    
+    input_data = PixelInput(name = "Input", size = (480, 640, 1))
+    sw_stage_list.append(input_data)
+
     cs_stage = ProcessStage(
         name = "CS",
         input_size = [(480, 640, 1)],
@@ -22,8 +26,6 @@ def sw_pipeline():
     )
     sw_stage_list.append(cs_stage)
 
-    input_data = PixelInput((480, 640, 1), name="Input")
-    sw_stage_list.append(input_data)
     cs_stage.set_input_stage(input_data)
 
     return sw_stage_list
