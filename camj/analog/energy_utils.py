@@ -1,12 +1,13 @@
 import numpy as np
 
+
 def gm_id(
         load_capacitance,
         gain,
-        bandwidth, # [Hz]
+        bandwidth,  # [Hz]
         differential=True,
         inversion_level='moderate'
-    ):
+):
     """ Compute transconductance (gm) and drain current (id) of linear amplifiers.
 
         The method is based on "(2017, CAMBRIDGE) SYSTEMATIC DESIGN OF ANALOG CMOS CIRCUITS -- Using Pre-Computed Lookup Tables".
@@ -41,7 +42,7 @@ def get_pixel_parasitic(
         array_v,
         tech_node,  # [nm]
         pitch  # [um]
-    ):
+):
     """ Compute column parasitic capacitance (Farad per column) on the pixel's output node.
 
         This parasitic capacitance usually dominates the load capacitance if the pixel's follow-up circuitry (e.g., readout or processing) is placed at the column level.
@@ -92,7 +93,7 @@ def parallel_impedance(impedance_array):
         Returns:
             parallel impedance [unit: Ohm]
     """
-     
+
     impedance = np.reciprocal(np.sum(np.reciprocal(impedance_array)))
     return impedance
 
@@ -102,7 +103,7 @@ def get_delay(
         next_stage_input_impedance,
         current_stage_output_capacitance,
         next_stage_input_capacitance
-    ):
+):
     """ Compute analog component delay.
 
         This model assumes the delay of an analog component is 5 times of the RC constant at the analog component's output node.

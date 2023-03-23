@@ -1,5 +1,5 @@
 import numpy as np
-from camj.analog.energy_utils import gm_id, get_pixel_parasitic, parallel_impedance, get_delay
+from camj.analog.energy_utils import gm_id, get_pixel_parasitic, parallel_impedance, get_delay, get_nominal_supply
 
 
 class PinnedPhotodiodePerf(object):
@@ -46,18 +46,18 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
     """
 
     def __init__(
-        self,
-        pd_capacitance,
-        pd_supply,
-        dynamic_sf = False,
-        output_vs = 1,  # [V]
-        num_transistor = 4,
-        fd_capacitance = 10e-15,  # [F]
-        num_readout = 2,
-        load_capacitance = 1e-12,  # [F]
-        tech_node = 130,  # [nm]
-        pitch = 4,  # [um]
-        array_vsize = 128
+            self,
+            pd_capacitance,
+            pd_supply,
+            dynamic_sf=False,
+            output_vs=1,  # [V]
+            num_transistor=4,
+            fd_capacitance=10e-15,  # [F]
+            num_readout=2,
+            load_capacitance=1e-12,  # [F]
+            tech_node=130,  # [nm]
+            pitch=4,  # [um]
+            array_vsize=128
     ):
         super().__init__(pd_capacitance, pd_supply)
         self.dynamic_sf = dynamic_sf
@@ -83,14 +83,14 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
 
         if self.dynamic_sf:
             energy_sf = (
-                self.load_capacitance + 
-                get_pixel_parasitic(self.array_vsize, self.tech_node, self.pitch)
-            ) * self.output_vs**2
+                                self.load_capacitance +
+                                get_pixel_parasitic(self.array_vsize, self.tech_node, self.pitch)
+                        ) * self.output_vs ** 2
         else:
             energy_sf = (
-                self.load_capacitance + 
-                get_pixel_parasitic(self.array_vsize, self.tech_node, self.pitch)
-            ) * self.pd_supply * self.output_vs
+                                self.load_capacitance +
+                                get_pixel_parasitic(self.array_vsize, self.tech_node, self.pitch)
+                        ) * self.pd_supply * self.output_vs
 
         energy_pd = super(ActivePixelSensorPerf, self).energy()
         energy = energy_pd + energy_fd + self.num_readout * energy_sf
@@ -98,8 +98,8 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
         return energy
 
     def _impedance(
-        self,
-        sf_bias_current=2e-6  # [A]
+            self,
+            sf_bias_current=2e-6  # [A]
     ):
         input_impedance = None
 
@@ -127,33 +127,33 @@ class DigitalPixelSensorPerf(ActivePixelSensorPerf):
     """
 
     def __init__(
-        self,
-        pd_capacitance,
-        pd_supply,
-        dynamic_sf,
-        output_vs,
-        num_transistor,
-        fd_capacitance,
-        num_readout,
-        load_capacitance,
-        tech_node,
-        pitch,
-        array_vsize,
-        adc_type='SS',
-        adc_fom=100e-15,  # [J/conversion]
-        adc_reso=8,
+            self,
+            pd_capacitance,
+            pd_supply,
+            dynamic_sf,
+            output_vs,
+            num_transistor,
+            fd_capacitance,
+            num_readout,
+            load_capacitance,
+            tech_node,
+            pitch,
+            array_vsize,
+            adc_type='SS',
+            adc_fom=100e-15,  # [J/conversion]
+            adc_reso=8,
     ):
         super().__init__(
-            pd_capacitance = pd_capacitance,
-            pd_supply = pd_supply,
-            output_vs = output_vs,
-            num_transistor = num_transistor,
-            fd_capacitance = fd_capacitance,
-            num_readout = num_readout,
-            load_capacitance = load_capacitance,
-            tech_node = tech_node,
-            pitch = pitch,
-            array_vsize = array_vsize
+            pd_capacitance=pd_capacitance,
+            pd_supply=pd_supply,
+            output_vs=output_vs,
+            num_transistor=num_transistor,
+            fd_capacitance=fd_capacitance,
+            num_readout=num_readout,
+            load_capacitance=load_capacitance,
+            tech_node=tech_node,
+            pitch=pitch,
+            array_vsize=array_vsize
         )
         self.adc_type = adc_type
         self.adc_fom = adc_fom
@@ -163,7 +163,7 @@ class DigitalPixelSensorPerf(ActivePixelSensorPerf):
         energy_aps = super(DigitalPixelSensorPerf, self).energy()
         energy_adc = AnalogToDigitalConverterPerf(self.pd_supply, self.adc_type, self.adc_fom, self.adc_reso).energy()
         energy = energy_aps + energy_adc
-        
+
         return energy
 
 
@@ -184,13 +184,13 @@ class PulseWidthModulationPixelPerf(PinnedPhotodiodePerf):
     """
 
     def __init__(
-        self,
-        pd_capacitance,
-        pd_supply,
-        array_vsize,
-        ramp_capacitance=1e-12,  # [F]
-        gate_capacitance=10e-15,  # [F]
-        num_readout=1
+            self,
+            pd_capacitance,
+            pd_supply,
+            array_vsize,
+            ramp_capacitance=1e-12,  # [F]
+            gate_capacitance=10e-15,  # [F]
+            num_readout=1
     ):
         super().__init__(pd_capacitance, pd_supply)
         self.ramp_capacitance = ramp_capacitance
@@ -199,13 +199,13 @@ class PulseWidthModulationPixelPerf(PinnedPhotodiodePerf):
         self.array_vsize = array_vsize
 
     def energy(self):
-        energy_parasitics = self.array_vsize/3*10e-15*(self.pd_supply**2)
+        energy_parasitics = self.array_vsize / 3 * 10e-15 * (self.pd_supply ** 2)
 
         energy_ramp = self.ramp_capacitance * (self.pd_supply ** 2)
         energy_comparator = self.gate_capacitance * (self.pd_supply ** 2)
         energy_pd = super(PulseWidthModulationPixelPerf, self).energy()
         energy = energy_pd + self.num_readout * (energy_ramp * 2 + energy_comparator + energy_parasitics)
-        
+
         return energy
 
 
@@ -230,15 +230,15 @@ class ColumnAmplifierPerf(object):
     """
 
     def __init__(
-        self,
-        load_capacitance=1e-12,  # [F]
-        input_capacitance=1e-12,  # [F]
-        t_sample=2e-6,  # [s]
-        t_hold=10e-3,  # [s], FIXME: name changed!
-        supply=1.8,  # [V]
-        gain_close=2, # FIXME: name changed!
-        gain_open=256,
-        differential = False,
+            self,
+            load_capacitance=1e-12,  # [F]
+            input_capacitance=1e-12,  # [F]
+            t_sample=2e-6,  # [s]
+            t_hold=10e-3,  # [s], FIXME: name changed!
+            supply=1.8,  # [V]
+            gain_close=2,  # FIXME: name changed!
+            gain_open=256,
+            differential=False,
     ):
         self.load_capacitance = load_capacitance
         self.input_capacitance = input_capacitance
@@ -291,11 +291,11 @@ class SourceFollowerPerf(object):
     """
 
     def __init__(
-        self,
-        load_capacitance=1e-12,  # [F]
-        supply=1.8,  # [V]
-        output_vs=1,  # [V]
-        bias_current=5e-6  # [A]
+            self,
+            load_capacitance=1e-12,  # [F]
+            supply=1.8,  # [V]
+            output_vs=1,  # [V]
+            bias_current=5e-6  # [A]
     ):
         self.load_capacitance = load_capacitance
         self.supply = supply
@@ -335,12 +335,12 @@ class ActiveAnalogMemoryPerf(object):
     """
 
     def __init__(
-        self,
-        sample_capacitance=2e-12,  # [F]
-        comp_capacitance=2.5e-12,  # [F]
-        t_sample=1e-6,  # [s]
-        t_hold=10e-3,  # [s]
-        supply=1.8,  # [V]
+            self,
+            sample_capacitance=2e-12,  # [F]
+            comp_capacitance=2.5e-12,  # [F]
+            t_sample=1e-6,  # [s]
+            t_hold=10e-3,  # [s]
+            supply=1.8,  # [V]
     ):
         self.sample_capacitance = sample_capacitance
         self.comp_capacitance = comp_capacitance
@@ -386,9 +386,9 @@ class PassiveAnalogMemoryPerf(object):
     """
 
     def __init__(
-        self,
-        sample_capacitance=1e-12,  # [F] FIXME: name changed!
-        supply=1.8,  # [V]
+            self,
+            sample_capacitance=1e-12,  # [F] FIXME: name changed!
+            supply=1.8,  # [V]
     ):
         self.sample_capacitance = sample_capacitance
         self.supply = supply
@@ -409,7 +409,7 @@ class PassiveAnalogMemoryPerf(object):
 
 
 ########################################################################################################################
-class DigitalToCurrentConverterPerf(object): # FIXME: function changed! may delete this class.
+class DigitalToCurrentConverterPerf(object):  # FIXME: function changed! may delete this class.
     """ Current digital-to-analog converter.
     
         The model consists of a constant current path and a load capacitor.
@@ -421,10 +421,10 @@ class DigitalToCurrentConverterPerf(object): # FIXME: function changed! may dele
     """
 
     def __init__(
-        self,
-        supply=1.8,  # [V]
-        load_capacitance=2e-12,  # [F]
-        t_readout=16e-6,  # [s]
+            self,
+            supply=1.8,  # [V]
+            load_capacitance=2e-12,  # [F]
+            t_readout=16e-6,  # [s]
     ):
         self.supply = supply
         self.load_capacitance = load_capacitance
@@ -449,11 +449,11 @@ class CurrentMirrorPerf(object):
     """
 
     def __init__(
-        self,
-        supply=1.8,
-        load_capacitance=2e-12,  # [F]
-        t_readout=1e-6,  # [s]
-        i_dc=1e-6  # [A]
+            self,
+            supply=1.8,
+            load_capacitance=2e-12,  # [F]
+            t_readout=1e-6,  # [s]
+            i_dc=1e-6  # [A]
     ):
         self.supply = supply
         self.load_capacitance = load_capacitance
@@ -468,7 +468,6 @@ class CurrentMirrorPerf(object):
         return energy
 
 
-
 class PassiveSwitchedCapacitorArrayPerf(object):
     """ Passive switched-capacitor array.
     
@@ -481,9 +480,9 @@ class PassiveSwitchedCapacitorArrayPerf(object):
     """
 
     def __init__(
-        self,
-        capacitance_array,
-        vs_array
+            self,
+            capacitance_array,
+            vs_array
     ):
         self.capacitance_array = capacitance_array
         self.vs_array = vs_array
@@ -510,12 +509,12 @@ class MaximumVoltagePerf(object):
     """
 
     def __init__(
-        self,
-        supply=1.8,  # [V]
-        t_hold=30e-3,  # [s] FIXME: name changed!
-        t_readout=1e-6,  # [s] FIXME: name changed!
-        load_capacitance=1e-12,  # [F]
-        gain=10
+            self,
+            supply=1.8,  # [V]
+            t_hold=30e-3,  # [s] FIXME: name changed!
+            t_readout=1e-6,  # [s] FIXME: name changed!
+            load_capacitance=1e-12,  # [F]
+            gain=10
     ):
         self.supply = supply
         self.load_capacitance = load_capacitance
@@ -525,11 +524,11 @@ class MaximumVoltagePerf(object):
 
     def energy(self):
         i_bias, _ = gm_id(
-            self.load_capacitance, 
-            gain = self.gain, 
-            bandwidth = 1 / self.t_readout, 
-            differential = True,
-            inversion_level = 'moderate'
+            self.load_capacitance,
+            gain=self.gain,
+            bandwidth=1 / self.t_readout,
+            differential=True,
+            inversion_level='moderate'
         )
         energy_bias = self.supply * (0.5 * i_bias) * self.t_hold
         energy_amplifier = self.supply * i_bias * self.t_readout
@@ -547,12 +546,11 @@ class ComparatorPerf(object):
             t_readout (float): [unit: s] readout time, during which the comparison is finished.
     """
 
-
     def __init__(
-        self,
-        supply=1.8,  # [V]
-        i_bias=10e-6,  # [A]
-        t_readout=1e-9  # [s]
+            self,
+            supply=1.8,  # [V]
+            i_bias=10e-6,  # [A]
+            t_readout=1e-9  # [s]
     ):
         self.supply = supply
         self.i_bias = i_bias
@@ -574,11 +572,11 @@ class AnalogToDigitalConverterPerf(object):
     """
 
     def __init__(
-        self,
-        supply=1.8,  # [V]
-        type='SS',
-        fom=100e-15,  # [J/conversion]
-        resolution=8,
+            self,
+            supply=1.8,  # [V]
+            type='SS',
+            fom=100e-15,  # [J/conversion]
+            resolution=8,
     ):
         self.supply = supply
         self.type = type
@@ -594,7 +592,6 @@ class AnalogToDigitalConverterPerf(object):
         return 1 / 12 * LSB ** 2
 
 
-
 class GeneralCircuitPerf(object):
     """ Energy model for general circuits from first principle.
 
@@ -605,10 +602,10 @@ class GeneralCircuitPerf(object):
     """
 
     def __init__(
-        self,
-        supply=1.8,  # [V]
-        i_dc=10e-6,  # [A]
-        t_operation=1e-9  # [s]
+            self,
+            supply=1.8,  # [V]
+            i_dc=10e-6,  # [A]
+            t_operation=1e-9  # [s]
     ):
         self.supply = supply
         self.i_dc = i_dc
@@ -617,6 +614,5 @@ class GeneralCircuitPerf(object):
     def energy(self):
         energy = self.supply * self.i_dc * self.t_operation
         return energy
-
 
 ########################################################################################################################
