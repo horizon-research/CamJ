@@ -1,15 +1,16 @@
 import numpy as np
 
+
 def gm_id(
         load_capacitance,
         gain,
-        bandwidth, # [Hz]
+        bandwidth,  # [Hz]
         differential=True,
         inversion_level='moderate'
-    ):
+):
     """ Compute transconductance (gm) and drain current (id) of linear amplifiers.
 
-        The method is based on "(2017, CAMBRIDGE) SYSTEMATIC DESIGN OF ANALOG CMOS CIRCUITS -- Using Pre-Computed Lookup Tables".
+        The method is based on [Book-Jespers].
 
         Args:
             load_capacitance (float): [unit: F] amplifier's load capacitance.
@@ -20,6 +21,10 @@ def gm_id(
     
         Returns:
             drain current (id) [unit: A], transconductance (gm) [unit: S]
+
+        References Link:
+            Book-Jespers: Systematic Design of Analog CMOS Circuits: Using Pre-Computed Lookup Tables.
+            https://www.cambridge.org/core/books/systematic-design-of-analog-cmos-circuits/A07A705132E9DE52749F65EB63565CE0
     """
 
     if inversion_level == 'strong':
@@ -41,13 +46,12 @@ def get_pixel_parasitic(
         array_v,
         tech_node,  # [nm]
         pitch  # [um]
-    ):
+):
     """ Compute column parasitic capacitance (Farad per column) on the pixel's output node.
 
         This parasitic capacitance usually dominates the load capacitance if the pixel's follow-up circuitry (e.g., readout or processing) is placed at the column level.
-        Based on "(2019, JSSC) A Data-Compressive 1.5/2.75-bit Log-Gradient QVGA Image Sensor With Multi-Scale Readout for Always-On Object Detection" where the
-        parasitic capacitance is 9fF/pixel under 130nm process node and 5um pixel pitch, this model assumes the parasitic capacitance scales with process node,
-        pixel pitch, and pixel array's vertical size (i.e., the number of pixels in one column).
+        Based on [JSSC-2019] where the parasitic capacitance is 9fF/pixel under 130nm process node and 5um pixel pitch,
+        this model assumes the parasitic capacitance scales with process node, pixel pitch, and pixel array's vertical size (i.e., the number of pixels in one column).
 
         Args:
             array_v (int): vertical size of the pixel array.
@@ -56,6 +60,10 @@ def get_pixel_parasitic(
 
         Returns:
             parasitic capacitance [unit: F]
+
+        References Link:
+            JSSC-2019: A Data-Compressive 1.5/2.75-bit Log-Gradient QVGA Image Sensor With Multi-Scale Readout for Always-On Object Detection.
+            https://ieeexplore.ieee.org/document/8844721
     """
 
     C_p = 9e-15 / 130 / 5 * tech_node * pitch * array_v
@@ -92,7 +100,7 @@ def parallel_impedance(impedance_array):
         Returns:
             parallel impedance [unit: Ohm]
     """
-     
+
     impedance = np.reciprocal(np.sum(np.reciprocal(impedance_array)))
     return impedance
 
@@ -102,7 +110,7 @@ def get_delay(
         next_stage_input_impedance,
         current_stage_output_capacitance,
         next_stage_input_capacitance
-    ):
+):
     """ Compute analog component delay.
 
         This model assumes the delay of an analog component is 5 times of the RC constant at the analog component's output node.
