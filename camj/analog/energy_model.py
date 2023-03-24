@@ -278,8 +278,7 @@ class ColumnAmplifierEnergy(object):
         differential (bool): if using differential-input amplifier or single-input amplifier.
 
     References Link:
-        * Book-Razavi: Design of Analog CMOS Integrated Circuits (Second Edition).
-            https://electrovolt.ir/wp-content/uploads/2014/08/Design-of-Analog-CMOS-Integrated-Circuit-2nd-Edition-ElectroVolt.ir_.pdf
+        * Book-Razavi: Design of Analog CMOS Integrated Circuits (Second Edition)
     """
 
     def __init__(

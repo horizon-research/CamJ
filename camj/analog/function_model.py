@@ -3,7 +3,7 @@
 This module includes all basic noise model for CamJ functional simulation.
 
 .. note::
-    CAMJ models the output of each component by applying a gain and a read noise to its input.
+    CamJ models the output of each component by applying a gain and a read noise to its input.
     Analytically, the model performs ``output = input * gain + read_noise``.
     This formula implies that we only consider two main types of hardware non-idealities: gain variation (or, PRNU) and read noise (zero-mean Gaussian).
 
