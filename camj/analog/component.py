@@ -380,7 +380,7 @@ class ColumnAmplifier(object):
                 raise Exception("Input signal to 'ColumnAmplifier' needs to be 3 dimentional (height, width, channel)")
 
             output_signal_list.append(
-                self.func_model.apply_gain_and_noise(
+                self.func_model.simulate_output(
                     input_signal
                 )
             )
@@ -429,7 +429,7 @@ class SourceFollower(object):
                 raise Exception("input signal to 'SourceFollower' needs to be in (height, width, channel) 3D shape.")
 
             output_signal_list.append(
-                self.func_model.apply_gain_and_noise(
+                self.func_model.simulate_output(
                     input_signal
                 )
             )
@@ -492,7 +492,7 @@ class ActiveAnalogMemory(object):
             if input_signal.ndim != 3:
                 raise Exception("input signal to 'ActiveAnalogMemory' needs to be in (height, width, channel) 3D shape.")
             output_signal_list.append(
-                self.func_model.apply_gain_and_noise(
+                self.func_model.simulate_output(
                     input_signal
                 )
             )
@@ -534,7 +534,7 @@ class PassiveAnalogMemory(object):
             if input_signal.ndim != 3:
                 raise Exception("input signal to 'PassiveAnalogMemory' needs to be in (height, width, channel) 3D shape.")
             output_signal_list.append(
-                self.func_model.apply_gain_and_noise(
+                self.func_model.simulate_output(
                     input_signal
                 )
             )
@@ -580,13 +580,13 @@ class CurrentMirror(object):
         if len(input_signal_list) == 2:
             return (
                 self.func_model.name, 
-                [self.func_model.apply_gain_and_noise(input_signal_list[0], input_signal_list[1])]
+                [self.func_model.simulate_output(input_signal_list[0], input_signal_list[1])]
             )
         # else just copy data over.
         elif len(input_signal_list) == 1:
             return (
                 self.func_model.name, 
-                [self.func_model.apply_gain_and_noise(input_signal_list[0])]
+                [self.func_model.simulate_output(input_signal_list[0])]
             )
         else:
             raise Exception("Input signal list to 'CurrentMirror' can only be length of 1 or 2!")
@@ -619,7 +619,7 @@ class PassiveSwitchedCapacitorArray(object):
         # perform element-wise addition across different input signals.
         return (
             self.func_model.name, 
-            [self.func_model.apply_gain_and_noise(input_signal_list)]
+            [self.func_model.simulate_output(input_signal_list)]
         )
 
 class Comparator(object):
@@ -656,7 +656,7 @@ class Comparator(object):
         if len(input_signal_list) == 2:
             return (
                 self.func_model.name, 
-                [self.func_model.apply_gain_and_noise(input_signal_list[0], input_signal_list[1])]
+                [self.func_model.simulate_output(input_signal_list[0], input_signal_list[1])]
             )
         else:
             raise Exception("Input signal list to Comparator can only be length of 2!")
@@ -696,7 +696,7 @@ class AnalogToDigitalConverter(object):
         output_signal_list = []
         for input_signal in input_signal_list:
             output_signal_list.append(
-                self.func_model.apply_gain_and_noise(
+                self.func_model.simulate_output(
                     input_signal
                 )
             )
@@ -737,7 +737,7 @@ class DigitalToCurrentConverter(object):
         output_signal_list = []
         for input_signal in input_signal_list:
             output_signal_list.append(
-                self.func_model.apply_gain_and_noise(
+                self.func_model.simulate_output(
                     input_signal
                 )
             )
@@ -777,7 +777,7 @@ class MaximumVoltage(object):
     def noise(self, input_signal_list):
         return (
                 self.func_model.name, 
-                [self.func_model.apply_gain_and_noise(input_signal_list)]
+                [self.func_model.simulate_output(input_signal_list)]
             )
 
 
@@ -856,8 +856,8 @@ class Adder(object):
         if len(input_signal_list) == 2:
             if input_signal_list[0].shape != input_signal_list[1].shape:
                 raise Exception("Two inputs to 'Adder' need to be in the same shape.")
-            noise_input1 = self.func_model.apply_gain_and_noise(input_signal_list[0])
-            noise_input2 = self.func_model.apply_gain_and_noise(input_signal_list[1])
+            noise_input1 = self.func_model.simulate_output(input_signal_list[0])
+            noise_input2 = self.func_model.simulate_output(input_signal_list[1])
             return (
                 "Adder", 
                 [noise_input1 + noise_input2]
@@ -921,8 +921,8 @@ class Subtractor(object):
             if input_signal_list[0].shape != input_signal_list[1].shape:
                 raise Exception("Two inputs to 'Adder' need to be in the same shape.")
 
-            noise_input1 = self.func_model.apply_gain_and_noise(input_signal_list[0])
-            noise_input2 = self.func_model.apply_gain_and_noise(input_signal_list[1])
+            noise_input1 = self.func_model.simulate_output(input_signal_list[0])
+            noise_input2 = self.func_model.simulate_output(input_signal_list[1])
             return (
                 "Subtractor", 
                 [noise_input1 - noise_input2]
@@ -977,7 +977,7 @@ class AbsoluteDifference(object):
             return (
                 self.func_model.name, 
                 [   
-                    self.func_model.apply_gain_and_noise(
+                    self.func_model.simulate_output(
                         input_signal_list[0], 
                         input_signal_list[1]
                     )
@@ -1060,7 +1060,7 @@ class MaxPool(object):
                 reshaped_signal_list.append(transposed_input_signal[:, :, i, :])
             
             output_signal_list.append(
-                self.func_model.apply_gain_and_noise(reshaped_signal_list)
+                self.func_model.simulate_output(reshaped_signal_list)
             )
 
         return ("MaxPool", output_signal_list)
@@ -1118,8 +1118,8 @@ class PassiveAverage(object):
         return (
             "PassiveAverage", 
             [
-                self.sf_func_model.apply_gain_and_noise(
-                    self.psca_func_model.apply_gain_and_noise(
+                self.sf_func_model.simulate_output(
+                    self.psca_func_model.simulate_output(
                         input_signal_list
                     )                
                 )
@@ -1217,8 +1217,8 @@ class PassiveBinning(object):
                 )
 
             output_signal_list.append(
-                self.sf_func_model.apply_gain_and_noise(
-                    self.psca_func_model.apply_gain_and_noise(
+                self.sf_func_model.simulate_output(
+                    self.psca_func_model.simulate_output(
                         psca_input_list
                     )
                 )
@@ -1282,7 +1282,7 @@ class ActiveAverage(object):
         output_signal_list = []
         for input_signal in input_signal_list:
             output_signal_list.append(
-                self.func_model.apply_gain_and_noise(
+                self.func_model.simulate_output(
                     input_signal
                 )
             )
@@ -1374,7 +1374,7 @@ class ActiveBinning(object):
             signal_after_colamp_list = []
             for i in range(new_input_shape[1] * new_input_shape[3]):
                 signal_after_colamp_list.append(
-                    self.func_model.apply_gain_and_noise(
+                    self.func_model.simulate_output(
                         transposed_input_signal[:, :, i, :]
                     )
                 )
@@ -1522,7 +1522,7 @@ class Voltage2VoltageConv(object):
 
             # apply sf noise
             conv_result_list.append(
-                self.sf_func_model.apply_gain_and_noise(
+                self.sf_func_model.simulate_output(
                     conv_result_after_noise
                 )
             )
@@ -1631,7 +1631,7 @@ class Time2VoltageConv(object):
                     r*s_height : r*s_height+w_height, 
                     c*s_width : c*s_width+w_width
                 ]
-                noise_output = self.cm_func_model.apply_gain_and_noise(
+                noise_output = self.cm_func_model.simulate_output(
                     input_signal = input_elements, 
                     weight_signal = weight_signal
                 )
@@ -1671,7 +1671,7 @@ class Time2VoltageConv(object):
             conv_result = self._single_channel_convolution(image_input, kernel_input[:, :, i])
             output_height, output_width = conv_result.shape
             conv_result_list.append(
-                self.am_func_model.apply_gain_and_noise(
+                self.am_func_model.simulate_output(
                     conv_result
                 )
             )
@@ -1801,8 +1801,8 @@ class BinaryWeightConv(object):
         positive_conv_result = np.expand_dims(positive_conv_signal, axis = 2)
         negative_conv_result = np.expand_dims(negative_conv_signal, axis = 2)
 
-        positive_result_after_noise = self.func_model.apply_gain_and_noise(positive_conv_result)
-        negative_result_after_noise = self.func_model.apply_gain_and_noise(negative_conv_result)
+        positive_result_after_noise = self.func_model.simulate_output(positive_conv_result)
+        negative_result_after_noise = self.func_model.simulate_output(negative_conv_result)
 
         return ("BinaryWeightConv", [positive_result_after_noise, negative_result_after_noise])
 
@@ -1846,7 +1846,7 @@ class AnalogReLU(object):
         for input_signal in input_signal_list:
             zero_input_signal = np.zeros(input_signal.shape)
             output_signal_list.append(
-                self.func_model.apply_gain_and_noise(
+                self.func_model.simulate_output(
                     input_signal1 = input_signal, 
                     input_signal2 = zero_input_signal
                 )

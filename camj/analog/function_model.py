@@ -59,7 +59,7 @@ class PhotodiodeFunc(object):
         random_seed = int(time.time())
         self.rs = np.random.RandomState(random_seed)
 
-    def apply_gain_and_noise(self, input_signal):
+    def simulate_output(self, input_signal):
         """apply gain and noise to input signal
 
         Args:
@@ -138,7 +138,7 @@ class AnalogToDigitalConverterFunc(object):
         random_seed = int(time.time())
         self.rs = np.random.RandomState(random_seed)
 
-    def apply_gain_and_noise(self, input_signal):
+    def simulate_output(self, input_signal):
         """apply gain and noise to input signal
 
         Args:
@@ -205,7 +205,7 @@ class AbsoluteDifferenceFunc(object):
         random_seed = int(time.time())
         self.rs = np.random.RandomState(random_seed)
 
-    def apply_gain_and_noise(self, input_signal1, input_signal2):
+    def simulate_output(self, input_signal1, input_signal2):
         """apply gain and noise to input signal
 
         Args:
@@ -292,7 +292,7 @@ class CurrentMirrorFunc(object):
         random_seed = int(time.time())
         self.rs = np.random.RandomState(random_seed)
 
-    def apply_gain_and_noise(self, input_signal, weight_signal=None):
+    def simulate_output(self, input_signal, weight_signal=None):
         """apply gain and noise to input signal
 
         Args:
@@ -375,7 +375,7 @@ class PassiveSwitchedCapacitorArrayFunc(object):
         random_seed = int(time.time())
         self.rs = np.random.RandomState(random_seed)
 
-    def apply_gain_and_noise(self, input_signal_list: list):
+    def simulate_output(self, input_signal_list: list):
         """apply gain and noise to input signal
 
         Args:
@@ -446,7 +446,7 @@ class MaximumVoltageFunc(object):
         random_seed = int(time.time())
         self.rs = np.random.RandomState(random_seed)
 
-    def apply_gain_and_noise(self, input_signal_list: list): # FIXME: this is not a linear circuit
+    def simulate_output(self, input_signal_list: list): # FIXME: this is not a linear circuit
         """apply gain and noise to input signal
 
         Args:
@@ -522,7 +522,7 @@ class PixelwiseFunc(object):
         random_seed = int(time.time())
         self.rs = np.random.RandomState(random_seed)
 
-    def apply_gain_and_noise(self, input_signal):
+    def simulate_output(self, input_signal):
         """apply gain and noise to input signal
 
         Args:
@@ -565,7 +565,7 @@ class FloatingDiffusionFunc(object):
     Gain is generally slightly less than 1, here, the default value is 1.0.
 
     To enable CDS and PRNU, just set enable flag to be True. If ``enable_cds`` is True,
-    apply_gain_and_noise function will return two values, one is the input + reset noise, 
+    simulate_output function will return two values, one is the input + reset noise, 
     and the other is the reset noise.
 
     Mathematical Expression:
@@ -606,7 +606,7 @@ class FloatingDiffusionFunc(object):
         random_seed = int(time.time())
         self.rs = np.random.RandomState(random_seed)
 
-    def apply_gain_and_noise(self, input_signal):
+    def simulate_output(self, input_signal):
         """apply gain and noise to input signal
 
         Args:
@@ -687,7 +687,7 @@ class CorrelatedDoubleSamplingFunc(object):
         random_seed = int(time.time())
         self.rs = np.random.RandomState(random_seed)
 
-    def apply_gain_and_noise(self, input_signal, reset_noise):
+    def simulate_output(self, input_signal, reset_noise):
         """apply gain and noise to input signal
 
         Args:
@@ -771,7 +771,7 @@ class ComparatorFunc(object):
         random_seed = int(time.time())
         self.rs = np.random.RandomState(random_seed)
 
-    def apply_gain_and_noise(self, input_signal1, input_signal2):
+    def simulate_output(self, input_signal1, input_signal2):
         """apply gain and noise to input signals.
 
         Args:
@@ -870,7 +870,7 @@ class ColumnwiseFunc(object):
         random_seed = int(time.time())
         self.rs = np.random.RandomState(random_seed)
 
-    def apply_gain_and_noise(self, input_signal):
+    def simulate_output(self, input_signal):
         """apply gain and noise to input signal
 
         Args:
