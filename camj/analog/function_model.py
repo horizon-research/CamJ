@@ -2,6 +2,20 @@
 
 This module includes all basic noise model for CamJ functional simulation.
 
+.. note::
+    CAMJ models the output of each component by applying a gain and a read noise to its input.
+    Analytically, the model performs ``output = input * gain + read_noise``.
+    This formula implies that we only consider two main types of hardware non-idealities: gain variation (or, PRNU) and read noise (zero-mean Gaussian).
+
+.. note::
+    Because nearly all of our implemented components are linear circuits which have linear transfer functions, we can use "gain" and "gain variation"
+    as the proxy to describe the component's functional behavior.
+    The proxy is also applicable to ADCs and comparators which are non-linear (but uniform) circuits because their transfer functions have linear frontiers.
+    The proxy is also applicable to other non-linear circuits, such as the circuit that performs quantize(log(x1/x2)) in [JSSC-2019],
+    by using a set of "gain" and "gain variation" to approximate the non-linear transfer function in piece-wise linear manner.
+    Note that the proxy doesn't always reflect the physical reality of the circuit, meaning that the "gain" may not be an explicit
+    parameter in the circuit and the "gain variation" is not analytically derived from the circuit parameters.
+    However, the proxy trades low level circuit details off for the model's simplicity.
 """
 
 import numpy as np
@@ -21,7 +35,7 @@ class PhotodiodeNoise(object):
 
     Args:
         name (str): the name of this noise.
-        dark_current_noise (float): average dark current noise in unit of electrons (e).
+        dark_current_noise (float): average dark current noise in unit of electrons (e-).
         enable_dcnu (bool): flag to enable dark current non-uniformity, the default value is ``False``.
         dcnu_std (float): dcnu standard deviation percentage. it is relative number respect
             to ``dark_current_noise``, the dcnu standard deviation is,
@@ -432,7 +446,7 @@ class MaximumVoltageNoise(object):
         random_seed = int(time.time())
         self.rs = np.random.RandomState(random_seed)
 
-    def apply_gain_and_noise(self, input_signal_list: list):
+    def apply_gain_and_noise(self, input_signal_list: list): # FIXME: this is not a linear circuit
         """apply gain and noise to input signal
 
         Args:
