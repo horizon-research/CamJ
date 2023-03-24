@@ -452,11 +452,11 @@ class ActiveAnalogMemoryEnergy(object):
 class PassiveAnalogMemoryEnergy(object):
     """ Analog memory without active feedback.
     
-        The model only contains a sample capacitor. Compared to ActiveAnalogMemory it has higher data leakage rate.
+    The model only contains a sample capacitor. Compared to ActiveAnalogMemory it has higher data leakage rate.
 
-        Args:
-            sample_capacitance (float): [unit: F] sample capacitance.
-            supply (float): [unit: V] supply voltage.
+    Args:
+        sample_capacitance (float): [unit: F] sample capacitance.
+        supply (float): [unit: V] supply voltage.
     """
 
     def __init__(
