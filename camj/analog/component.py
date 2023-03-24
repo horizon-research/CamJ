@@ -1,3 +1,23 @@
+"""Analog Component Interface
+
+This module contains the high-level interface to configure analog component and performs 
+functional and energy simulation.
+
+Each analog component class contains two main functions, ``energy()`` and ``noise(input_signals)``.
+``energy()`` function calculates the energy of the analog component. ``noise(input_signals)`` function
+simulates the functional properties with the given input signals.
+
+Examples:
+        To run energy simulation:
+
+        >>> energy_number = [analog_component].energy()
+
+        To run functional simulation:
+
+        >>> output_signals = [analog_component].noise(input_signals)
+
+"""
+
 import numpy as np
 import time
 
@@ -53,8 +73,6 @@ class ActivePixelSensor(object):
         sf_noise (float): the standard deviation of read noise from SF. the default value is ``0.``.
         sf_prnu_std (float): relative PRNU standard deviation respect to SF gain. 
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
-
-
     """
     def __init__(
         self,
@@ -141,27 +159,51 @@ class ActivePixelSensor(object):
 
 # digital pixel sensor
 class DigitalPixelSensor(object):
-    """
-        Digital Pixel Sensor
+    """Digital Pixel Sensor
 
-        This class models the energy consumption of digital pixel sensor (DPS).
+    This class models the energy consumption of digital pixel sensor (DPS).
 
-        It is basically a wrapper function to include one APS and one ADC. That is the actual
-        implementation of DPS.
+    It is basically a wrapper function to include one APS and one ADC, which contains the actual
+    implementation of DPS.
 
-        Args:
-            pd_capacitance: the capacitance of PD.
-            pd_supply: voltage supply of PD.
-            output_vs: output voltage swing.
-            num_transistor: this parameters define 3T or 4T APS.
-            num_readout: number of pixel readout times.
-            load_capacitance: load capacitance
-            tech_node: the technology process node.
-            pitch: pixel pitch
-            array_vsize: pixel array vertical size,
-            adc_type: the actual ADC type. Please check ADC class for more details.
-            adc_fom: ???
-            adc_resolution: the resolution of ADC. typical value range is from XX to XX.
+    Args:
+        pd_capacitance (float): [unit: F] the capacitance of PD.
+        pd_supply (float): [unit: V] supply voltage of pixel.
+        dynamic_sf (bool): using dynamic SF or not. In most cases, the in-pixel SF is not dynamic, 
+            meaning that it is statically-biased by a constant current. However, some works [JSSC-2021]
+            use dynamic SF to save energy.
+        output_vs (float): [unit: V] voltage swing at SF's output node. Typically it is 
+            one or two units of threshold voltage smaller than pd_supply, depending on 
+            the pixel's circuit structure.
+        num_transistor (int): {3 or 4}. It defines using 3T APS or 4T APS.
+        num_readout (int): {2 or 1}. It defines enabling CDS or not.
+        load_capacitance (float): [unit: F] load capacitance at the SF's output node.
+        tech_node (int): [unit: nm] pixel's process node.
+        pitch (float): [unit: um] pixel pitch size (width or height).
+        array_vsize (int): the vertical size of the entire pixel array. This is used to estimate 
+            the parasitic capacitance on the SF's readout wire.
+        adc_type (str): the actual ADC type. Please check ADC class for more details.
+        adc_fom (float): [unit: J/conversion] ADC's Figure-of-Merit, expressed by energy per conversion.
+        adc_resolution (int): ADC's resolution.
+        dark_current_noise (float): average dark current noise in unit of electrons (e-).
+        enable_dcnu (bool): flag to enable dark current non-uniformity, the default value is ``False``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        dcnu_std (float): dcnu standard deviation percentage. it is relative number respect
+            to ``dark_current_noise``, the dcnu standard deviation is,
+            ``dcnu_std`` * ``dark_current_noise``, the default value is ``0.001``.
+        fd_gain (float): the gain of FD, the default value is ``1.0``.
+        fd_noise (float): the standard deviation of read noise from FD. the default value is ``0.``.
+        fd_prnu_std (float): relative PRNU standard deviation respect to FD gain. 
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+        sf_gain (float): the gain of SF, the default value is ``1.0``.
+        sf_noise (float): the standard deviation of read noise from SF. the default value is ``0.``.
+        sf_prnu_std (float): relative PRNU standard deviation respect to SF gain. 
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+        cds_gain (float): the gain of CDS, the default value is ``1.0``.
+        cds_noise (float): the standard deviation of read noise from CDS. the default value is ``0.``.
+        cds_prnu_std (float): relative PRNU standard deviation respect to CDS gain. 
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+        adc_noise (float): the standard deviation of read noise from ADC. the default value is ``0.``.
     """
     def __init__(
         self,
@@ -274,23 +316,22 @@ class DigitalPixelSensor(object):
             raise Exception("Input signal to DPS needs to be a list of numpy array!")
 
         return (
-            "DigitalPixelSensor", 
+            "DigitalPixelSensor",
             default_functional_simulation(self.noise_components, input_signal_list)
         )
 
 class PulseWidthModulationPixel(object):
-    """
-        Pulse-Width-Modulation (PWM) Pixel
+    """Pulse-Width-Modulation (PWM) Pixel
 
-        The modeled PWM pixel consists of a photodiode (PD), a ramp signal generator, and a comparator.
-        The comparator output toggles when the ramp signal is smaller than the pixel voltage at PD.
+    The modeled PWM pixel consists of a photodiode (PD), a ramp signal generator, and a comparator.
+    The comparator output toggles when the ramp signal is smaller than the pixel voltage at PD.
 
-        Args:
-            pd_capacitance: PD capacitance.
-            pd_supply: PD voltage supply.
-            ramp_capacitance: capacitance of ramp signal generator.
-            gate_capacitance: the gate capacitance of readout transistor.
-            num_readout: number of read from pixel.
+    Args:
+        pd_capacitance: PD capacitance.
+        pd_supply: PD voltage supply.
+        ramp_capacitance: capacitance of ramp signal generator.
+        gate_capacitance: the gate capacitance of readout transistor.
+        num_readout: number of read from pixel.
 
     """
     def __init__(
@@ -320,12 +361,29 @@ class PulseWidthModulationPixel(object):
 
 
 class ColumnAmplifier(object):
-    """
-        NMOS-based single-input-single-output cascode amplifier.
-        [ref: Experimental verification of the impact of analog CMS on CIS readout noise, 2019 TCAS-I]
+    """Column Amplifier
 
-        Args:
-
+    Args:
+        load_capacitance (float): [unit: F] load capacitance.
+        input_capacitance (float): [unit: F] input capacitance.
+        t_sample (float): [unit: s] sampling time, which mainly consists of the amplifier's 
+            settling time.
+        t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
+            consumes power relentlessly.
+        supply (float): [unit: V] supply voltage.
+        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+            ``input_capacitance`` over feedback capacitance.
+        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
+            amplifier's bias current by gm/id method.
+        differential (bool): if using differential-input amplifier or single-input amplifier.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative PRNU standard deviation respect to gain.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+        enable_offset (bool): flag to enable adding offset voltage. Default value is ``False``.
+        pixel_offset_voltage: pixel offset voltage in unit of volt (V). Default value is ``0.1``.
+        col_offset_voltage: column-wise offset voltage in unit of volt (V). Default value is ``0.05``.
     """
 
     def __init__(
@@ -387,8 +445,21 @@ class ColumnAmplifier(object):
         return (self.func_model.name, output_signal_list)
 
 class SourceFollower(object):
-    """
+    """Source Follower
+
     NMOS-based constant current-biased source follower.
+    
+    Args:
+        load_capacitance (float): [unit: F] load capacitance.
+        supply (float): [unit: V] supply voltage.
+        output_vs (float): [unit: V] voltage swing at the SF's output node.
+        bias_current (float): [unit: A] bias current.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain.
+                  the default value is ``0.001``.
     """
 
     def __init__(
@@ -436,19 +507,21 @@ class SourceFollower(object):
         return (self.func_model.name, output_signal_list)
 
 class ActiveAnalogMemory(object):
-    """
-    PMOS-based differential-input-single-output amplifier.
-
-    @article{o200410,
-    title={A 10-nW 12-bit accurate analog storage cell with 10-aA leakage},
-    author={O'Halloran, Micah and Sarpeshkar, Rahul},
-    journal={IEEE journal of solid-state circuits},
-    volume={39},
-    number={11},
-    pages={1985--1996},
-    year={2004},
-    publisher={IEEE}
-    }
+    """Active Analog Memory
+    
+    Args:
+        sample_capacitance (float): [unit: F] sample capacitance.
+        comp_capacitance (float): [unit: F] compensation capacitance
+        t_sample (float): [unit: s] sampling time, which mainly consists of the amplifier's settling time.
+        t_hold (float): [unit: s] holding time, during which the amplifier is turned on and consumes
+            power relentlessly.
+        supply (float): [unit: V] supply voltage.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain.
+                  the default value is ``0.001``.
     """
 
     def __init__(
@@ -459,8 +532,6 @@ class ActiveAnalogMemory(object):
         t_sample = 1e-6,  # [s]
         t_hold = 10e-3,  # [s]
         supply = 1.8,  # [V]
-        # eqv_reso,# equivalent resolution
-        # opamp_dcgain
         # noise parameters
         gain = 1.0,
         noise = 0.,
@@ -500,6 +571,18 @@ class ActiveAnalogMemory(object):
 
 
 class PassiveAnalogMemory(object):
+    """Passive Analog Memory
+
+    Args:
+        sample_capacitance (float): [unit: F] sample capacitance.
+        supply (float): [unit: V] supply voltage.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain.
+                  the default value is ``0.001``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -541,6 +624,22 @@ class PassiveAnalogMemory(object):
         return (self.func_model.name, output_signal_list)
 
 class CurrentMirror(object):
+    """Current mirror.
+
+    Args:
+        supply (float): [unit: V] supply voltage.
+        load_capacitance (float): [unit: F] load capacitance.
+        t_readout (float): [unit: s] readout time, during which the constant current drives
+            the load capacitance from 0 to VDD.
+        i_dc (float): [unit: A] the constant current. If ``i_dc == None``, then i_dc is
+            estimated from the other parameters.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        enable_compute (bool): flag to enable compute and output charges. Default value is ``False``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative prnu standard deviation respect to gain.
+            prnu gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -593,6 +692,13 @@ class CurrentMirror(object):
 
 
 class PassiveSwitchedCapacitorArray(object):
+    """Passive Switched Capacitor Array
+
+    Args:
+        capacitance_array (array, float): [unit: F] a list of capacitors.
+        vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing at each capacitor.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+    """
     def __init__(
         self,
         # peformance parameters
@@ -623,6 +729,19 @@ class PassiveSwitchedCapacitorArray(object):
         )
 
 class Comparator(object):
+    """Dynamic Voltage Comparator
+
+    Args:
+        supply (float): [unit: V] supply voltage.
+        i_bias (float): [unit: A] bias current of the circuit.
+        t_readout (float): [unit: s] readout time, during which the comparison is finished.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain.
+                  the default value is ``0.001``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -663,7 +782,15 @@ class Comparator(object):
 
 
 class AnalogToDigitalConverter(object):
-    """docstring for differential-input rail-to-rail ADC"""
+    """Analog-to-Digital Converter.
+
+    Args:
+        supply (float): [unit: V] supply voltage.
+        type (str): ADC type.
+        fom (float): [unit: J/conversion] ADC's Figure-of-Merit, expressed by energy per conversion.
+        resolution (int): ADC resolution.
+        adc_noise (float): ADC noise.
+    """
 
     def __init__(
         self,
@@ -704,6 +831,20 @@ class AnalogToDigitalConverter(object):
 
 
 class DigitalToCurrentConverter(object):
+    """Digital-to-Current Converter.
+
+    Args:
+        supply (float): [unit: V] supply voltage.
+        load_capacitance (float): [unit: F] load capacitance.
+        t_readout (float): [unit: s] readout time, during which the constant current drives
+            the load capacitance from 0 to VDD.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain.
+                  the default value is ``0.001``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -745,7 +886,16 @@ class DigitalToCurrentConverter(object):
 
 
 class MaximumVoltage(object):
-    """docstring for MaximumVoltage"""
+    """A circuit that outputs the maximum voltage among the input voltages.
+
+    Args:
+        supply (float): [unit: V] supply voltage.
+        t_hold (float): [unit: s] holding time, during which the circuit is turned on and consumes power relentlessly.
+        t_readout (float): [unit: s] readout time, during which the maximum voltage is output.
+        load_capacitance (float): [unit: F] load capacitance
+        gain (float): open-loop gain of the common-source amplifier.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+    """
     def __init__(
         self, 
         supply = 1.8,  # [V]
@@ -803,6 +953,26 @@ class GeneralCircuit(object):
         raise Exception("noise function in MaximumVoltage has not been implemented yet!")
 
 class Adder(object):
+    """Adder
+
+    Args:
+        load_capacitance (float): [unit: F] load capacitance.
+        input_capacitance (float): [unit: F] input capacitance.
+        t_sample (float): [unit: s] sampling time, which mainly consists of the amplifier's 
+            settling time.
+        t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
+            consumes power relentlessly.
+        supply (float): [unit: V] supply voltage.
+        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+            ``input_capacitance`` over feedback capacitance.
+        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
+            amplifier's bias current by gm/id method.
+        differential (bool): if using differential-input amplifier or single-input amplifier.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative PRNU standard deviation respect to gain.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -867,6 +1037,26 @@ class Adder(object):
 
 
 class Subtractor(object):
+    """Subtractor
+
+    Args:
+        load_capacitance (float): [unit: F] load capacitance.
+        input_capacitance (float): [unit: F] input capacitance.
+        t_sample (float): [unit: s] sampling time, which mainly consists of the amplifier's 
+            settling time.
+        t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
+            consumes power relentlessly.
+        supply (float): [unit: V] supply voltage.
+        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+            ``input_capacitance`` over feedback capacitance.
+        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
+            amplifier's bias current by gm/id method.
+        differential (bool): if using differential-input amplifier or single-input amplifier.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative PRNU standard deviation respect to gain.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -932,7 +1122,26 @@ class Subtractor(object):
 
 
 class AbsoluteDifference(object):
-    """AbsoluteDifference"""
+    """AbsoluteDifference
+
+    Args:
+        load_capacitance (float): [unit: F] load capacitance.
+        input_capacitance (float): [unit: F] input capacitance.
+        t_sample (float): [unit: s] sampling time, which mainly consists of the amplifier's 
+            settling time.
+        t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
+            consumes power relentlessly.
+        supply (float): [unit: V] supply voltage.
+        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+            ``input_capacitance`` over feedback capacitance.
+        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
+            amplifier's bias current by gm/id method.
+        differential (bool): if using differential-input amplifier or single-input amplifier.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative PRNU standard deviation respect to gain.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -988,7 +1197,16 @@ class AbsoluteDifference(object):
 
 
 class MaxPool(object):
-    """docstring for MaxPool"""
+    """docstring for MaxPool
+
+    Args:
+        supply (float): [unit: V] supply voltage.
+        t_hold (float): [unit: s] holding time, during which the circuit is turned on and consumes power relentlessly.
+        t_readout (float): [unit: s] readout time, during which the maximum voltage is output.
+        load_capacitance (float): [unit: F] load capacitance
+        gain (float): open-loop gain of the common-source amplifier.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+    """
     def __init__(
         self, 
         supply = 1.8,  # [V]
@@ -1067,7 +1285,23 @@ class MaxPool(object):
 
 
 class PassiveAverage(object):
-    """PassiveAverage"""
+    """PassiveAverage
+
+    Args:
+        capacitance_array (array, float): [unit: F] a list of capacitors.
+        vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing at each capacitor.
+        sf_load_capacitance (float): [unit: F] load capacitance.
+        sf_supply (float): [unit: V] supply voltage.
+        sf_output_vs (float): [unit: V] voltage swing at the SF's output node.
+        sf_bias_current (float): [unit: A] bias current.
+        psca_noise (float): the standard deviation of read noise from passive switched capacitor array. 
+            Default value is ``None``.
+        sf_gain (float): the average gain of SF. Default value is ``1.0``.
+        sf_noise (float): the standard deviation of SF read noise. Default value is ``None``.
+        sf_enable_prnu (bool): flag to enable SF PRNU. Default value is ``False``.
+        sf_prnu_std (float): the relative prnu standard deviation respect to SF gain.
+                  prnu gain standard deviation = prnu_std * gain. the default value is ``0.001``.
+    """
     def __init__(
         self,
         # peformance parameters
@@ -1127,7 +1361,23 @@ class PassiveAverage(object):
         )
 
 class PassiveBinning(object):
-    """PassiveBinning"""
+    """PassiveBinning
+
+    Args:
+        capacitance_array (array, float): [unit: F] a list of capacitors.
+        vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing at each capacitor.
+        sf_load_capacitance (float): [unit: F] load capacitance.
+        sf_supply (float): [unit: V] supply voltage.
+        sf_output_vs (float): [unit: V] voltage swing at the SF's output node.
+        sf_bias_current (float): [unit: A] bias current.
+        psca_noise (float): the standard deviation of read noise from passive switched capacitor array. 
+            Default value is ``None``.
+        sf_gain (float): the average gain of SF. Default value is ``1.0``.
+        sf_noise (float): the standard deviation of SF read noise. Default value is ``None``.
+        sf_enable_prnu (bool): flag to enable SF PRNU. Default value is ``False``.
+        sf_prnu_std (float): the relative prnu standard deviation respect to SF gain.
+                  prnu gain standard deviation = prnu_std * gain. the default value is ``0.001``.
+    """
     def __init__(
         self,
         # peformance parameters
@@ -1227,7 +1477,29 @@ class PassiveBinning(object):
 
 
 class ActiveAverage(object):
-    """ActiveAverage"""
+    """ActiveAverage
+
+    Args:
+        load_capacitance (float): [unit: F] load capacitance.
+        input_capacitance (float): [unit: F] input capacitance.
+        t_sample (float): [unit: s] sampling time, which mainly consists of the amplifier's 
+            settling time.
+        t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
+            consumes power relentlessly.
+        supply (float): [unit: V] supply voltage.
+        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+            ``input_capacitance`` over feedback capacitance.
+        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
+            amplifier's bias current by gm/id method.
+        differential (bool): if using differential-input amplifier or single-input amplifier.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative PRNU standard deviation respect to gain.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+        enable_offset (bool): flag to enable adding offset voltage. Default value is ``False``.
+        pixel_offset_voltage: pixel offset voltage in unit of volt (V). Default value is ``0.1``.
+        col_offset_voltage: column-wise offset voltage in unit of volt (V). Default value is ``0.05``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -1295,7 +1567,29 @@ class ActiveAverage(object):
 
 
 class ActiveBinning(object):
-    """ActiveBinning"""
+    """ActiveBinning
+
+    Args:
+        load_capacitance (float): [unit: F] load capacitance.
+        input_capacitance (float): [unit: F] input capacitance.
+        t_sample (float): [unit: s] sampling time, which mainly consists of the amplifier's 
+            settling time.
+        t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
+            consumes power relentlessly.
+        supply (float): [unit: V] supply voltage.
+        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+            ``input_capacitance`` over feedback capacitance.
+        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
+            amplifier's bias current by gm/id method.
+        differential (bool): if using differential-input amplifier or single-input amplifier.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative PRNU standard deviation respect to gain.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+        enable_offset (bool): flag to enable adding offset voltage. Default value is ``False``.
+        pixel_offset_voltage: pixel offset voltage in unit of volt (V). Default value is ``0.1``.
+        col_offset_voltage: column-wise offset voltage in unit of volt (V). Default value is ``0.05``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -1389,7 +1683,24 @@ class ActiveBinning(object):
 
 
 class Voltage2VoltageConv(object):
-    """Voltage2VoltageConv"""
+    """Voltage2VoltageConv
+
+    Args:
+        capacitance_array (array, float): [unit: F] a list of capacitors.
+        vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing at each capacitor.
+        sf_load_capacitance (float): [unit: F] load capacitance.
+        sf_supply (float): [unit: V] supply voltage.
+        sf_output_vs (float): [unit: V] voltage swing at the SF's output node.
+        sf_bias_current (float): [unit: A] bias current.
+        psca_noise (float): the standard deviation of read noise from passive switched capacitor array. 
+            Default value is ``None``.
+        sf_gain (float): the average gain of SF. Default value is ``1.0``.
+        sf_noise (float): the standard deviation of SF read noise. Default value is ``None``.
+        sf_enable_prnu (bool): flag to enable SF PRNU. Default value is ``False``.
+        sf_prnu_std (float): the relative prnu standard deviation respect to SF gain.
+                  prnu gain standard deviation = prnu_std * gain. the default value is ``0.001``.
+
+    """
     def __init__(
         self,
         # peformance parameters
@@ -1538,7 +1849,28 @@ class Voltage2VoltageConv(object):
 
 
 class Time2VoltageConv(object):
-    """Time2VoltageConv"""
+    """Time2VoltageConv
+    
+    Args:
+        cm_supply (float): [unit: V] supply voltage of current mirror.
+        cm_load_capacitance (float): [unit: F] load capacitance of current mirror.
+        cm_t_readout (float): [unit: s] readout time of current mirror, during which the constant current drives
+            the load capacitance from 0 to VDD.
+        cm_i_dc (float): [unit: A] the constant current of current mirror. If ``i_dc == None``, then i_dc is
+            estimated from the other parameters.
+        am_sample_capacitance (float): [unit: F] sample capacitance of passive analog memory.
+        am_supply (float): [unit: V] supply voltage of passive analog memory.
+        cm_gain (float): the average gain of current mirror. Default value is ``1.0``.
+        cm_noise (float): the standard deviation of current mirro read noise. Default value is ``None``.
+        cm_ennable_prnu (bool): flag to enable PRNU of current mirror. Default value is ``False``.
+        cm_prnu_std (float): the relative PRNU standard deviation respect to current mirror gain.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+        am_gain (float): the average gain of analog memory. Default value is ``1.0``.
+        am_noise (float): the standard deviation of analog memory read noise. Default value is ``None``.
+        am_ennable_prnu (bool): flag to enable PRNU of analog memory. Default value is ``False``.
+        am_prnu_std (float): the relative PRNU standard deviation respect to gain of analog memory.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+    """
     def __init__(
         self,
         # performance parameters for current mirror
@@ -1686,7 +2018,29 @@ class Time2VoltageConv(object):
 
 
 class BinaryWeightConv(object):
-    """BinaryWeightConv"""
+    """BinaryWeightConv
+
+    Args:
+        load_capacitance (float): [unit: F] load capacitance.
+        input_capacitance (float): [unit: F] input capacitance.
+        t_sample (float): [unit: s] sampling time, which mainly consists of the amplifier's 
+            settling time.
+        t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
+            consumes power relentlessly.
+        supply (float): [unit: V] supply voltage.
+        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+            ``input_capacitance`` over feedback capacitance.
+        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
+            amplifier's bias current by gm/id method.
+        differential (bool): if using differential-input amplifier or single-input amplifier.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative PRNU standard deviation respect to gain.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+        enable_offset (bool): flag to enable adding offset voltage. Default value is ``False``.
+        pixel_offset_voltage: pixel offset voltage in unit of volt (V). Default value is ``0.1``.
+        col_offset_voltage: column-wise offset voltage in unit of volt (V). Default value is ``0.05``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -1808,7 +2162,18 @@ class BinaryWeightConv(object):
 
 
 class AnalogReLU(object):
-    """AnalogReLU"""
+    """AnalogReLU
+    
+    Args:
+        supply (float): [unit: V] supply voltage.
+        i_bias (float): [unit: A] bias current of the circuit.
+        t_readout (float): [unit: s] readout time, during which the comparison is finished.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain, the default value is ``0.001``.
+    """
     def __init__(
         self,
         # performance parameters
