@@ -11,6 +11,7 @@ At its core, **CamJ** simulates the noise and energy consumption of an CMOS Imag
 Under the surface, **CamJ** models the interplay across main structures of a computational CIS pipeline: pixel sensing → analog processing → digital processing.
 Thus, **CamJ** enables end-to-end modeling and optimization of the CIS architecture from photon ingestion to semantic results.
 
+**This project is under active development.**
 
 Cite Us
 ------------------------------
