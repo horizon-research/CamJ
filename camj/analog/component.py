@@ -1122,7 +1122,7 @@ class Subtractor(object):
 
 
 class AbsoluteDifference(object):
-    """AbsoluteDifference
+    """Absolute Difference
 
     Args:
         load_capacitance (float): [unit: F] load capacitance.
@@ -1197,7 +1197,7 @@ class AbsoluteDifference(object):
 
 
 class MaxPool(object):
-    """docstring for MaxPool
+    """Max Pooling
 
     Args:
         supply (float): [unit: V] supply voltage.
@@ -1285,7 +1285,7 @@ class MaxPool(object):
 
 
 class PassiveAverage(object):
-    """PassiveAverage
+    """Passive Average
 
     Args:
         capacitance_array (array, float): [unit: F] a list of capacitors.
@@ -1361,7 +1361,7 @@ class PassiveAverage(object):
         )
 
 class PassiveBinning(object):
-    """PassiveBinning
+    """Passive Binning
 
     Args:
         capacitance_array (array, float): [unit: F] a list of capacitors.
@@ -1477,7 +1477,7 @@ class PassiveBinning(object):
 
 
 class ActiveAverage(object):
-    """ActiveAverage
+    """Active Average
 
     Args:
         load_capacitance (float): [unit: F] load capacitance.
@@ -1567,7 +1567,7 @@ class ActiveAverage(object):
 
 
 class ActiveBinning(object):
-    """ActiveBinning
+    """Active Binning
 
     Args:
         load_capacitance (float): [unit: F] load capacitance.
@@ -1683,7 +1683,7 @@ class ActiveBinning(object):
 
 
 class Voltage2VoltageConv(object):
-    """Voltage2VoltageConv
+    """Voltage-to-Voltage Convolution
 
     Args:
         capacitance_array (array, float): [unit: F] a list of capacitors.
@@ -1849,7 +1849,7 @@ class Voltage2VoltageConv(object):
 
 
 class Time2VoltageConv(object):
-    """Time2VoltageConv
+    """Time-to-Voltage Convolution
     
     Args:
         cm_supply (float): [unit: V] supply voltage of current mirror.
@@ -2018,7 +2018,7 @@ class Time2VoltageConv(object):
 
 
 class BinaryWeightConv(object):
-    """BinaryWeightConv
+    """Binary Weight Convolution
 
     Args:
         load_capacitance (float): [unit: F] load capacitance.
@@ -2162,7 +2162,7 @@ class BinaryWeightConv(object):
 
 
 class AnalogReLU(object):
-    """AnalogReLU
+    """Analog ReLU
     
     Args:
         supply (float): [unit: V] supply voltage.
