@@ -1,4 +1,4 @@
-"""Noise Model Module
+"""Func Model Module
 
 This module includes all basic noise model for CamJ functional simulation.
 
@@ -24,8 +24,8 @@ import time
 import copy
 
 
-class PhotodiodeNoise(object):
-    """Noise model for photediode.
+class PhotodiodeFunc(object):
+    """Func model for photediode.
 
     This model simulates the behavior of photodiode, including shot noise, dark current
     and dark current non-uniformity.
@@ -48,7 +48,7 @@ class PhotodiodeNoise(object):
         enable_dcnu = False,
         dcnu_std = 0.001,
     ):
-        super(PhotodiodeNoise, self).__init__()
+        super(PhotodiodeFunc, self).__init__()
         self.name = name
         self.dark_current_noise = dark_current_noise
         self.enable_dcnu = enable_dcnu
@@ -104,7 +104,7 @@ class PhotodiodeNoise(object):
     def __repr__(self):
         return self.name
 
-class AnalogToDigitalConverterNoise(object):
+class AnalogToDigitalConverterFunc(object):
     """ADC quantization noise model
 
     This model only consider a coarse-scale ADC noise, which we model in normal distribution.
@@ -128,7 +128,7 @@ class AnalogToDigitalConverterNoise(object):
         max_val: float,
         resolution: int
     ):
-        super(AnalogToDigitalConverterNoise, self).__init__()
+        super(AnalogToDigitalConverterFunc, self).__init__()
         self.name = name
         self.adc_noise = adc_noise
         self.max_val = max_val
@@ -164,7 +164,7 @@ class AnalogToDigitalConverterNoise(object):
     def __repr__(self):
         return self.name
 
-class AbsoluteDifferenceNoise(object):
+class AbsoluteDifferenceFunc(object):
     """A noise model for absolute difference
 
     This noise model simulates the noises happened in absolute difference operation.
@@ -190,7 +190,7 @@ class AbsoluteDifferenceNoise(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
-        super(AbsoluteDifferenceNoise, self).__init__()
+        super(AbsoluteDifferenceFunc, self).__init__()
         self.name = name
         self.gain = gain
         self.noise = noise
@@ -246,7 +246,7 @@ class AbsoluteDifferenceNoise(object):
     def __repr__(self):
         return self.name
 
-class CurrentMirrorNoise(object):
+class CurrentMirrorFunc(object):
     """A noise model for current mirror
 
     Current mirror has two possible outputs to model two functionalities of current mirror.
@@ -276,7 +276,7 @@ class CurrentMirrorNoise(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
-        super(CurrentMirrorNoise, self).__init__()
+        super(CurrentMirrorFunc, self).__init__()
         self.name = name
         self.gain = gain
         self.noise = noise
@@ -343,7 +343,7 @@ class CurrentMirrorNoise(object):
     def __repr__(self):
         return self.name
 
-class PassiveSwitchedCapacitorArrayNoise(object):
+class PassiveSwitchedCapacitorArrayFunc(object):
     """A noise model for passive switched capacitor array
 
     Passive switched capacitor array can realize many mathematical operations such as
@@ -363,7 +363,7 @@ class PassiveSwitchedCapacitorArrayNoise(object):
         num_capacitor,
         noise = None
     ):
-        super(PassiveSwitchedCapacitorArrayNoise, self).__init__()
+        super(PassiveSwitchedCapacitorArrayFunc, self).__init__()
         self.name = name
         self.num_capacitor = num_capacitor
         self.noise = noise
@@ -417,7 +417,7 @@ class PassiveSwitchedCapacitorArrayNoise(object):
     def __repr__(self):
         return self.name
 
-class MaximumVoltageNoise(object):
+class MaximumVoltageFunc(object):
     """A noise model for max voltage array.
 
     Maximum voltage produce element-wise maximum for a list of input signals. It is 
@@ -435,7 +435,7 @@ class MaximumVoltageNoise(object):
         name,
         noise = None
     ):
-        super(MaximumVoltageNoise, self).__init__()
+        super(MaximumVoltageFunc, self).__init__()
         self.name = name
         self.noise = noise
 
@@ -459,7 +459,7 @@ class MaximumVoltageNoise(object):
 
         for input_signal in input_signal_list:
             if input_signal.shape != input_shape:
-                raise Exception("In 'MaximumVoltageNoise', input signal shapes in list are not consistent!")
+                raise Exception("In 'MaximumVoltageFunc', input signal shapes in list are not consistent!")
 
         max_signal = np.zeros(input_shape)
 
@@ -479,7 +479,7 @@ class MaximumVoltageNoise(object):
     def __repr__(self):
         return self.name
 
-class PixelwiseNoise(object):
+class PixelwiseFunc(object):
     """A general interface for pixelwise noise
 
     A general interface for any noise source resided inside each pixel,
@@ -507,7 +507,7 @@ class PixelwiseNoise(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
-        super(PixelwiseNoise, self).__init__()
+        super(PixelwiseFunc, self).__init__()
         self.name = name
         self.gain = gain
         self.noise = noise
@@ -557,7 +557,7 @@ class PixelwiseNoise(object):
     def __repr__(self):
         return self.name
 
-class FloatingDiffusionNoise(object):
+class FloatingDiffusionFunc(object):
     """A noise model for floating diffusion
 
     General assumption of the noise model is that the noise follows a ``zero-mean``
@@ -590,7 +590,7 @@ class FloatingDiffusionNoise(object):
         prnu_std = 0.001
 
     ):
-        super(FloatingDiffusionNoise, self).__init__()
+        super(FloatingDiffusionFunc, self).__init__()
         self.name = name
         self.gain = gain
         self.noise = noise
@@ -647,7 +647,7 @@ class FloatingDiffusionNoise(object):
         return self.name
 
 
-class CorrelatedDoubleSamplingNoise(object):
+class CorrelatedDoubleSamplingFunc(object):
     """A noise model for correlated double sampling module.
 
     General assumption of CDS is gain is 1, read noise follows ``zero-mean`` normal distribution.
@@ -672,7 +672,7 @@ class CorrelatedDoubleSamplingNoise(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
-        super(CorrelatedDoubleSamplingNoise, self).__init__()
+        super(CorrelatedDoubleSamplingFunc, self).__init__()
         self.name = name
         self.gain = gain
         self.noise = noise
@@ -698,7 +698,7 @@ class CorrelatedDoubleSamplingNoise(object):
             2D/3D tensor: signal values after processed by CDS.
         """ 
         if input_signal.shape != reset_noise.shape:
-            raise Exception("input_signal and reset_noise need to be the same shape in 'CorrelatedDoubleSamplingNoise'")
+            raise Exception("input_signal and reset_noise need to be the same shape in 'CorrelatedDoubleSamplingFunc'")
                 
         input_shape = input_signal.shape
 
@@ -731,7 +731,7 @@ class CorrelatedDoubleSamplingNoise(object):
         return self.name
 
 
-class ComparatorNoise(object):
+class ComparatorFunc(object):
     """Comparator noise model
 
     The general assumption for comparator component is that its gain is 1,
@@ -756,7 +756,7 @@ class ComparatorNoise(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
-        super(ComparatorNoise, self).__init__()
+        super(ComparatorFunc, self).__init__()
         self.name = name
         self.gain = gain
         self.noise = noise
@@ -782,7 +782,7 @@ class ComparatorNoise(object):
             2D/3D tensor: signal values in ``input_signal1`` that are greater that corresponding values in ``input_signal2``. Otherwise, output zeros.
         """ 
         if input_signal1.shape != input_signal2.shape:
-            raise Exception("two inputs to 'ComparatorNoise' should be in the same shape.")
+            raise Exception("two inputs to 'ComparatorFunc' should be in the same shape.")
 
         input_shape = input_signal1.shape
         input_diff = input_signal1 - input_signal2
@@ -817,7 +817,7 @@ class ComparatorNoise(object):
         return self.name
 
 
-class ColumnwiseNoise(object):
+class ColumnwiseFunc(object):
     """A general interface for column-wise noise
 
     A general interface for any noise source that applies to
@@ -851,7 +851,7 @@ class ColumnwiseNoise(object):
         pixel_offset_voltage = 0.1,
         col_offset_voltage = 0.05,
     ):
-        super(ColumnwiseNoise, self).__init__()
+        super(ColumnwiseFunc, self).__init__()
         self.name = name
         self.gain = gain
         self.noise = noise

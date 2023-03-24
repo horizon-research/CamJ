@@ -2,7 +2,7 @@ import numpy as np
 from camj.analog.energy_utils import gm_id, get_pixel_parasitic, parallel_impedance, get_delay, get_nominal_supply
 
 
-class PinnedPhotodiodePerf(object):
+class PinnedPhotodiodeEnergy(object):
     """ Pinned photodiode (PD).
 
         The model only contains the dynamic energy of the PD's internal capacitance.
@@ -24,7 +24,7 @@ class PinnedPhotodiodePerf(object):
         return energy
 
 
-class ActivePixelSensorPerf(PinnedPhotodiodePerf):
+class ActivePixelSensorEnergy(PinnedPhotodiodeEnergy):
     """ Active pixel sensor (APS).
 
         The model includes photodiode (PD), floating diffusion (FD), source follower (SF),
@@ -99,7 +99,7 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
                                 get_pixel_parasitic(self.array_vsize, self.tech_node, self.pitch)
                         ) * self.pd_supply * self.output_vs
 
-        energy_pd = super(ActivePixelSensorPerf, self).energy()
+        energy_pd = super(ActivePixelSensorEnergy, self).energy()
         energy = energy_pd + energy_fd + self.num_readout * energy_sf
 
         return energy
@@ -121,13 +121,13 @@ class ActivePixelSensorPerf(PinnedPhotodiodePerf):
         return [input_capacitance, output_capacitance]
 
 
-class DigitalPixelSensorPerf(ActivePixelSensorPerf):
+class DigitalPixelSensorEnergy(ActivePixelSensorEnergy):
     """ Digital pixel sensor (DPS).
 
         The model consists of an APS and an in-pixel ADC.
 
         Args:
-            aps_parameters: same to  "ActivePixelSensorPerf".
+            aps_parameters: same to  "ActivePixelSensorEnergy".
             adc_type (str): the actual ADC type. Please check ADC class for more details.
             adc_fom (float): [unit: J/conversion] ADC's Figure-of-Merit, expressed by energy per conversion.
             adc_resolution (int): ADC's resolution.
@@ -168,14 +168,14 @@ class DigitalPixelSensorPerf(ActivePixelSensorPerf):
         self.adc_reso = adc_reso
 
     def energy(self):
-        energy_aps = super(DigitalPixelSensorPerf, self).energy()
-        energy_adc = AnalogToDigitalConverterPerf(self.pd_supply, self.adc_type, self.adc_fom, self.adc_reso).energy()
+        energy_aps = super(DigitalPixelSensorEnergy, self).energy()
+        energy_adc = AnalogToDigitalConverterEnergy(self.pd_supply, self.adc_type, self.adc_fom, self.adc_reso).energy()
         energy = energy_aps + energy_adc
 
         return energy
 
 
-class PulseWidthModulationPixelPerf(PinnedPhotodiodePerf):
+class PulseWidthModulationPixelEnergy(PinnedPhotodiodeEnergy):
     """ Pulse-Width-Modulation (PWM) Pixel.
 
         The model is based on the design in [JSSC-2020] and [ISSCC-2022].
@@ -217,14 +217,14 @@ class PulseWidthModulationPixelPerf(PinnedPhotodiodePerf):
 
         energy_ramp = self.ramp_capacitance * (self.pd_supply ** 2)
         energy_comparator = self.gate_capacitance * (self.pd_supply ** 2)
-        energy_pd = super(PulseWidthModulationPixelPerf, self).energy()
+        energy_pd = super(PulseWidthModulationPixelEnergy, self).energy()
         energy = energy_pd + self.num_readout * (energy_ramp * 2 + energy_comparator + energy_parasitics)
 
         return energy
 
 
 ########################################################################################################################
-class ColumnAmplifierPerf(object):
+class ColumnAmplifierEnergy(object):
     """ Switched-capacitor amplifier.
     
         The model is based on Fig. 13.5 in [Book-Razavi].
@@ -296,7 +296,7 @@ class ColumnAmplifierPerf(object):
         return [input_capacitance, output_capacitance]
 
 
-class SourceFollowerPerf(object):
+class SourceFollowerEnergy(object):
     """ Source follower (SF) with constant current bias.
 
         This model is applicable to not only the simplest single-transistor source follower but also flipped-voltage-follower (FVF).
@@ -338,7 +338,7 @@ class SourceFollowerPerf(object):
         return [input_capacitance, output_capacitance]
 
 
-class ActiveAnalogMemoryPerf(object):
+class ActiveAnalogMemoryEnergy(object):
     """ Analog memory with active feedback.
     
         The model is based on the design in [JSSC-2004].
@@ -396,7 +396,7 @@ class ActiveAnalogMemoryPerf(object):
         return [input_capacitance, output_capacitance]
 
 
-class PassiveAnalogMemoryPerf(object):
+class PassiveAnalogMemoryEnergy(object):
     """ Analog memory without active feedback.
     
         The model only contains a sample capacitor. Compared to ActiveAnalogMemory it has higher data leakage rate.
@@ -430,7 +430,7 @@ class PassiveAnalogMemoryPerf(object):
 
 
 ########################################################################################################################
-class DigitalToCurrentConverterPerf(object):  # FIXME: function changed! may delete this class.
+class DigitalToCurrentConverterEnergy(object):  # FIXME: function changed! may delete this class.
     """ Current digital-to-analog converter.
     
         The model consists of a constant current path and a load capacitor.
@@ -457,7 +457,7 @@ class DigitalToCurrentConverterPerf(object):  # FIXME: function changed! may del
         return energy
 
 
-class CurrentMirrorPerf(object):
+class CurrentMirrorEnergy(object):
     """ Current mirror.
     
         The model consists of a constant current path and a load capacitor.
@@ -489,7 +489,7 @@ class CurrentMirrorPerf(object):
         return energy
 
 
-class PassiveSwitchedCapacitorArrayPerf(object):
+class PassiveSwitchedCapacitorArrayEnergy(object):
     """ Passive switched-capacitor array.
     
         The model consists of a list of capacitors and a list of voltages that corresponds to the voltage swing at each capacitor.
@@ -513,7 +513,7 @@ class PassiveSwitchedCapacitorArrayPerf(object):
         return energy
 
 
-class MaximumVoltagePerf(object):
+class MaximumVoltageEnergy(object):
     """ A circuit that outputs the maximum voltage among the input voltages.
         
         The model is based on the design in [Sensors-2020].
@@ -562,7 +562,7 @@ class MaximumVoltagePerf(object):
 
 
 ########################################################################################################################
-class ComparatorPerf(object):
+class ComparatorEnergy(object):
     """ Dynamic voltage comparator.
 
         Args:
@@ -586,7 +586,7 @@ class ComparatorPerf(object):
         return energy
 
 
-class AnalogToDigitalConverterPerf(object):
+class AnalogToDigitalConverterEnergy(object):
     """ Analog-to-digital converter.
 
         Args:
@@ -617,7 +617,7 @@ class AnalogToDigitalConverterPerf(object):
         return 1 / 12 * LSB ** 2
 
 
-class GeneralCircuitPerf(object):
+class GeneralCircuitEnergy(object):
     """ Energy model for general circuits from first principle.
 
         Args:
