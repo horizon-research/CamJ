@@ -10,13 +10,23 @@ This module includes all basic noise model for CamJ functional simulation.
 .. note::
     Because nearly all of our implemented components are linear circuits which have linear transfer functions, we can use "gain" and "gain variation"
     as the proxy to describe the component's functional behavior.
-    The proxy is also applicable to ADCs and comparators which are non-linear (but uniform) circuits because their transfer functions have linear frontiers.
-    The proxy is also applicable to other non-linear circuits, such as the circuit that performs quantize(log(x1/x2)) in [JSSC-2019],
-    by using a set of "gain" and "gain variation" to approximate the non-linear transfer function in piece-wise linear manner.
+    
+    The proxy is also applicable to quantization circuits (ADCs and comparators), which are non-linear circuits but have uniformly-stepped transfer functions.
+    We describe these transfer functions by applying a "gain" and a "gain variation" to their linear frontiers but ignoring the non-linear effect at each
+    quantization step (i.e., DNL, INL). 
+    
+    The proxy is also applicable to those non-linear circuits whose transfer functions are non-uniform but can be approximated in piece-wise linear manner.
+    For example, the circuit that performs quantize(log(x1/x2)) in [JSSC-2019] can be described by a set of "gain"s and "gain variation"s and each pair of "gain"
+    and "gain variation" describes a linear segment of the transfer function.
+    
+    However, the proxy is not applicable to the non-linear circuits which do not belong to either of the above, such as the circuit that generates
+    the maximum output voltage from a group of input voltages in [Sensors-2020]. For those circuits, we only add the read_noise and do not apply the gain.
+    
+.. note::
     Note that the proxy doesn't always reflect the physical reality of the circuit, meaning that the "gain" may not be an explicit
     parameter in the circuit and the "gain variation" is not analytically derived from the circuit parameters.
     However, the proxy trades low level circuit details off for the model's simplicity.
-
+    
 References Link:
     * JSSC-2019: A Data-Compressive 1.5/2.75-bit Log-Gradient QVGA Image Sensor With Multi-Scale Readout for Always-On Object Detection.
         https://ieeexplore.ieee.org/document/8844721
@@ -111,7 +121,7 @@ class PhotodiodeFunc(object):
 class AnalogToDigitalConverterFunc(object):
     """Func model for ADC.
 
-    This model only consider a coarse-scale ADC noise, which we model in normal distribution.
+    This model only considers a coarse-scale ADC noise, which we model in normal distribution.
     We don't consider non-linear noise errors which can be calibrated during manufacture.
 
     Mathematical Expression:
@@ -351,7 +361,7 @@ class PassiveSwitchedCapacitorArrayFunc(object):
     """Func model for passive switched capacitor array.
 
     Passive switched capacitor array can realize many mathematical operations such as
-    average, addition, multiplication.
+    average, addition/subtraction, and multiplication.
 
     Mathematical Expression:
         out = Average(in_1, ..., in_N)  + Norm(noise)
@@ -450,7 +460,7 @@ class MaximumVoltageFunc(object):
         random_seed = int(time.time())
         self.rs = np.random.RandomState(random_seed)
 
-    def simulate_output(self, input_signal_list: list): # FIXME: this is not a linear circuit
+    def simulate_output(self, input_signal_list: list):
         """apply gain and noise to input signal
 
         Args:
