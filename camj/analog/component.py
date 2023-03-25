@@ -154,6 +154,11 @@ class ActivePixelSensor(object):
         ]
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
@@ -325,9 +330,19 @@ class DigitalPixelSensor(object):
         )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         if not isinstance(input_signal_list, list):
             raise Exception("Input signal to DPS needs to be a list of numpy array!")
 
@@ -374,6 +389,11 @@ class PulseWidthModulationPixel(object):
         )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
@@ -461,6 +481,11 @@ class ColumnAmplifier(object):
         )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
@@ -531,6 +556,11 @@ class SourceFollower(object):
         )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
@@ -604,6 +634,11 @@ class ActiveAnalogMemory(object):
         )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.energy_model.energy() 
 
     def noise(self, input_signal_list):
@@ -667,6 +702,11 @@ class PassiveAnalogMemory(object):
         )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
@@ -739,6 +779,11 @@ class CurrentMirror(object):
         )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
@@ -796,6 +841,11 @@ class PassiveSwitchedCapacitorArray(object):
         )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
@@ -854,6 +904,11 @@ class Comparator(object):
         )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
@@ -910,6 +965,11 @@ class AnalogToDigitalConverter(object):
         )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
@@ -974,6 +1034,11 @@ class DigitalToCurrentConverter(object):
         )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
@@ -1038,6 +1103,11 @@ class MaximumVoltage(object):
         )
         
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
@@ -1063,6 +1133,11 @@ class GeneralCircuit(object):
         )
         
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
@@ -1150,6 +1225,11 @@ class Adder(object):
             )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         # here multiply by 2, because two input signal go through column amplifier
         return self.energy_model.energy() * 2 
 
@@ -1249,6 +1329,11 @@ class Subtractor(object):
             )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         # here multiply by 2, because two input signal go through column amplifier
         return self.energy_model.energy() * 2 
 
@@ -1340,6 +1425,11 @@ class AbsoluteDifference(object):
         )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         # here multiply by 2, because two input signal go through column amplifier
         return self.energy_model.energy() * 2 
 
@@ -1419,6 +1509,11 @@ class MaxPool(object):
         self.kernel_size = kernel_size[0][:2]
         
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         if self.kernel_size is None:
             raise Exception("kernel_size in 'MaxPool' hasn't not been initialized yet!")
 
@@ -1538,6 +1633,11 @@ class PassiveAverage(object):
         )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.psca_energy_model.energy() + self.sf_energy_model.energy()
 
     def noise(self, input_signal_list):
@@ -1642,6 +1742,11 @@ class PassiveBinning(object):
         self.kernel_size = kernel_size[0][:2]
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.psca_energy_model.energy() + self.sf_energy_model.energy()
 
     def noise(self, input_signal_list):
@@ -1769,6 +1874,11 @@ class ActiveAverage(object):
         self.kernel_size = kernel_size[0][:2]
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.energy_model.energy() * self.kernel_size[0] * self.kernel_size[1]
 
     def noise(self, input_signal_list):
@@ -1875,6 +1985,11 @@ class ActiveBinning(object):
         self.kernel_size = kernel_size[0][:2]
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.energy_model.energy() * self.kernel_size[0] * self.kernel_size[1]
 
     def noise(self, input_signal_list):
@@ -2007,6 +2122,11 @@ class Voltage2VoltageConv(object):
         )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.psca_energy_model.energy() + self.sf_energy_model.energy()
 
     def _set_conv_config(self, kernel_size, num_kernels, stride):
@@ -2198,6 +2318,11 @@ class Time2VoltageConv(object):
         )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         if self.kernel_size is None:
             raise Exception("'kernel_size' in 'Time2CurrentConv' hasn't been initialized.")
 
@@ -2369,6 +2494,11 @@ class BinaryWeightConv(object):
         )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.energy_model.energy()
 
     def _set_conv_config(self, kernel_size, num_kernels, stride):
@@ -2494,6 +2624,11 @@ class AnalogReLU(object):
         )
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):

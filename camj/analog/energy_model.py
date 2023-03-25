@@ -575,6 +575,11 @@ class PassiveSwitchedCapacitorArrayEnergy(object):
         self.vs_array = vs_array
 
     def energy(self):
+        """Calculate Energy
+
+        Returns:
+            float: the energy consumption of this analog compoenent in unit of ``J``.
+        """
         energy = np.sum(np.multiply(self.capacitance_array, [vs ** 2 for vs in self.vs_array]))
         return energy
 
