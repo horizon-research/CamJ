@@ -549,6 +549,15 @@ class SourceFollower(object):
 class ActiveAnalogMemory(object):
     """Active Analog Memory
     
+    This class models the behavior of active analog memory. The model itself consists of a capacitor,
+    a compensation capacitor, and an amplifier which holds the stored analog data through feedback.
+    
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.ActiveAnalogMemoryEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.PixelwiseFunc``.
+
     Args:
         sample_capacitance (float): [unit: F] sample capacitance.
         comp_capacitance (float): [unit: F] compensation capacitance
@@ -613,6 +622,15 @@ class ActiveAnalogMemory(object):
 class PassiveAnalogMemory(object):
     """Passive Analog Memory
 
+    This class models the behavior of passive analog memory. The model only contains a sample capacitor. 
+    Compared to active analog memory, it has higher data leakage rate.
+    
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.PassiveAnalogMemoryEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.PixelwiseFunc``.
+
     Args:
         sample_capacitance (float): [unit: F] sample capacitance.
         supply (float): [unit: V] supply voltage.
@@ -664,7 +682,16 @@ class PassiveAnalogMemory(object):
         return (self.func_model.name, output_signal_list)
 
 class CurrentMirror(object):
-    """Current mirror.
+    """Current Mirror.
+
+    This class models the behavior of current mirror. The class models a constant current path and
+    a load capacitor.
+    
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.CurrentMirrorEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.CurrentMirrorFunc``.
 
     Args:
         supply (float): [unit: V] supply voltage.
@@ -734,6 +761,16 @@ class CurrentMirror(object):
 class PassiveSwitchedCapacitorArray(object):
     """Passive Switched Capacitor Array
 
+    The model consists of a list of capacitors and a list of voltages that corresponds to 
+    the voltage swing at each capacitor. The model is used to represent all passive 
+    switched-capacitor computational circuits, including charge-redistribution-based MAC operation.
+
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.PassiveSwitchedCapacitorArrayEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
+
     Args:
         capacitance_array (array, float): [unit: F] a list of capacitors.
         vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing at each capacitor.
@@ -770,6 +807,14 @@ class PassiveSwitchedCapacitorArray(object):
 
 class Comparator(object):
     """Dynamic Voltage Comparator
+
+    The class models the behavior of dynamic voltage comparator.
+
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.ComparatorEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.ComparatorFunc``.
 
     Args:
         supply (float): [unit: V] supply voltage.
@@ -824,6 +869,14 @@ class Comparator(object):
 class AnalogToDigitalConverter(object):
     """Analog-to-Digital Converter.
 
+    This class model the behavior of ADC.
+
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.AnalogToDigitalConverterEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.AnalogToDigitalConverterFunc``.
+
     Args:
         supply (float): [unit: V] supply voltage.
         type (str): ADC type.
@@ -871,7 +924,16 @@ class AnalogToDigitalConverter(object):
 
 
 class DigitalToCurrentConverter(object):
-    """Digital-to-Current Converter.
+    """Digital-to-Current Converter
+
+    This class models the behavior of Digital-to-Current Converter. This model consists of a 
+    constant current path and a load capacitor.
+
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.DigitalToCurrentConverterEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.PixelwiseFunc``.
 
     Args:
         supply (float): [unit: V] supply voltage.
@@ -926,8 +988,22 @@ class DigitalToCurrentConverter(object):
 
 
 class MaximumVoltage(object):
-    """A circuit that outputs the maximum voltage among the input voltages.
+    """Maximum Voltage
 
+    A circuit that outputs the maximum voltage among the input voltages. The output of its ``noise()``
+    function takes a list of input signals matrices and compare element-wise across those input signals.
+    The return of "noise()" is the maximum value for each element-wise comparison across those input signals.
+
+    For instance:
+        two lists as input signals, ``[0, 1, 2, 3]`` and ``[3, 2, 1, 0]`` will output ``[3, 2, 2, 3]``
+        as the result.
+
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.MaximumVoltageEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.MaximumVoltageFunc``.
+    
     Args:
         supply (float): [unit: V] supply voltage.
         t_hold (float): [unit: s] holding time, during which the circuit is turned on and consumes power relentlessly.
@@ -994,6 +1070,21 @@ class GeneralCircuit(object):
 
 class Adder(object):
     """Adder
+
+    This class models the behavior of adder in analog processing. It can be used to model element-wise
+    addition for two matrices of analog signals. This adder class contains two column ampilifer....[TODO]
+
+    This class can be implemented as a pixel-wise component (each pixel contains an adder) or a column-wise
+    component (one-dimensional array to perform addition for all 2D pixel array).
+
+    For instance:
+        two lists as input signals, ``[0, 1, 2, 3]`` and ``[3, 2, 1, 0]`` will output ``[3, 3, 3, 3]``
+        as the result.
+
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.ColumnAmplifierEnergy``.
+
+    To see the details of function modeling, please refer its function ``noise()``.
 
     Args:
         load_capacitance (float): [unit: F] load capacitance.
@@ -1078,6 +1169,21 @@ class Adder(object):
 
 class Subtractor(object):
     """Subtractor
+
+    This class models the behavior of subtractor in analog processing. It can be used to model element-wise
+    subtraction for two matrices of analog signals. This adder class contains two column ampilifer....[TODO]
+
+    This class can be implemented as a pixel-wise component (each pixel contains an sub) or a column-wise
+    component (one-dimensional array to perform subtraction for all 2D pixel array).
+
+    For instance:
+        two lists as input signals, ``[0, 1, 2, 3]`` and ``[3, 2, 1, 0]`` will output ``[-3, -1, 1, 3]``
+        as the result.
+
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.ColumnAmplifierEnergy``.
+
+    To see the details of function modeling, please refer its function ``noise()``.
 
     Args:
         load_capacitance (float): [unit: F] load capacitance.
@@ -1164,6 +1270,22 @@ class Subtractor(object):
 class AbsoluteDifference(object):
     """Absolute Difference
 
+    This class models the behavior of absolution difference in analog processing. It can be used to 
+    model element-wise subtraction for two matrices of analog signals. This adder class contains 
+    two column ampilifer....[TODO]
+
+    This class can be implemented as a pixel-wise component (each pixel contains an abs) or a column-wise
+    component (one-dimensional array to perform absolute difference for all 2D pixel array).
+
+    For instance:
+        two lists as input signals, ``[0, 1, 2, 3]`` and ``[3, 2, 1, 0]`` will output ``[3, 1, 1, 3]``
+        as the result.
+
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.ColumnAmplifierEnergy``.
+
+    To see the details of function modeling, please refer its function ``noise()``.
+
     Args:
         load_capacitance (float): [unit: F] load capacitance.
         input_capacitance (float): [unit: F] input capacitance.
@@ -1238,6 +1360,21 @@ class AbsoluteDifference(object):
 
 class MaxPool(object):
     """Max Pooling
+
+    This class performs max pooling in analog processing. The model consists of a constant current path,
+    a group of common-source amplifiers, and a load capacitor.
+
+    Based on the mapping software stage, it will perform max pooling with the given kernel size.
+
+    For instance:
+        If the input signal is a 2D matrix, ``[[1, 1], [2, 3]]``, a ``2x2`` max pooling will output
+        ``[[3]]`` as the result.
+
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.MaximumVoltageEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.MaximumVoltageFunc``.
 
     Args:
         supply (float): [unit: V] supply voltage.
@@ -1327,6 +1464,21 @@ class MaxPool(object):
 class PassiveAverage(object):
     """Passive Average
 
+    The class performs element-wise average. It uses passive switched capacitor array to realize
+    the functionality of averaging and uses source followers for signal readout.
+
+    For instance:
+        if two input signals, ``[1, 2, 3]`` and ``[3, 4, 5]``, are used as input in ``noise()`` function,
+        the expected output signals will be ``[2, 3, 4]``.
+
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.PassiveSwitchedCapacitorArrayEnergy``.
+        * ``analog.energy_model.SourceFollowerEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
+        * ``analog.function_model.PixelwiseFunc``.
+
     Args:
         capacitance_array (array, float): [unit: F] a list of capacitors.
         vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing at each capacitor.
@@ -1402,6 +1554,23 @@ class PassiveAverage(object):
 
 class PassiveBinning(object):
     """Passive Binning
+
+    The class performs binning operations. It uses passive switched capacitor array to realize
+    the functionality of averaging (binning) and uses source followers for signal readout.
+
+    The binning kernel size and stride are determined by the mapped software stage.
+
+    For instance:
+        if ``[[1, 2], [3, 4]]`` is used as input for a ``2x2`` binning, the expected output signals
+        will be ``[2.5]``.
+
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.PassiveSwitchedCapacitorArrayEnergy``.
+        * ``analog.energy_model.SourceFollowerEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
+        * ``analog.function_model.PixelwiseFunc``.
 
     Args:
         capacitance_array (array, float): [unit: F] a list of capacitors.
@@ -1519,6 +1688,18 @@ class PassiveBinning(object):
 class ActiveAverage(object):
     """Active Average
 
+    The class performs element-wise average. It is implemented by two column amplifiers. [TODO].
+
+    For instance:
+        if two input signals, ``[1, 2, 3]`` and ``[3, 4, 5]``, are used as input in ``noise()`` function,
+        the expected output signals will be ``[2, 3, 4]``.
+
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.ColumnAmplifierEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.ColumnwiseFunc``.
+
     Args:
         load_capacitance (float): [unit: F] load capacitance.
         input_capacitance (float): [unit: F] input capacitance.
@@ -1608,6 +1789,22 @@ class ActiveAverage(object):
 
 class ActiveBinning(object):
     """Active Binning
+
+    The class performs binning operations. It is implemented by two column amplifiers. [TODO].
+
+    The binning kernel size and stride are determined by the mapped software stage.
+
+    For instance:
+        if ``[[1, 2], [3, 4]]`` is used as input for a ``2x2`` binning, the expected output signals
+        will be ``[2.5]``.
+
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.PassiveSwitchedCapacitorArrayEnergy``.
+        * ``analog.energy_model.SourceFollowerEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
+        * ``analog.function_model.PixelwiseFunc``.
 
     Args:
         load_capacitance (float): [unit: F] load capacitance.
@@ -1724,6 +1921,22 @@ class ActiveBinning(object):
 
 class Voltage2VoltageConv(object):
     """Voltage-to-Voltage Convolution
+
+    This class performs convolution operations in analog domain. The convolution is realized by
+    passive switched capacitor array, the capacitance of each capacitor is served as kernel weight.
+    Source follower is used for signal readout.
+
+    .. Note::
+        Map corresponding ``WeightInput`` in software pipeline definition directly to this class 
+        for correct functional simulation.
+
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.PassiveSwitchedCapacitorArrayEnergy``.
+        * ``analog.energy_model.SourceFollowerEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
+        * ``analog.function_model.PixelwiseFunc``.
 
     Args:
         capacitance_array (array, float): [unit: F] a list of capacitors.
@@ -1890,6 +2103,22 @@ class Voltage2VoltageConv(object):
 
 class Time2VoltageConv(object):
     """Time-to-Voltage Convolution
+
+    This class performs convolution operations in analog domain. The convolution is realized by
+    current mirror, the input current is used as kernel weight and the time signal from PWM pixel
+    is used as input in convolution layer. Passive Analog Memory is used to store signal readout. [TODO]
+
+    .. Note::
+        Map corresponding ``WeightInput`` in software pipeline definition to a ``DigitalToCurrentConverter``
+        and then connect the ``DigitalToCurrentConverter`` to this class for correct functional simulation.
+
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.CurrentMirrorEnergy``.
+        * ``analog.energy_model.PassiveAnalogMemoryEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.CurrentMirrorFunc``.
+        * ``analog.function_model.PixelwiseFunc``.
     
     Args:
         cm_supply (float): [unit: V] supply voltage of current mirror.
@@ -2060,6 +2289,21 @@ class Time2VoltageConv(object):
 class BinaryWeightConv(object):
     """Binary Weight Convolution
 
+    This class performs binary convolution operations in analog domain. All the kernel weights in this
+    convolution operation should be either ``-1`` or ``1``. The convolution is realized by
+    driving all positive weight input signals to one capacitor and all negative ones to another capacitor,
+    and then, uses a comparator to compare the final output. [TODO]
+
+    .. Note::
+        Map corresponding ``WeightInput`` in software pipeline definition directly to this class 
+        for correct functional simulation.
+
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.ColumnAmplifierEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.ColumnwiseFunc``.
+
     Args:
         load_capacitance (float): [unit: F] load capacitance.
         input_capacitance (float): [unit: F] input capacitance.
@@ -2203,6 +2447,14 @@ class BinaryWeightConv(object):
 
 class AnalogReLU(object):
     """Analog ReLU
+
+    This class performs ReLU operation using analog comparator.
+
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.ComparatorEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.ComparatorFunc``.
     
     Args:
         supply (float): [unit: V] supply voltage.
