@@ -41,10 +41,18 @@ class ActivePixelSensor(object):
     """Active Pixel Sensor Model
 
     Our APS model includes modeling photodiode (PD), floating diffusion (FD), source follower (SF),
-    and parasitic during the readout.
+    and parasitic during the readout. This APS model supports energy estimation for both 3T-APS and
+    4T-APS. Users need to define `num_transistor` to get the correct energy estimation.
 
-    Our APS model supports energy estimation for both 3T-APS and 4T-APS. Users need to define
-    `num_transistor` to get the correct energy estimation.
+    This APS model is a wrapper class for its energy model:
+        * ``analog.energy_model.ActivePixelSensorEnergy``.
+    
+    The functional models are:
+        * ``analog.function_model.PhotodiodeFunc``.
+        * ``analog.function_model.FloatingDiffusionFunc``.
+        * ``analog.function_model.PixelwiseFunc``. 
+
+    Please check out those classes for more details.
 
     Args:
         pd_capacitance (float): [unit: F] the capacitance of PD.
@@ -161,10 +169,18 @@ class ActivePixelSensor(object):
 class DigitalPixelSensor(object):
     """Digital Pixel Sensor
 
-    This class models the energy consumption of digital pixel sensor (DPS).
+    This class models the energy consumption of digital pixel sensor (DPS). This DPS class models
+    behavior of a APS and an per-pixel ADC.
 
-    It is basically a wrapper function to include one APS and one ADC, which contains the actual
-    implementation of DPS.
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.DigitalPixelSensorEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.PhotodiodeFunc``.
+        * ``analog.function_model.FloatingDiffusionFunc``.
+        * ``analog.function_model.PixelwiseFunc``.
+        * ``analog.function_model.CorrelatedDoubleSamplingFunc``.
+        * ``analog.function_model.AnalogToDigitalConverterFunc``.
 
     Args:
         pd_capacitance (float): [unit: F] the capacitance of PD.
@@ -326,6 +342,11 @@ class PulseWidthModulationPixel(object):
     The modeled PWM pixel consists of a photodiode (PD), a ramp signal generator, and a comparator.
     The comparator output toggles when the ramp signal is smaller than the pixel voltage at PD.
 
+    This PWM pixel class **ONLY** supports energy modeling, currently no functional modeling.
+
+    For energy modeling, please check out ``analog.energy_model.PulseWidthModulationPixelEnergy``
+    for more details.
+
     Args:
         pd_capacitance: PD capacitance.
         pd_supply: PD voltage supply.
@@ -362,6 +383,17 @@ class PulseWidthModulationPixel(object):
 
 class ColumnAmplifier(object):
     """Column Amplifier
+
+    The class models the hardware behavior of a typical column amplifier. It includes an input capacitor,
+    a feedback capacitor, a load capacitor, and an amplifier. This amplifier can be used either as 
+    pixel array's column amplifier or as a general-purpose switched-capacitor amplifier, such as
+    switched-capacitor integrator, switched-capacitor subtractor, and switched-capacitor multiplier.
+
+    This class supports both energy modeling and functional modeling. The details of energy modeling, please check out:
+        * ``analog.energy_model.ColumnAmplifierEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.ColumnwiseFunc``.
 
     Args:
         load_capacitance (float): [unit: F] load capacitance.
@@ -447,8 +479,16 @@ class ColumnAmplifier(object):
 class SourceFollower(object):
     """Source Follower
 
-    NMOS-based constant current-biased source follower.
+    This class models the behavior of source follower. It can be applied to not only the single-transistor
+    source follower but also flipped-voltage-follower (FVF).
     
+    To see the details of energy modeling, please check out:
+        * ``analog.energy_model.SourceFollowerEnergy``.
+
+    To see the details of function modeling, please refer:
+        * ``analog.function_model.PixelwiseFunc``.
+    
+
     Args:
         load_capacitance (float): [unit: F] load capacitance.
         supply (float): [unit: V] supply voltage.
