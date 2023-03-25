@@ -14,6 +14,10 @@ Thus, CamJ enables end-to-end modeling and optimization of the CIS architecture 
 - `tests`: test cases.
 - `test_imgs`: sample inputs to CamJ, i.e., noise-free images.
 
+## Documentation
+
+The documentation is hosted [here](https://camj.readthedocs.io/en/latest/).
+
 ## Installing CamJ
 
 The code is written entirely in Python, and requires minimal external packages, which are all listed in `requirements.txt` or `requirements.yml`. We recommend to use package management system like `Conda`. 

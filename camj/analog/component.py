@@ -1,41 +1,78 @@
+"""Analog Component Interface
+
+This module contains the high-level interface to configure analog component and performs 
+functional and energy simulation.
+
+Each analog component class contains two main functions, ``energy()`` and ``noise(input_signals)``.
+``energy()`` function calculates the energy of the analog component. ``noise(input_signals)`` function
+simulates the functional properties with the given input signals.
+
+Examples:
+        To run energy simulation:
+
+        >>> energy_number = [analog_component].energy()
+
+        To run functional simulation:
+
+        >>> output_signals = [analog_component].noise(input_signals)
+
+"""
+
 import numpy as np
 import time
 
 # import local modules
 from camj.analog.function_utils import default_functional_simulation
-from camj.analog.energy_model import  ColumnAmplifierPerf, SourceFollowerPerf,\
-                                ActiveAnalogMemoryPerf, PassiveAnalogMemoryPerf,\
-                                DigitalToCurrentConverterPerf, CurrentMirrorPerf,\
-                                ComparatorPerf, PassiveSwitchedCapacitorArrayPerf,\
-                                AnalogToDigitalConverterPerf, DigitalToCurrentConverterPerf,\
-                                MaximumVoltagePerf, GeneralCircuitPerf, ActivePixelSensorPerf,\
-                                DigitalPixelSensorPerf, PulseWidthModulationPixelPerf
-from camj.analog.function_model import ColumnwiseNoise, PixelwiseNoise, FloatingDiffusionNoise,\
-                                CurrentMirrorNoise, ComparatorNoise, AnalogToDigitalConverterNoise,\
-                                PassiveSwitchedCapacitorArrayNoise, CorrelatedDoubleSamplingNoise,\
-                                AbsoluteDifferenceNoise, MaximumVoltageNoise, PhotodiodeNoise
+from camj.analog.energy_model import  ColumnAmplifierEnergy, SourceFollowerEnergy,\
+                                ActiveAnalogMemoryEnergy, PassiveAnalogMemoryEnergy,\
+                                DigitalToCurrentConverterEnergy, CurrentMirrorEnergy,\
+                                ComparatorEnergy, PassiveSwitchedCapacitorArrayEnergy,\
+                                AnalogToDigitalConverterEnergy, DigitalToCurrentConverterEnergy,\
+                                MaximumVoltageEnergy, GeneralCircuitEnergy, ActivePixelSensorEnergy,\
+                                DigitalPixelSensorEnergy, PulseWidthModulationPixelEnergy
+from camj.analog.function_model import ColumnwiseFunc, PixelwiseFunc, FloatingDiffusionFunc,\
+                                CurrentMirrorFunc, ComparatorFunc, AnalogToDigitalConverterFunc,\
+                                PassiveSwitchedCapacitorArrayFunc, CorrelatedDoubleSamplingFunc,\
+                                AbsoluteDifferenceFunc, MaximumVoltageFunc, PhotodiodeFunc
 
 
 # Active pxiel sensor
 class ActivePixelSensor(object):
-    """Pixel sensor analog energy model
+    """Active Pixel Sensor Model
 
-        Our APS model includes modeling photodiode (PD), floating diffusion (FD), source follower (SF,
-        and parasitic during the readout.
+    Our APS model includes modeling photodiode (PD), floating diffusion (FD), source follower (SF),
+    and parasitic during the readout.
 
-        Our APS model supports energy estimation for both 3T-APS and 4T-APS. Users need to define
-        `num_transistor` to get the correct energy estimation.
+    Our APS model supports energy estimation for both 3T-APS and 4T-APS. Users need to define
+    `num_transistor` to get the correct energy estimation.
 
-        Args:
-            pd_capacitance: the capacitance of PD.
-            pd_supply: supply voltage
-            output_vs: output voltage swing, the typical value range is [?, ?].
-            num_transistor: this parameters define 3T or 4T APS.
-            num_readout: if enable CDS, then num_readout is 2 otherwise 1
-            load_capacitance: load capacitance at the output of the pixel
-            tech_node: the technology process node.
-            pitch: pitch, pixel pitch size (width or height)
-            array_vsize: pixel array vertical size to estimate parasitic capacitance on vertical wire.
+    Args:
+        pd_capacitance (float): [unit: F] the capacitance of PD.
+        pd_supply (float): [unit: V] supply voltage of pixel.
+        dynamic_sf (bool): using dynamic SF or not. In most cases, the in-pixel SF is not dynamic, meaning that it is
+        statically-biased by a constant current. However, some works [JSSC-2021] use dynamic SF to save energy.
+        output_vs (float): [unit: V] voltage swing at SF's output node.
+        Typically it is one or two units of threshold voltage smaller than pd_supply, depending on the pixel's circuit structure.
+        num_transistor (int): {3 or 4}. It defines using 3T APS or 4T APS.
+        num_readout (int): {2 or 1}. It defines enabling CDS or not.
+        load_capacitance (float): [unit: F] load capacitance at the SF's output node.
+        tech_node (int): [unit: nm] pixel's process node.
+        pitch (float): [unit: um] pixel pitch size (width or height).
+        array_vsize (int): the vertical size of the entire pixel array. This is used to estimate the parasitic capacitance on the SF's readout wire.
+        dark_current_noise (float): average dark current noise in unit of electrons (e-).
+        enable_dcnu (bool): flag to enable dark current non-uniformity, the default value is ``False``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        dcnu_std (float): dcnu standard deviation percentage. it is relative number respect
+            to ``dark_current_noise``, the dcnu standard deviation is,
+            ``dcnu_std`` * ``dark_current_noise``, the default value is ``0.001``.
+        fd_gain (float): the gain of FD, the default value is ``1.0``.
+        fd_noise (float): the standard deviation of read noise from FD. the default value is ``0.``.
+        fd_prnu_std (float): relative PRNU standard deviation respect to FD gain. 
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+        sf_gain (float): the gain of SF, the default value is ``1.0``.
+        sf_noise (float): the standard deviation of read noise from SF. the default value is ``0.``.
+        sf_prnu_std (float): relative PRNU standard deviation respect to SF gain. 
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
     """
     def __init__(
         self,
@@ -70,7 +107,7 @@ class ActivePixelSensor(object):
         else:
             self.num_readout = 1
 
-        self.perf_model = ActivePixelSensorPerf(
+        self.energy_model = ActivePixelSensorEnergy(
             pd_capacitance = pd_capacitance,
             pd_supply = pd_supply,
             dynamic_sf = dynamic_sf,
@@ -85,13 +122,13 @@ class ActivePixelSensor(object):
         )
 
         self.noise_components = [
-            PhotodiodeNoise(
+            PhotodiodeFunc(
                 name = "Photodiode",
                 dark_current_noise = dark_current_noise,
                 enable_dcnu = enable_dcnu,
                 dcnu_std = dcnu_std
             ),
-            FloatingDiffusionNoise(
+            FloatingDiffusionFunc(
                 name = "FloatingDiffusion",
                 gain = fd_gain,
                 noise = fd_noise,
@@ -99,7 +136,7 @@ class ActivePixelSensor(object):
                 enable_prnu = enable_prnu,
                 prnu_std = fd_prnu_std
             ),
-            PixelwiseNoise(
+            PixelwiseFunc(
                 name = "SourceFollower",
                 gain = sf_gain,
                 noise = sf_noise,
@@ -109,7 +146,7 @@ class ActivePixelSensor(object):
         ]
 
     def energy(self):
-        return self.perf_model.energy()
+        return self.energy_model.energy()
 
     def noise(self, input_signal_list):
         if not isinstance(input_signal_list, list):
@@ -122,27 +159,51 @@ class ActivePixelSensor(object):
 
 # digital pixel sensor
 class DigitalPixelSensor(object):
-    """
-        Digital Pixel Sensor
+    """Digital Pixel Sensor
 
-        This class models the energy consumption of digital pixel sensor (DPS).
+    This class models the energy consumption of digital pixel sensor (DPS).
 
-        It is basically a wrapper function to include one APS and one ADC. That is the actual
-        implementation of DPS.
+    It is basically a wrapper function to include one APS and one ADC, which contains the actual
+    implementation of DPS.
 
-        Args:
-            pd_capacitance: the capacitance of PD.
-            pd_supply: voltage supply of PD.
-            output_vs: output voltage swing.
-            num_transistor: this parameters define 3T or 4T APS.
-            num_readout: number of pixel readout times.
-            load_capacitance: load capacitance
-            tech_node: the technology process node.
-            pitch: pixel pitch
-            array_vsize: pixel array vertical size,
-            adc_type: the actual ADC type. Please check ADC class for more details.
-            adc_fom: ???
-            adc_resolution: the resolution of ADC. typical value range is from XX to XX.
+    Args:
+        pd_capacitance (float): [unit: F] the capacitance of PD.
+        pd_supply (float): [unit: V] supply voltage of pixel.
+        dynamic_sf (bool): using dynamic SF or not. In most cases, the in-pixel SF is not dynamic, 
+            meaning that it is statically-biased by a constant current. However, some works [JSSC-2021]
+            use dynamic SF to save energy.
+        output_vs (float): [unit: V] voltage swing at SF's output node. Typically it is 
+            one or two units of threshold voltage smaller than pd_supply, depending on 
+            the pixel's circuit structure.
+        num_transistor (int): {3 or 4}. It defines using 3T APS or 4T APS.
+        num_readout (int): {2 or 1}. It defines enabling CDS or not.
+        load_capacitance (float): [unit: F] load capacitance at the SF's output node.
+        tech_node (int): [unit: nm] pixel's process node.
+        pitch (float): [unit: um] pixel pitch size (width or height).
+        array_vsize (int): the vertical size of the entire pixel array. This is used to estimate 
+            the parasitic capacitance on the SF's readout wire.
+        adc_type (str): the actual ADC type. Please check ADC class for more details.
+        adc_fom (float): [unit: J/conversion] ADC's Figure-of-Merit, expressed by energy per conversion.
+        adc_resolution (int): ADC's resolution.
+        dark_current_noise (float): average dark current noise in unit of electrons (e-).
+        enable_dcnu (bool): flag to enable dark current non-uniformity, the default value is ``False``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        dcnu_std (float): dcnu standard deviation percentage. it is relative number respect
+            to ``dark_current_noise``, the dcnu standard deviation is,
+            ``dcnu_std`` * ``dark_current_noise``, the default value is ``0.001``.
+        fd_gain (float): the gain of FD, the default value is ``1.0``.
+        fd_noise (float): the standard deviation of read noise from FD. the default value is ``0.``.
+        fd_prnu_std (float): relative PRNU standard deviation respect to FD gain. 
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+        sf_gain (float): the gain of SF, the default value is ``1.0``.
+        sf_noise (float): the standard deviation of read noise from SF. the default value is ``0.``.
+        sf_prnu_std (float): relative PRNU standard deviation respect to SF gain. 
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+        cds_gain (float): the gain of CDS, the default value is ``1.0``.
+        cds_noise (float): the standard deviation of read noise from CDS. the default value is ``0.``.
+        cds_prnu_std (float): relative PRNU standard deviation respect to CDS gain. 
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+        adc_noise (float): the standard deviation of read noise from ADC. the default value is ``0.``.
     """
     def __init__(
         self,
@@ -188,7 +249,7 @@ class DigitalPixelSensor(object):
         else:
             self.num_readout = 1
 
-        self.perf_model = DigitalPixelSensorPerf(
+        self.energy_model = DigitalPixelSensorEnergy(
             pd_capacitance = pd_capacitance,
             pd_supply = pd_supply,
             dynamic_sf = dynamic_sf,
@@ -206,13 +267,13 @@ class DigitalPixelSensor(object):
         )
 
         self.noise_components = [
-            PhotodiodeNoise(
-                name = "PhotodiodeNoise",
+            PhotodiodeFunc(
+                name = "PhotodiodeFunc",
                 dark_current_noise = dark_current_noise,
                 enable_dcnu = enable_dcnu,
                 dcnu_std = dcnu_std
             ),
-            FloatingDiffusionNoise(
+            FloatingDiffusionFunc(
                 name = "FloatingDiffusion",
                 gain = fd_gain,
                 noise = fd_noise,
@@ -220,7 +281,7 @@ class DigitalPixelSensor(object):
                 enable_prnu = enable_prnu,
                 prnu_std = fd_prnu_std
             ),
-            PixelwiseNoise(
+            PixelwiseFunc(
                 name = "SourceFollower",
                 gain = sf_gain,
                 noise = sf_noise,
@@ -230,7 +291,7 @@ class DigitalPixelSensor(object):
         ]
         if self.enable_cds:
             self.noise_components.append(
-                CorrelatedDoubleSamplingNoise(
+                CorrelatedDoubleSamplingFunc(
                     name = "CorrelatedDoubleSampling",
                     gain = cds_gain,
                     noise = cds_noise,
@@ -239,7 +300,7 @@ class DigitalPixelSensor(object):
                 )
             )
         self.noise_components.append(
-            AnalogToDigitalConverterNoise(
+            AnalogToDigitalConverterFunc(
                 name = "AnalogToDigitalConverter",
                 adc_noise = adc_noise,
                 max_val = pd_supply,
@@ -248,30 +309,29 @@ class DigitalPixelSensor(object):
         )
 
     def energy(self):
-        return self.perf_model.energy()
+        return self.energy_model.energy()
 
     def noise(self, input_signal_list):
         if not isinstance(input_signal_list, list):
             raise Exception("Input signal to DPS needs to be a list of numpy array!")
 
         return (
-            "DigitalPixelSensor", 
+            "DigitalPixelSensor",
             default_functional_simulation(self.noise_components, input_signal_list)
         )
 
 class PulseWidthModulationPixel(object):
-    """
-        Pulse-Width-Modulation (PWM) Pixel
+    """Pulse-Width-Modulation (PWM) Pixel
 
-        The modeled PWM pixel consists of a photodiode (PD), a ramp signal generator, and a comparator.
-        The comparator output toggles when the ramp signal is smaller than the pixel voltage at PD.
+    The modeled PWM pixel consists of a photodiode (PD), a ramp signal generator, and a comparator.
+    The comparator output toggles when the ramp signal is smaller than the pixel voltage at PD.
 
-        Args:
-            pd_capacitance: PD capacitance.
-            pd_supply: PD voltage supply.
-            ramp_capacitance: capacitance of ramp signal generator.
-            gate_capacitance: the gate capacitance of readout transistor.
-            num_readout: number of read from pixel.
+    Args:
+        pd_capacitance: PD capacitance.
+        pd_supply: PD voltage supply.
+        ramp_capacitance: capacitance of ramp signal generator.
+        gate_capacitance: the gate capacitance of readout transistor.
+        num_readout: number of read from pixel.
 
     """
     def __init__(
@@ -283,7 +343,7 @@ class PulseWidthModulationPixel(object):
         gate_capacitance = 10e-15,  # [F]
         num_readout = 1,
     ):
-        self.perf_model = PulseWidthModulationPixelPerf(
+        self.energy_model = PulseWidthModulationPixelEnergy(
             pd_capacitance = pd_capacitance,
             pd_supply = pd_supply,
             array_vsize = array_vsize,
@@ -293,7 +353,7 @@ class PulseWidthModulationPixel(object):
         )
 
     def energy(self):
-        return self.perf_model.energy()
+        return self.energy_model.energy()
 
     def noise(self, input_signal_list):
         # haven't implemented the noise model for PWM pixel yet.
@@ -301,12 +361,29 @@ class PulseWidthModulationPixel(object):
 
 
 class ColumnAmplifier(object):
-    """
-        NMOS-based single-input-single-output cascode amplifier.
-        [ref: Experimental verification of the impact of analog CMS on CIS readout noise, 2019 TCAS-I]
+    """Column Amplifier
 
-        Args:
-
+    Args:
+        load_capacitance (float): [unit: F] load capacitance.
+        input_capacitance (float): [unit: F] input capacitance.
+        t_sample (float): [unit: s] sampling time, which mainly consists of the amplifier's 
+            settling time.
+        t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
+            consumes power relentlessly.
+        supply (float): [unit: V] supply voltage.
+        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+            ``input_capacitance`` over feedback capacitance.
+        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
+            amplifier's bias current by gm/id method.
+        differential (bool): if using differential-input amplifier or single-input amplifier.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative PRNU standard deviation respect to gain.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+        enable_offset (bool): flag to enable adding offset voltage. Default value is ``False``.
+        pixel_offset_voltage: pixel offset voltage in unit of volt (V). Default value is ``0.1``.
+        col_offset_voltage: column-wise offset voltage in unit of volt (V). Default value is ``0.05``.
     """
 
     def __init__(
@@ -329,7 +406,7 @@ class ColumnAmplifier(object):
         pixel_offset_voltage = 0.1,
         col_offset_voltage = 0.05
     ):
-        self.perf_model = ColumnAmplifierPerf(
+        self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
             t_sample = t_sample,
@@ -340,7 +417,7 @@ class ColumnAmplifier(object):
             differential = differential
         )
 
-        self.noise_model = ColumnwiseNoise(
+        self.func_model = ColumnwiseFunc(
             name = "ColumnAmplifier",
             gain = gain,
             noise = noise,
@@ -352,7 +429,7 @@ class ColumnAmplifier(object):
         )
 
     def energy(self):
-        return self.perf_model.energy()
+        return self.energy_model.energy()
 
     def noise(self, input_signal_list):
         output_signal_list = []
@@ -361,15 +438,28 @@ class ColumnAmplifier(object):
                 raise Exception("Input signal to 'ColumnAmplifier' needs to be 3 dimentional (height, width, channel)")
 
             output_signal_list.append(
-                self.noise_model.apply_gain_and_noise(
+                self.func_model.simulate_output(
                     input_signal
                 )
             )
-        return (self.noise_model.name, output_signal_list)
+        return (self.func_model.name, output_signal_list)
 
 class SourceFollower(object):
-    """
+    """Source Follower
+
     NMOS-based constant current-biased source follower.
+    
+    Args:
+        load_capacitance (float): [unit: F] load capacitance.
+        supply (float): [unit: V] supply voltage.
+        output_vs (float): [unit: V] voltage swing at the SF's output node.
+        bias_current (float): [unit: A] bias current.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain.
+                  the default value is ``0.001``.
     """
 
     def __init__(
@@ -385,14 +475,14 @@ class SourceFollower(object):
         enable_prnu = False,
         prnu_std = 0.001,
     ):
-        self.perf_model = SourceFollowerPerf(
+        self.energy_model = SourceFollowerEnergy(
             load_capacitance = load_capacitance,
             supply = supply,
             output_vs = output_vs,
             bias_current = bias_current,
         )
 
-        self.noise_model = PixelwiseNoise(
+        self.func_model = PixelwiseFunc(
             name = "SourceFollower",
             gain = gain,
             noise = noise,
@@ -401,7 +491,7 @@ class SourceFollower(object):
         )
 
     def energy(self):
-        return self.perf_model.energy()
+        return self.energy_model.energy()
 
     def noise(self, input_signal_list):
         output_signal_list = []
@@ -410,26 +500,28 @@ class SourceFollower(object):
                 raise Exception("input signal to 'SourceFollower' needs to be in (height, width, channel) 3D shape.")
 
             output_signal_list.append(
-                self.noise_model.apply_gain_and_noise(
+                self.func_model.simulate_output(
                     input_signal
                 )
             )
-        return (self.noise_model.name, output_signal_list)
+        return (self.func_model.name, output_signal_list)
 
 class ActiveAnalogMemory(object):
-    """
-    PMOS-based differential-input-single-output amplifier.
-
-    @article{o200410,
-    title={A 10-nW 12-bit accurate analog storage cell with 10-aA leakage},
-    author={O'Halloran, Micah and Sarpeshkar, Rahul},
-    journal={IEEE journal of solid-state circuits},
-    volume={39},
-    number={11},
-    pages={1985--1996},
-    year={2004},
-    publisher={IEEE}
-    }
+    """Active Analog Memory
+    
+    Args:
+        sample_capacitance (float): [unit: F] sample capacitance.
+        comp_capacitance (float): [unit: F] compensation capacitance
+        t_sample (float): [unit: s] sampling time, which mainly consists of the amplifier's settling time.
+        t_hold (float): [unit: s] holding time, during which the amplifier is turned on and consumes
+            power relentlessly.
+        supply (float): [unit: V] supply voltage.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain.
+                  the default value is ``0.001``.
     """
 
     def __init__(
@@ -440,15 +532,13 @@ class ActiveAnalogMemory(object):
         t_sample = 1e-6,  # [s]
         t_hold = 10e-3,  # [s]
         supply = 1.8,  # [V]
-        # eqv_reso,# equivalent resolution
-        # opamp_dcgain
         # noise parameters
         gain = 1.0,
         noise = 0.,
         enable_prnu = False,
         prnu_std = 0.001,
     ):
-        self.perf_model = ActiveAnalogMemoryPerf(
+        self.energy_model = ActiveAnalogMemoryEnergy(
             sample_capacitance = sample_capacitance,
             comp_capacitance = comp_capacitance,
             t_sample = t_sample,
@@ -456,7 +546,7 @@ class ActiveAnalogMemory(object):
             supply = supply
         )
 
-        self.noise_model = PixelwiseNoise(
+        self.func_model = PixelwiseFunc(
             name = "ActiveAnalogMemory",
             gain = gain,
             noise = noise,
@@ -465,7 +555,7 @@ class ActiveAnalogMemory(object):
         )
 
     def energy(self):
-        return self.perf_model.energy() 
+        return self.energy_model.energy() 
 
     def noise(self, input_signal_list):
         output_signal_list = []
@@ -473,14 +563,26 @@ class ActiveAnalogMemory(object):
             if input_signal.ndim != 3:
                 raise Exception("input signal to 'ActiveAnalogMemory' needs to be in (height, width, channel) 3D shape.")
             output_signal_list.append(
-                self.noise_model.apply_gain_and_noise(
+                self.func_model.simulate_output(
                     input_signal
                 )
             )
-        return (self.noise_model.name, output_signal_list)
+        return (self.func_model.name, output_signal_list)
 
 
 class PassiveAnalogMemory(object):
+    """Passive Analog Memory
+
+    Args:
+        sample_capacitance (float): [unit: F] sample capacitance.
+        supply (float): [unit: V] supply voltage.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain.
+                  the default value is ``0.001``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -493,12 +595,12 @@ class PassiveAnalogMemory(object):
         enable_prnu = False,
         prnu_std = 0.001,
     ):
-        self.perf_model = PassiveAnalogMemoryPerf(
+        self.energy_model = PassiveAnalogMemoryEnergy(
             sample_capacitance = sample_capacitance,
             supply = supply
         )
 
-        self.noise_model = PixelwiseNoise(
+        self.func_model = PixelwiseFunc(
             name = "PassiveAnalogMemory",
             gain = gain,
             noise = noise,
@@ -507,7 +609,7 @@ class PassiveAnalogMemory(object):
         )
 
     def energy(self):
-        return self.perf_model.energy()
+        return self.energy_model.energy()
 
     def noise(self, input_signal_list):
         output_signal_list = []
@@ -515,13 +617,29 @@ class PassiveAnalogMemory(object):
             if input_signal.ndim != 3:
                 raise Exception("input signal to 'PassiveAnalogMemory' needs to be in (height, width, channel) 3D shape.")
             output_signal_list.append(
-                self.noise_model.apply_gain_and_noise(
+                self.func_model.simulate_output(
                     input_signal
                 )
             )
-        return (self.noise_model.name, output_signal_list)
+        return (self.func_model.name, output_signal_list)
 
 class CurrentMirror(object):
+    """Current mirror.
+
+    Args:
+        supply (float): [unit: V] supply voltage.
+        load_capacitance (float): [unit: F] load capacitance.
+        t_readout (float): [unit: s] readout time, during which the constant current drives
+            the load capacitance from 0 to VDD.
+        i_dc (float): [unit: A] the constant current. If ``i_dc == None``, then i_dc is
+            estimated from the other parameters.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        enable_compute (bool): flag to enable compute and output charges. Default value is ``False``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative prnu standard deviation respect to gain.
+            prnu gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -537,14 +655,14 @@ class CurrentMirror(object):
         prnu_std = 0.001
 
     ):
-        self.perf_model = CurrentMirrorPerf(
+        self.energy_model = CurrentMirrorEnergy(
             supply = supply,
             load_capacitance = load_capacitance,
             t_readout = t_readout,
             i_dc = i_dc
         )
 
-        self.noise_model = CurrentMirrorNoise(
+        self.func_model = CurrentMirrorFunc(
             name = "CurrentMirror",
             gain = gain,
             noise = noise,
@@ -554,26 +672,33 @@ class CurrentMirror(object):
         )
 
     def energy(self):
-        return self.perf_model.energy()
+        return self.energy_model.energy()
 
     def noise(self, input_signal_list):
         # if input is two signal matrices, current mirror performs element-wise multiplication.
         if len(input_signal_list) == 2:
             return (
-                self.noise_model.name, 
-                [self.noise_model.apply_gain_and_noise(input_signal_list[0], input_signal_list[1])]
+                self.func_model.name, 
+                [self.func_model.simulate_output(input_signal_list[0], input_signal_list[1])]
             )
         # else just copy data over.
         elif len(input_signal_list) == 1:
             return (
-                self.noise_model.name, 
-                [self.noise_model.apply_gain_and_noise(input_signal_list[0])]
+                self.func_model.name, 
+                [self.func_model.simulate_output(input_signal_list[0])]
             )
         else:
             raise Exception("Input signal list to 'CurrentMirror' can only be length of 1 or 2!")
 
 
 class PassiveSwitchedCapacitorArray(object):
+    """Passive Switched Capacitor Array
+
+    Args:
+        capacitance_array (array, float): [unit: F] a list of capacitors.
+        vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing at each capacitor.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+    """
     def __init__(
         self,
         # peformance parameters
@@ -582,28 +707,41 @@ class PassiveSwitchedCapacitorArray(object):
         # noise parameters
         noise = 0.,
     ):
-        self.perf_model = PassiveSwitchedCapacitorArrayPerf(
+        self.energy_model = PassiveSwitchedCapacitorArrayEnergy(
             capacitance_array = capacitance_array,
             vs_array = vs_array
         )
 
-        self.noise_model = PassiveSwitchedCapacitorArrayNoise(
+        self.func_model = PassiveSwitchedCapacitorArrayFunc(
             name = "PassiveSwitchedCapacitorArray",
             num_capacitor = len(capacitance_array),
             noise = noise
         )
 
     def energy(self):
-        return self.perf_model.energy()
+        return self.energy_model.energy()
 
     def noise(self, input_signal_list):
         # perform element-wise addition across different input signals.
         return (
-            self.noise_model.name, 
-            [self.noise_model.apply_gain_and_noise(input_signal_list)]
+            self.func_model.name, 
+            [self.func_model.simulate_output(input_signal_list)]
         )
 
 class Comparator(object):
+    """Dynamic Voltage Comparator
+
+    Args:
+        supply (float): [unit: V] supply voltage.
+        i_bias (float): [unit: A] bias current of the circuit.
+        t_readout (float): [unit: s] readout time, during which the comparison is finished.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain.
+                  the default value is ``0.001``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -616,13 +754,13 @@ class Comparator(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
-        self.perf_model = ComparatorPerf(
+        self.energy_model = ComparatorEnergy(
             supply = supply,
             i_bias = i_bias,
             t_readout = t_readout
         )
 
-        self.noise_model = ComparatorNoise(
+        self.func_model = ComparatorFunc(
             name = "Comparator",
             gain = 1,
             noise = 0,
@@ -631,20 +769,28 @@ class Comparator(object):
         )
 
     def energy(self):
-        return self.perf_model.energy()
+        return self.energy_model.energy()
 
     def noise(self, input_signal_list):
         if len(input_signal_list) == 2:
             return (
-                self.noise_model.name, 
-                [self.noise_model.apply_gain_and_noise(input_signal_list[0], input_signal_list[1])]
+                self.func_model.name, 
+                [self.func_model.simulate_output(input_signal_list[0], input_signal_list[1])]
             )
         else:
             raise Exception("Input signal list to Comparator can only be length of 2!")
 
 
 class AnalogToDigitalConverter(object):
-    """docstring for differential-input rail-to-rail ADC"""
+    """Analog-to-Digital Converter.
+
+    Args:
+        supply (float): [unit: V] supply voltage.
+        type (str): ADC type.
+        fom (float): [unit: J/conversion] ADC's Figure-of-Merit, expressed by energy per conversion.
+        resolution (int): ADC resolution.
+        adc_noise (float): ADC noise.
+    """
 
     def __init__(
         self,
@@ -656,14 +802,14 @@ class AnalogToDigitalConverter(object):
         # noise parameters
         adc_noise = 0.,
     ):
-        self.perf_model = AnalogToDigitalConverterPerf(
+        self.energy_model = AnalogToDigitalConverterEnergy(
             supply = supply,
             type = type,
             fom = fom,
             resolution = resolution,
         )
 
-        self.noise_model = AnalogToDigitalConverterNoise(
+        self.func_model = AnalogToDigitalConverterFunc(
             name = "AnalogToDigitalConverter",
             adc_noise = adc_noise,
             max_val = supply,
@@ -671,20 +817,34 @@ class AnalogToDigitalConverter(object):
         )
 
     def energy(self):
-        return self.perf_model.energy()
+        return self.energy_model.energy()
 
     def noise(self, input_signal_list):
         output_signal_list = []
         for input_signal in input_signal_list:
             output_signal_list.append(
-                self.noise_model.apply_gain_and_noise(
+                self.func_model.simulate_output(
                     input_signal
                 )
             )
-        return (self.noise_model.name, output_signal_list)
+        return (self.func_model.name, output_signal_list)
 
 
 class DigitalToCurrentConverter(object):
+    """Digital-to-Current Converter.
+
+    Args:
+        supply (float): [unit: V] supply voltage.
+        load_capacitance (float): [unit: F] load capacitance.
+        t_readout (float): [unit: s] readout time, during which the constant current drives
+            the load capacitance from 0 to VDD.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain.
+                  the default value is ``0.001``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -697,13 +857,13 @@ class DigitalToCurrentConverter(object):
         enable_prnu = False,
         prnu_std = 0.001,
     ):
-        self.perf_model = DigitalToCurrentConverterPerf(
+        self.energy_model = DigitalToCurrentConverterEnergy(
             supply = supply,
             load_capacitance = load_capacitance,
             t_readout = t_readout,
         )
 
-        self.noise_model = PixelwiseNoise(
+        self.func_model = PixelwiseFunc(
             name = "DigitalToCurrentConverter",
             gain = gain,
             noise = noise,
@@ -712,21 +872,30 @@ class DigitalToCurrentConverter(object):
         )
 
     def energy(self):
-        return self.perf_model.energy()
+        return self.energy_model.energy()
 
     def noise(self, input_signal_list):
         output_signal_list = []
         for input_signal in input_signal_list:
             output_signal_list.append(
-                self.noise_model.apply_gain_and_noise(
+                self.func_model.simulate_output(
                     input_signal
                 )
             )
-        return (self.noise_model.name, output_signal_list)
+        return (self.func_model.name, output_signal_list)
 
 
 class MaximumVoltage(object):
-    """docstring for MaximumVoltage"""
+    """A circuit that outputs the maximum voltage among the input voltages.
+
+    Args:
+        supply (float): [unit: V] supply voltage.
+        t_hold (float): [unit: s] holding time, during which the circuit is turned on and consumes power relentlessly.
+        t_readout (float): [unit: s] readout time, during which the maximum voltage is output.
+        load_capacitance (float): [unit: F] load capacitance
+        gain (float): open-loop gain of the common-source amplifier.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+    """
     def __init__(
         self, 
         supply = 1.8,  # [V]
@@ -739,7 +908,7 @@ class MaximumVoltage(object):
     ):
         super(MaximumVoltage, self).__init__()
 
-        self.perf_model = MaximumVoltagePerf(
+        self.energy_model = MaximumVoltageEnergy(
             supply = supply,  # [V]
             t_frame = t_frame,  # [s]
             t_acomp = t_acomp,  # [s]
@@ -747,18 +916,18 @@ class MaximumVoltage(object):
             gain = gain
         )
 
-        self.noise_model = MaximumVoltageNoise(
+        self.func_model = MaximumVoltageFunc(
             name = "MaximumVoltage",
             noise = noise
         )
         
     def energy(self):
-        return self.perf_model.energy()
+        return self.energy_model.energy()
 
     def noise(self, input_signal_list):
         return (
-                self.noise_model.name, 
-                [self.noise_model.apply_gain_and_noise(input_signal_list)]
+                self.func_model.name, 
+                [self.func_model.simulate_output(input_signal_list)]
             )
 
 
@@ -771,19 +940,39 @@ class GeneralCircuit(object):
         i_dc = 1e-6,  # [s]
     ):
     
-        self.perf_model = GeneralCircuitPerf(
+        self.energy_model = GeneralCircuitEnergy(
             supply = supply,  # [V]
             i_dc = i_dc,  # [A]
             t_operation = t_operation  # [s]
         )
         
     def energy(self):
-        return self.perf_model.energy()
+        return self.energy_model.energy()
 
     def noise(self, input_signal_list):
         raise Exception("noise function in MaximumVoltage has not been implemented yet!")
 
 class Adder(object):
+    """Adder
+
+    Args:
+        load_capacitance (float): [unit: F] load capacitance.
+        input_capacitance (float): [unit: F] input capacitance.
+        t_sample (float): [unit: s] sampling time, which mainly consists of the amplifier's 
+            settling time.
+        t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
+            consumes power relentlessly.
+        supply (float): [unit: V] supply voltage.
+        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+            ``input_capacitance`` over feedback capacitance.
+        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
+            amplifier's bias current by gm/id method.
+        differential (bool): if using differential-input amplifier or single-input amplifier.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative PRNU standard deviation respect to gain.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -801,7 +990,7 @@ class Adder(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
-        self.perf_model = ColumnAmplifierPerf(
+        self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
             t_sample = t_sample,
@@ -813,7 +1002,7 @@ class Adder(object):
         )
 
         if columnwise_op:
-            self.noise_model = ColumnwiseNoise(
+            self.func_model = ColumnwiseFunc(
                 name = "ColumnAmplifier",
                 gain = 1.0,    # adder no need to amplify the signal
                 noise = noise,
@@ -821,7 +1010,7 @@ class Adder(object):
                 prnu_std = prnu_std
             )
         else:
-            self.noise_model = PixelwiseNoise(
+            self.func_model = PixelwiseFunc(
                 name = "Amplifier",
                 gain = 1.0,    # adder no need to amplify the signal
                 noise = noise,
@@ -831,14 +1020,14 @@ class Adder(object):
 
     def energy(self):
         # here multiply by 2, because two input signal go through column amplifier
-        return self.perf_model.energy() * 2 
+        return self.energy_model.energy() * 2 
 
     def noise(self, input_signal_list):
         if len(input_signal_list) == 2:
             if input_signal_list[0].shape != input_signal_list[1].shape:
                 raise Exception("Two inputs to 'Adder' need to be in the same shape.")
-            noise_input1 = self.noise_model.apply_gain_and_noise(input_signal_list[0])
-            noise_input2 = self.noise_model.apply_gain_and_noise(input_signal_list[1])
+            noise_input1 = self.func_model.simulate_output(input_signal_list[0])
+            noise_input2 = self.func_model.simulate_output(input_signal_list[1])
             return (
                 "Adder", 
                 [noise_input1 + noise_input2]
@@ -848,6 +1037,26 @@ class Adder(object):
 
 
 class Subtractor(object):
+    """Subtractor
+
+    Args:
+        load_capacitance (float): [unit: F] load capacitance.
+        input_capacitance (float): [unit: F] input capacitance.
+        t_sample (float): [unit: s] sampling time, which mainly consists of the amplifier's 
+            settling time.
+        t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
+            consumes power relentlessly.
+        supply (float): [unit: V] supply voltage.
+        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+            ``input_capacitance`` over feedback capacitance.
+        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
+            amplifier's bias current by gm/id method.
+        differential (bool): if using differential-input amplifier or single-input amplifier.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative PRNU standard deviation respect to gain.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -865,7 +1074,7 @@ class Subtractor(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
-        self.perf_model = ColumnAmplifierPerf(
+        self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
             t_sample = t_sample,
@@ -877,7 +1086,7 @@ class Subtractor(object):
         )
 
         if columnwise_op:
-            self.noise_model = ColumnwiseNoise(
+            self.func_model = ColumnwiseFunc(
                 name = "ColumnAmplifier",
                 gain = 1.0,    # adder no need to amplify the signal
                 noise = noise,
@@ -885,7 +1094,7 @@ class Subtractor(object):
                 prnu_std = prnu_std
             )
         else:
-            self.noise_model = PixelwiseNoise(
+            self.func_model = PixelwiseFunc(
                 name = "Amplifier",
                 gain = 1.0,    # adder no need to amplify the signal
                 noise = noise,
@@ -895,15 +1104,15 @@ class Subtractor(object):
 
     def energy(self):
         # here multiply by 2, because two input signal go through column amplifier
-        return self.perf_model.energy() * 2 
+        return self.energy_model.energy() * 2 
 
     def noise(self, input_signal_list):
         if len(input_signal_list) == 2:
             if input_signal_list[0].shape != input_signal_list[1].shape:
                 raise Exception("Two inputs to 'Adder' need to be in the same shape.")
 
-            noise_input1 = self.noise_model.apply_gain_and_noise(input_signal_list[0])
-            noise_input2 = self.noise_model.apply_gain_and_noise(input_signal_list[1])
+            noise_input1 = self.func_model.simulate_output(input_signal_list[0])
+            noise_input2 = self.func_model.simulate_output(input_signal_list[1])
             return (
                 "Subtractor", 
                 [noise_input1 - noise_input2]
@@ -913,7 +1122,26 @@ class Subtractor(object):
 
 
 class AbsoluteDifference(object):
-    """AbsoluteDifference"""
+    """Absolute Difference
+
+    Args:
+        load_capacitance (float): [unit: F] load capacitance.
+        input_capacitance (float): [unit: F] input capacitance.
+        t_sample (float): [unit: s] sampling time, which mainly consists of the amplifier's 
+            settling time.
+        t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
+            consumes power relentlessly.
+        supply (float): [unit: V] supply voltage.
+        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+            ``input_capacitance`` over feedback capacitance.
+        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
+            amplifier's bias current by gm/id method.
+        differential (bool): if using differential-input amplifier or single-input amplifier.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative PRNU standard deviation respect to gain.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -930,7 +1158,7 @@ class AbsoluteDifference(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
-        self.perf_model = ColumnAmplifierPerf(
+        self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
             t_sample = t_sample,
@@ -941,7 +1169,7 @@ class AbsoluteDifference(object):
             differential = differential
         )
 
-        self.noise_model = AbsoluteDifferenceNoise(
+        self.func_model = AbsoluteDifferenceFunc(
             name = "AbsoluteDifference",
             gain = 1.0,    # adder no need to amplify the signal
             noise = noise,
@@ -951,14 +1179,14 @@ class AbsoluteDifference(object):
 
     def energy(self):
         # here multiply by 2, because two input signal go through column amplifier
-        return self.perf_model.energy() * 2 
+        return self.energy_model.energy() * 2 
 
     def noise(self, input_signal_list):
         if len(input_signal_list) == 2:
             return (
-                self.noise_model.name, 
+                self.func_model.name, 
                 [   
-                    self.noise_model.apply_gain_and_noise(
+                    self.func_model.simulate_output(
                         input_signal_list[0], 
                         input_signal_list[1]
                     )
@@ -969,7 +1197,16 @@ class AbsoluteDifference(object):
 
 
 class MaxPool(object):
-    """docstring for MaxPool"""
+    """Max Pooling
+
+    Args:
+        supply (float): [unit: V] supply voltage.
+        t_hold (float): [unit: s] holding time, during which the circuit is turned on and consumes power relentlessly.
+        t_readout (float): [unit: s] readout time, during which the maximum voltage is output.
+        load_capacitance (float): [unit: F] load capacitance
+        gain (float): open-loop gain of the common-source amplifier.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+    """
     def __init__(
         self, 
         supply = 1.8,  # [V]
@@ -982,7 +1219,7 @@ class MaxPool(object):
     ):
         self.kernel_size = None
 
-        self.perf_model = MaximumVoltagePerf(
+        self.energy_model = MaximumVoltageEnergy(
             supply = supply,  # [V]
             t_hold = t_hold,  # [s]
             t_readout = t_readout,  # [s]
@@ -990,7 +1227,7 @@ class MaxPool(object):
             gain = gain
         )
 
-        self.noise_model = MaximumVoltageNoise(
+        self.func_model = MaximumVoltageFunc(
             name = "MaximumVoltage",
             noise = noise
         )
@@ -1008,7 +1245,7 @@ class MaxPool(object):
         if self.kernel_size is None:
             raise Exception("kernel_size in 'MaxPool' hasn't not been initialized yet!")
 
-        return self.perf_model.energy() * self.kernel_size[0] * self.kernel_size[1]
+        return self.energy_model.energy() * self.kernel_size[0] * self.kernel_size[1]
 
     def noise(self, input_signal_list):
 
@@ -1041,14 +1278,30 @@ class MaxPool(object):
                 reshaped_signal_list.append(transposed_input_signal[:, :, i, :])
             
             output_signal_list.append(
-                self.noise_model.apply_gain_and_noise(reshaped_signal_list)
+                self.func_model.simulate_output(reshaped_signal_list)
             )
 
         return ("MaxPool", output_signal_list)
 
 
 class PassiveAverage(object):
-    """PassiveAverage"""
+    """Passive Average
+
+    Args:
+        capacitance_array (array, float): [unit: F] a list of capacitors.
+        vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing at each capacitor.
+        sf_load_capacitance (float): [unit: F] load capacitance.
+        sf_supply (float): [unit: V] supply voltage.
+        sf_output_vs (float): [unit: V] voltage swing at the SF's output node.
+        sf_bias_current (float): [unit: A] bias current.
+        psca_noise (float): the standard deviation of read noise from passive switched capacitor array. 
+            Default value is ``None``.
+        sf_gain (float): the average gain of SF. Default value is ``1.0``.
+        sf_noise (float): the standard deviation of SF read noise. Default value is ``None``.
+        sf_enable_prnu (bool): flag to enable SF PRNU. Default value is ``False``.
+        sf_prnu_std (float): the relative prnu standard deviation respect to SF gain.
+                  prnu gain standard deviation = prnu_std * gain. the default value is ``0.001``.
+    """
     def __init__(
         self,
         # peformance parameters
@@ -1066,25 +1319,25 @@ class PassiveAverage(object):
         sf_prnu_std = 0.001,
         
     ):
-        self.psca_perf_model = PassiveSwitchedCapacitorArrayPerf(
+        self.psca_energy_model = PassiveSwitchedCapacitorArrayEnergy(
             capacitance_array = capacitance_array,
             vs_array = vs_array
         )
 
-        self.sf_perf_model = SourceFollowerPerf(
+        self.sf_energy_model = SourceFollowerEnergy(
             load_capacitance = sf_load_capacitance,
             supply = sf_supply,
             output_vs = sf_output_vs,
             bias_current = sf_bias_current,
         )
 
-        self.psca_noise_model = PassiveSwitchedCapacitorArrayNoise(
+        self.psca_func_model = PassiveSwitchedCapacitorArrayFunc(
             name = "PassiveSwitchedCapacitorArray",
             num_capacitor = len(capacitance_array),
             noise = psca_noise
         )
 
-        self.sf_noise_model = PixelwiseNoise(
+        self.sf_func_model = PixelwiseFunc(
             name = "SourceFollower",
             gain = sf_gain,
             noise = sf_noise,
@@ -1093,14 +1346,14 @@ class PassiveAverage(object):
         )
 
     def energy(self):
-        return self.psca_perf_model.energy() + self.sf_perf_model.energy()
+        return self.psca_energy_model.energy() + self.sf_energy_model.energy()
 
     def noise(self, input_signal_list):
         return (
             "PassiveAverage", 
             [
-                self.sf_noise_model.apply_gain_and_noise(
-                    self.psca_noise_model.apply_gain_and_noise(
+                self.sf_func_model.simulate_output(
+                    self.psca_func_model.simulate_output(
                         input_signal_list
                     )                
                 )
@@ -1108,7 +1361,23 @@ class PassiveAverage(object):
         )
 
 class PassiveBinning(object):
-    """PassiveBinning"""
+    """Passive Binning
+
+    Args:
+        capacitance_array (array, float): [unit: F] a list of capacitors.
+        vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing at each capacitor.
+        sf_load_capacitance (float): [unit: F] load capacitance.
+        sf_supply (float): [unit: V] supply voltage.
+        sf_output_vs (float): [unit: V] voltage swing at the SF's output node.
+        sf_bias_current (float): [unit: A] bias current.
+        psca_noise (float): the standard deviation of read noise from passive switched capacitor array. 
+            Default value is ``None``.
+        sf_gain (float): the average gain of SF. Default value is ``1.0``.
+        sf_noise (float): the standard deviation of SF read noise. Default value is ``None``.
+        sf_enable_prnu (bool): flag to enable SF PRNU. Default value is ``False``.
+        sf_prnu_std (float): the relative prnu standard deviation respect to SF gain.
+                  prnu gain standard deviation = prnu_std * gain. the default value is ``0.001``.
+    """
     def __init__(
         self,
         # peformance parameters
@@ -1128,25 +1397,25 @@ class PassiveBinning(object):
     ):
 
         self.kernel_size = None
-        self.psca_perf_model = PassiveSwitchedCapacitorArrayPerf(
+        self.psca_energy_model = PassiveSwitchedCapacitorArrayEnergy(
             capacitance_array = capacitance_array,
             vs_array = vs_array
         )
 
-        self.sf_perf_model = SourceFollowerPerf(
+        self.sf_energy_model = SourceFollowerEnergy(
             load_capacitance = sf_load_capacitance,
             supply = sf_supply,
             output_vs = sf_output_vs,
             bias_current = sf_bias_current,
         )
 
-        self.psca_noise_model = PassiveSwitchedCapacitorArrayNoise(
+        self.psca_func_model = PassiveSwitchedCapacitorArrayFunc(
             name = "PassiveSwitchedCapacitorArray",
             num_capacitor = len(capacitance_array),
             noise = psca_noise
         )
 
-        self.sf_noise_model = PixelwiseNoise(
+        self.sf_func_model = PixelwiseFunc(
             name = "SourceFollower",
             gain = sf_gain,
             noise = sf_noise,
@@ -1164,7 +1433,7 @@ class PassiveBinning(object):
         self.kernel_size = kernel_size[0][:2]
 
     def energy(self):
-        return self.psca_perf_model.energy() + self.sf_perf_model.energy()
+        return self.psca_energy_model.energy() + self.sf_energy_model.energy()
 
     def noise(self, input_signal_list):
         output_signal_list = []
@@ -1198,8 +1467,8 @@ class PassiveBinning(object):
                 )
 
             output_signal_list.append(
-                self.sf_noise_model.apply_gain_and_noise(
-                    self.psca_noise_model.apply_gain_and_noise(
+                self.sf_func_model.simulate_output(
+                    self.psca_func_model.simulate_output(
                         psca_input_list
                     )
                 )
@@ -1208,7 +1477,29 @@ class PassiveBinning(object):
 
 
 class ActiveAverage(object):
-    """ActiveAverage"""
+    """Active Average
+
+    Args:
+        load_capacitance (float): [unit: F] load capacitance.
+        input_capacitance (float): [unit: F] input capacitance.
+        t_sample (float): [unit: s] sampling time, which mainly consists of the amplifier's 
+            settling time.
+        t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
+            consumes power relentlessly.
+        supply (float): [unit: V] supply voltage.
+        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+            ``input_capacitance`` over feedback capacitance.
+        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
+            amplifier's bias current by gm/id method.
+        differential (bool): if using differential-input amplifier or single-input amplifier.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative PRNU standard deviation respect to gain.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+        enable_offset (bool): flag to enable adding offset voltage. Default value is ``False``.
+        pixel_offset_voltage: pixel offset voltage in unit of volt (V). Default value is ``0.1``.
+        col_offset_voltage: column-wise offset voltage in unit of volt (V). Default value is ``0.05``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -1228,7 +1519,7 @@ class ActiveAverage(object):
         pixel_offset_voltage = 0.1,
         col_offset_voltage = 0.05
     ):
-        self.perf_model = ColumnAmplifierPerf(
+        self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
             t_sample = t_sample,
@@ -1239,7 +1530,7 @@ class ActiveAverage(object):
             differential = differential
         )
 
-        self.noise_model = ColumnwiseNoise(
+        self.func_model = ColumnwiseFunc(
             name = "ColumnAmplifier",
             gain = 1.0,
             noise = noise,
@@ -1257,13 +1548,13 @@ class ActiveAverage(object):
         self.kernel_size = kernel_size[0][:2]
 
     def energy(self):
-        return self.perf_model.energy() * self.kernel_size[0] * self.kernel_size[1]
+        return self.energy_model.energy() * self.kernel_size[0] * self.kernel_size[1]
 
     def noise(self, input_signal_list):
         output_signal_list = []
         for input_signal in input_signal_list:
             output_signal_list.append(
-                self.noise_model.apply_gain_and_noise(
+                self.func_model.simulate_output(
                     input_signal
                 )
             )
@@ -1276,7 +1567,29 @@ class ActiveAverage(object):
 
 
 class ActiveBinning(object):
-    """ActiveBinning"""
+    """Active Binning
+
+    Args:
+        load_capacitance (float): [unit: F] load capacitance.
+        input_capacitance (float): [unit: F] input capacitance.
+        t_sample (float): [unit: s] sampling time, which mainly consists of the amplifier's 
+            settling time.
+        t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
+            consumes power relentlessly.
+        supply (float): [unit: V] supply voltage.
+        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+            ``input_capacitance`` over feedback capacitance.
+        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
+            amplifier's bias current by gm/id method.
+        differential (bool): if using differential-input amplifier or single-input amplifier.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative PRNU standard deviation respect to gain.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+        enable_offset (bool): flag to enable adding offset voltage. Default value is ``False``.
+        pixel_offset_voltage: pixel offset voltage in unit of volt (V). Default value is ``0.1``.
+        col_offset_voltage: column-wise offset voltage in unit of volt (V). Default value is ``0.05``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -1296,7 +1609,7 @@ class ActiveBinning(object):
         pixel_offset_voltage = 0.1,
         col_offset_voltage = 0.05
     ):
-        self.perf_model = ColumnAmplifierPerf(
+        self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
             t_sample = t_sample,
@@ -1307,7 +1620,7 @@ class ActiveBinning(object):
             differential = differential
         )
 
-        self.noise_model = ColumnwiseNoise(
+        self.func_model = ColumnwiseFunc(
             name = "ColumnAmplifier",
             gain = 1.0,
             noise = noise,
@@ -1325,7 +1638,7 @@ class ActiveBinning(object):
         self.kernel_size = kernel_size[0][:2]
 
     def energy(self):
-        return self.perf_model.energy() * self.kernel_size[0] * self.kernel_size[1]
+        return self.energy_model.energy() * self.kernel_size[0] * self.kernel_size[1]
 
     def noise(self, input_signal_list):
         output_signal_list = []
@@ -1355,7 +1668,7 @@ class ActiveBinning(object):
             signal_after_colamp_list = []
             for i in range(new_input_shape[1] * new_input_shape[3]):
                 signal_after_colamp_list.append(
-                    self.noise_model.apply_gain_and_noise(
+                    self.func_model.simulate_output(
                         transposed_input_signal[:, :, i, :]
                     )
                 )
@@ -1370,7 +1683,24 @@ class ActiveBinning(object):
 
 
 class Voltage2VoltageConv(object):
-    """Voltage2VoltageConv"""
+    """Voltage-to-Voltage Convolution
+
+    Args:
+        capacitance_array (array, float): [unit: F] a list of capacitors.
+        vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing at each capacitor.
+        sf_load_capacitance (float): [unit: F] load capacitance.
+        sf_supply (float): [unit: V] supply voltage.
+        sf_output_vs (float): [unit: V] voltage swing at the SF's output node.
+        sf_bias_current (float): [unit: A] bias current.
+        psca_noise (float): the standard deviation of read noise from passive switched capacitor array. 
+            Default value is ``None``.
+        sf_gain (float): the average gain of SF. Default value is ``1.0``.
+        sf_noise (float): the standard deviation of SF read noise. Default value is ``None``.
+        sf_enable_prnu (bool): flag to enable SF PRNU. Default value is ``False``.
+        sf_prnu_std (float): the relative prnu standard deviation respect to SF gain.
+                  prnu gain standard deviation = prnu_std * gain. the default value is ``0.001``.
+
+    """
     def __init__(
         self,
         # peformance parameters
@@ -1398,12 +1728,12 @@ class Voltage2VoltageConv(object):
         self.num_kernels = None
         self.stride = None
         self.len_capacitance_array = len(capacitance_array)
-        self.psca_perf_model = PassiveSwitchedCapacitorArrayPerf(
+        self.psca_energy_model = PassiveSwitchedCapacitorArrayEnergy(
             capacitance_array = capacitance_array,
             vs_array = vs_array
         )
 
-        self.sf_perf_model = SourceFollowerPerf(
+        self.sf_energy_model = SourceFollowerEnergy(
             load_capacitance = sf_load_capacitance,
             supply = sf_supply,
             output_vs = sf_output_vs,
@@ -1415,7 +1745,7 @@ class Voltage2VoltageConv(object):
         random_seed = int(time.time())
         self.rs = np.random.RandomState(random_seed)
 
-        self.sf_noise_model = PixelwiseNoise(
+        self.sf_func_model = PixelwiseFunc(
             name = "SourceFollower",
             gain = sf_gain,
             noise = sf_noise,
@@ -1424,7 +1754,7 @@ class Voltage2VoltageConv(object):
         )
 
     def energy(self):
-        return self.psca_perf_model.energy() + self.sf_perf_model.energy()
+        return self.psca_energy_model.energy() + self.sf_energy_model.energy()
 
     def _set_conv_config(self, kernel_size, num_kernels, stride):
         if len(kernel_size) != 1 or len(num_kernels) != 1 or len(stride) != 1:
@@ -1503,7 +1833,7 @@ class Voltage2VoltageConv(object):
 
             # apply sf noise
             conv_result_list.append(
-                self.sf_noise_model.apply_gain_and_noise(
+                self.sf_func_model.simulate_output(
                     conv_result_after_noise
                 )
             )
@@ -1519,7 +1849,28 @@ class Voltage2VoltageConv(object):
 
 
 class Time2VoltageConv(object):
-    """Time2VoltageConv"""
+    """Time-to-Voltage Convolution
+    
+    Args:
+        cm_supply (float): [unit: V] supply voltage of current mirror.
+        cm_load_capacitance (float): [unit: F] load capacitance of current mirror.
+        cm_t_readout (float): [unit: s] readout time of current mirror, during which the constant current drives
+            the load capacitance from 0 to VDD.
+        cm_i_dc (float): [unit: A] the constant current of current mirror. If ``i_dc == None``, then i_dc is
+            estimated from the other parameters.
+        am_sample_capacitance (float): [unit: F] sample capacitance of passive analog memory.
+        am_supply (float): [unit: V] supply voltage of passive analog memory.
+        cm_gain (float): the average gain of current mirror. Default value is ``1.0``.
+        cm_noise (float): the standard deviation of current mirro read noise. Default value is ``None``.
+        cm_ennable_prnu (bool): flag to enable PRNU of current mirror. Default value is ``False``.
+        cm_prnu_std (float): the relative PRNU standard deviation respect to current mirror gain.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+        am_gain (float): the average gain of analog memory. Default value is ``1.0``.
+        am_noise (float): the standard deviation of analog memory read noise. Default value is ``None``.
+        am_ennable_prnu (bool): flag to enable PRNU of analog memory. Default value is ``False``.
+        am_prnu_std (float): the relative PRNU standard deviation respect to gain of analog memory.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+    """
     def __init__(
         self,
         # performance parameters for current mirror
@@ -1548,19 +1899,19 @@ class Time2VoltageConv(object):
         self.num_kernels = None
         self.stride = None
 
-        self.cm_perf_model = CurrentMirrorPerf(
+        self.cm_energy_model = CurrentMirrorEnergy(
             supply = cm_supply,
             load_capacitance = cm_load_capacitance,
             t_readout = cm_t_readout,
             i_dc = cm_i_dc
         )
 
-        self.am_perf_model = PassiveAnalogMemoryPerf(
+        self.am_energy_model = PassiveAnalogMemoryEnergy(
             sample_capacitance = am_sample_capacitance,
             supply = am_supply
         )
 
-        self.cm_noise_model = CurrentMirrorNoise(
+        self.cm_func_model = CurrentMirrorFunc(
             name = "CurrentMirror",
             gain = cm_gain,
             noise = cm_noise,
@@ -1569,7 +1920,7 @@ class Time2VoltageConv(object):
             prnu_std = cm_prnu_std
         )
 
-        self.am_noise_model = PixelwiseNoise(
+        self.am_func_model = PixelwiseFunc(
             name = "PassiveAnalogMemory",
             gain = am_gain,
             noise = am_noise,
@@ -1582,7 +1933,7 @@ class Time2VoltageConv(object):
             raise Exception("'kernel_size' in 'Time2CurrentConv' hasn't been initialized.")
 
         mac_cnt = self.kernel_size[0] * self.kernel_size[1]
-        return self.cm_perf_model.energy() * mac_cnt + self.am_perf_model.energy() * 2
+        return self.cm_energy_model.energy() * mac_cnt + self.am_energy_model.energy() * 2
 
     def _set_conv_config(self, kernel_size, num_kernels, stride):
         if len(kernel_size) != 1 or len(num_kernels) != 1 or len(stride) != 1:
@@ -1612,7 +1963,7 @@ class Time2VoltageConv(object):
                     r*s_height : r*s_height+w_height, 
                     c*s_width : c*s_width+w_width
                 ]
-                noise_output = self.cm_noise_model.apply_gain_and_noise(
+                noise_output = self.cm_func_model.simulate_output(
                     input_signal = input_elements, 
                     weight_signal = weight_signal
                 )
@@ -1652,7 +2003,7 @@ class Time2VoltageConv(object):
             conv_result = self._single_channel_convolution(image_input, kernel_input[:, :, i])
             output_height, output_width = conv_result.shape
             conv_result_list.append(
-                self.am_noise_model.apply_gain_and_noise(
+                self.am_func_model.simulate_output(
                     conv_result
                 )
             )
@@ -1667,7 +2018,29 @@ class Time2VoltageConv(object):
 
 
 class BinaryWeightConv(object):
-    """BinaryWeightConv"""
+    """Binary Weight Convolution
+
+    Args:
+        load_capacitance (float): [unit: F] load capacitance.
+        input_capacitance (float): [unit: F] input capacitance.
+        t_sample (float): [unit: s] sampling time, which mainly consists of the amplifier's 
+            settling time.
+        t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
+            consumes power relentlessly.
+        supply (float): [unit: V] supply voltage.
+        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+            ``input_capacitance`` over feedback capacitance.
+        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
+            amplifier's bias current by gm/id method.
+        differential (bool): if using differential-input amplifier or single-input amplifier.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative PRNU standard deviation respect to gain.
+            PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
+        enable_offset (bool): flag to enable adding offset voltage. Default value is ``False``.
+        pixel_offset_voltage: pixel offset voltage in unit of volt (V). Default value is ``0.1``.
+        col_offset_voltage: column-wise offset voltage in unit of volt (V). Default value is ``0.05``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -1692,7 +2065,7 @@ class BinaryWeightConv(object):
         self.num_kernels = None
         self.stride = None
 
-        self.perf_model = ColumnAmplifierPerf(
+        self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
             t_sample = t_sample,
@@ -1703,7 +2076,7 @@ class BinaryWeightConv(object):
             differential = differential
         )
 
-        self.noise_model = ColumnwiseNoise(
+        self.func_model = ColumnwiseFunc(
             name = "ColumnAmplifier",
             gain = 1.0,
             noise = noise,
@@ -1712,7 +2085,7 @@ class BinaryWeightConv(object):
         )
 
     def energy(self):
-        return self.perf_model.energy()
+        return self.energy_model.energy()
 
     def _set_conv_config(self, kernel_size, num_kernels, stride):
         if len(kernel_size) != 1 or len(num_kernels) != 1 or len(stride) != 1:
@@ -1782,14 +2155,25 @@ class BinaryWeightConv(object):
         positive_conv_result = np.expand_dims(positive_conv_signal, axis = 2)
         negative_conv_result = np.expand_dims(negative_conv_signal, axis = 2)
 
-        positive_result_after_noise = self.noise_model.apply_gain_and_noise(positive_conv_result)
-        negative_result_after_noise = self.noise_model.apply_gain_and_noise(negative_conv_result)
+        positive_result_after_noise = self.func_model.simulate_output(positive_conv_result)
+        negative_result_after_noise = self.func_model.simulate_output(negative_conv_result)
 
         return ("BinaryWeightConv", [positive_result_after_noise, negative_result_after_noise])
 
 
 class AnalogReLU(object):
-    """AnalogReLU"""
+    """Analog ReLU
+    
+    Args:
+        supply (float): [unit: V] supply voltage.
+        i_bias (float): [unit: A] bias current of the circuit.
+        t_readout (float): [unit: s] readout time, during which the comparison is finished.
+        gain (float): the average gain. Default value is ``1.0``.
+        noise (float): the standard deviation of read noise. Default value is ``None``.
+        enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
+        prnu_std (float): the relative prnu standard deviation respect to gain.
+                  prnu gain standard deviation = prnu_std * gain, the default value is ``0.001``.
+    """
     def __init__(
         self,
         # performance parameters
@@ -1803,13 +2187,13 @@ class AnalogReLU(object):
         prnu_std = 0.001
     ):
         self.name = "ReLU"
-        self.perf_model = ComparatorPerf(
+        self.energy_model = ComparatorEnergy(
             supply = supply,
             i_bias = i_bias,
             t_readout = t_readout
         )
 
-        self.noise_model = ComparatorNoise(
+        self.func_model = ComparatorFunc(
             name = "Comparator",
             gain = 1,
             noise = 0,
@@ -1818,7 +2202,7 @@ class AnalogReLU(object):
         )
 
     def energy(self):
-        return self.perf_model.energy()
+        return self.energy_model.energy()
 
     def noise(self, input_signal_list):
 
@@ -1827,7 +2211,7 @@ class AnalogReLU(object):
         for input_signal in input_signal_list:
             zero_input_signal = np.zeros(input_signal.shape)
             output_signal_list.append(
-                self.noise_model.apply_gain_and_noise(
+                self.func_model.simulate_output(
                     input_signal1 = input_signal, 
                     input_signal2 = zero_input_signal
                 )

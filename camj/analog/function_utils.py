@@ -3,11 +3,11 @@ from inspect import signature
 def process_signal_stage(stage, input_signals):
 
     output_signals = []
-    sig = signature(stage.apply_gain_and_noise)
+    sig = signature(stage.simulate_output)
     
     if len(sig.parameters) == 1:
         for input_signal in input_signals:
-            output_signal = stage.apply_gain_and_noise(input_signal)
+            output_signal = stage.simulate_output(input_signal)
             if isinstance(output_signal, tuple):
                 for item in output_signal:
                     output_signals.append(item)
@@ -16,7 +16,7 @@ def process_signal_stage(stage, input_signals):
     elif len(sig.parameters) == 2:
         if len(input_signals) != 2:
             raise Exception("Input for this stage needs to be 2!")
-        output_signal = stage.apply_gain_and_noise(input_signals[0], input_signals[1])
+        output_signal = stage.simulate_output(input_signals[0], input_signals[1])
         if isinstance(output_signal, tuple):
                 for item in output_signal:
                     output_signals.append(item)
