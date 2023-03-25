@@ -105,7 +105,7 @@ class PhotodiodeFunc(object):
         return self.name
 
 class AnalogToDigitalConverterFunc(object):
-    """ADC quantization noise model
+    """Func model for ADC.
 
     This model only consider a coarse-scale ADC noise, which we model in normal distribution.
     We don't consider non-linear noise errors which can be calibrated during manufacture.
@@ -165,7 +165,7 @@ class AnalogToDigitalConverterFunc(object):
         return self.name
 
 class AbsoluteDifferenceFunc(object):
-    """A noise model for absolute difference
+    """Func model for absolute difference subtractor.
 
     This noise model simulates the noises happened in absolute difference operation.
     Two inputs will first compute the absolute difference, and then, apply gain and noises.
@@ -247,7 +247,7 @@ class AbsoluteDifferenceFunc(object):
         return self.name
 
 class CurrentMirrorFunc(object):
-    """A noise model for current mirror
+    """Func model for current mirror.
 
     Current mirror has two possible outputs to model two functionalities of current mirror.
     1. output charge: in this case, the input current will multiply with integrated time and 
@@ -344,7 +344,7 @@ class CurrentMirrorFunc(object):
         return self.name
 
 class PassiveSwitchedCapacitorArrayFunc(object):
-    """A noise model for passive switched capacitor array
+    """Func model for passive switched capacitor array.
 
     Passive switched capacitor array can realize many mathematical operations such as
     average, addition, multiplication.
@@ -418,7 +418,7 @@ class PassiveSwitchedCapacitorArrayFunc(object):
         return self.name
 
 class MaximumVoltageFunc(object):
-    """A noise model for max voltage array.
+    """Func model for max voltage comparator.
 
     Maximum voltage produce element-wise maximum for a list of input signals. It is 
     used for operations like MaxPool.
@@ -480,7 +480,7 @@ class MaximumVoltageFunc(object):
         return self.name
 
 class PixelwiseFunc(object):
-    """A general interface for pixel-wise noise
+    """A general interface for pixel-wise function.
 
     A general interface for any noise source resided inside each pixel,
     including floating diffusion, source follower, etc. General assumption of the noise source
@@ -558,7 +558,7 @@ class PixelwiseFunc(object):
         return self.name
 
 class FloatingDiffusionFunc(object):
-    """A noise model for floating diffusion
+    """Func model for floating diffusion.
 
     General assumption of the noise model is that the noise follows a ``zero-mean``
     Gaussian distribution. Users need to provide the average noise error (sigma value).
@@ -648,7 +648,7 @@ class FloatingDiffusionFunc(object):
 
 
 class CorrelatedDoubleSamplingFunc(object):
-    """A noise model for correlated double sampling module.
+    """Func model for correlated double sampling circuit.
 
     General assumption of CDS is gain is 1, read noise follows ``zero-mean`` normal distribution.
 
@@ -732,7 +732,7 @@ class CorrelatedDoubleSamplingFunc(object):
 
 
 class ComparatorFunc(object):
-    """Comparator noise model
+    """Func model for comparator.
 
     The general assumption for comparator component is that its gain is 1,
     and its noise follows zero-mean normal distribution.
@@ -788,7 +788,7 @@ class ComparatorFunc(object):
         input_diff = input_signal1 - input_signal2
         
         if self.enable_prnu:
-            if self.prnu_gain is None or self.prnu_gain.shape != input_signal.shape:
+            if self.prnu_gain is None or self.prnu_gain.shape != input_signal1.shape:
                 self.prnu_gain = self.rs.normal(
                     loc = self.gain,
                     scale = self.gain * self.prnu_std,
@@ -818,7 +818,7 @@ class ComparatorFunc(object):
 
 
 class ColumnwiseFunc(object):
-    """A general interface for column-wise noise
+    """A general interface for column-wise function.
 
     A general interface for any noise source that applies to
     each column, such as column amplifier. Assumption for this class is that 
