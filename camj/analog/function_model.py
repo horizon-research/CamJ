@@ -480,7 +480,7 @@ class MaximumVoltageNoise(object):
         return self.name
 
 class PixelwiseNoise(object):
-    """A general interface for pixelwise noise
+    """A general interface for pixel-wise noise
 
     A general interface for any noise source resided inside each pixel,
     including floating diffusion, source follower, etc. General assumption of the noise source
@@ -529,7 +529,7 @@ class PixelwiseNoise(object):
             input_signal: the input signals.
 
         Returns:
-            2D/3D tensor: signal values after processed by analog compoenent.
+            2D/3D tensor: signal values after processed by analog component.
         """
         input_shape = input_signal.shape
         if self.enable_prnu:
@@ -823,8 +823,8 @@ class ColumnwiseNoise(object):
     A general interface for any noise source that applies to
     each column, such as column amplifier. Assumption for this class is that 
     it has a row-like struction such as column amplifier, and this class can 
-    capture the different properties in columnwise structure. One example is 
-    the column amplifier has PRNU columnwise.
+    capture the different properties in column-wise structure. One example is
+    the column amplifier has PRNU column-wisely.
 
     Mathematical Expression:
         output = gain * in + Norm(noise)
@@ -877,7 +877,7 @@ class ColumnwiseNoise(object):
             input_signal: the input signals.
 
         Returns:
-            2D/3D tensor: signal values after processed by columnwise noise component.
+            2D/3D tensor: signal values after processed by column-wise noise component.
         """  
         if len(input_signal.shape) != 3:
             raise Exception("input signal in noise model needs to be in (height, width, channel) 3D shape.")
