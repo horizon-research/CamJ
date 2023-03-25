@@ -479,7 +479,7 @@ class MaximumVoltageFunc(object):
     def __repr__(self):
         return self.name
 
-class PixelwiseNoise(object):
+class PixelwiseFunc(object):
     """A general interface for pixel-wise noise
 
     A general interface for any noise source resided inside each pixel,
