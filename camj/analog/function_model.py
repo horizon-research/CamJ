@@ -16,6 +16,10 @@ This module includes all basic noise model for CamJ functional simulation.
     Note that the proxy doesn't always reflect the physical reality of the circuit, meaning that the "gain" may not be an explicit
     parameter in the circuit and the "gain variation" is not analytically derived from the circuit parameters.
     However, the proxy trades low level circuit details off for the model's simplicity.
+
+References Link:
+    * JSSC-2019: A Data-Compressive 1.5/2.75-bit Log-Gradient QVGA Image Sensor With Multi-Scale Readout for Always-On Object Detection.
+        https://ieeexplore.ieee.org/document/8844721
 """
 
 import numpy as np
