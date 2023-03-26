@@ -21,6 +21,7 @@ case has:
 <table>
     <tr>
         <th rowspan="2">Case Name</th>
+        <th rowspan="2">Stacked</th>
         <th align="center" colspan="5">Analog Domain</td>
         <th align="center" colspan="2">Digital Domain</td>
     </tr>
@@ -35,6 +36,7 @@ case has:
     </tr>
     <tr>
         <td>isscc_17_0_62</td>
+        <td>No</td>
         <td>3T APS</td>
         <td>20x80</td>
         <td>Avg. & Add</td>
@@ -45,6 +47,7 @@ case has:
     </tr>
     <tr>
         <td>jssc_19</td>
+        <td>No</td>
         <td>4T APS</td>
         <td>4x240</td>
         <td>Logarithmic Sub.</td>
@@ -55,6 +58,7 @@ case has:
     </tr>
     <tr>
         <td>sensors_20</td>
+        <td>No</td>
         <td>4T APS</td>
         <td>No</td>
         <td>MAC</td>
@@ -65,6 +69,7 @@ case has:
     </tr>
     <tr>
         <td>isscc_21_back_illuminated</td>
+        <td>Yes</td>
         <td>4T APS</td>
         <td>No</td>
         <td>-</td>
@@ -75,6 +80,7 @@ case has:
     </tr>
     <tr>
         <td>jssc_21_05v</td>
+        <td>No</td>
         <td>PWM</td>
         <td>No</td>
         <td>MAC</td>
@@ -85,6 +91,7 @@ case has:
     </tr>
     <tr>
         <td>jssc_21_51pj</td>
+        <td>Yes</td>
         <td>4T APS</td>
         <td>No</td>
         <td>MAC</td>
@@ -95,6 +102,7 @@ case has:
     </tr>
     <tr>
         <td>vlsi_21</td>
+        <td>No</td>
         <td>DPS</td>
         <td>No</td>
         <td>-</td>
@@ -105,6 +113,7 @@ case has:
     </tr>
     <tr>
         <td>isscc_22_08v</td>
+        <td>No</td>
         <td>PWM</td>
         <td>No</td>
         <td>MAC</td>
@@ -115,6 +124,7 @@ case has:
     </tr>
     <tr>
         <td>tcas_i22</td>
+        <td>No</td>
         <td>3T APS</td>
         <td>No</td>
         <td>Mul. & Add</td>
@@ -125,6 +135,7 @@ case has:
     </tr>
     <tr>
         <td>ieee_vr22</td>
+        <td>No</td>
         <td>3T APS</td>
         <td>201x320</td>
         <td>Mul. & Abs. Diff.</td>
@@ -135,6 +146,7 @@ case has:
     </tr>
     <tr>
         <td>rhythmic_pixel_21</td>
+        <td>No</td>
         <td>3T APS</td>
         <td>No</td>
         <td>-</td>
