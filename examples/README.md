@@ -135,12 +135,12 @@ case has:
 
 ## How to run
 
-Use `example_run.py` to run different validation cases:
+Use `example_run.py` to run all the examples:
 ```
  $ python example_run.py
 ```
 
-To know different run options, run `--help` options, you will see different options:
+Run with `--help` to see how to run each example individually:
 ```
  $ python example_run.py --help
 
@@ -159,3 +159,5 @@ optional arguments:
   ...
   
 ```
+
+Alternatively, you can run `python run.py` in each sub-directory.
