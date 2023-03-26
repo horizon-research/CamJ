@@ -1,10 +1,6 @@
-# Validation Examples
+# Computational CIS Modeled Using CamJ
 
-This directory lists all the examples that we use in our paper validation and evaluation. Please 
-check each subdirectory for more details.
-
-Here are the directory names with corresponding papers. The first nine papers are used for validation 
-and the last two are for evaluation.
+This directory contains all the examples that we use in the original ISCA 2023 paper for validating and show-casing CamJ. In total, we modeled nine computational CIS using CamJ as listed below. The first nine papers are used for validation and the last two are for evaluation.
 
 * [`isscc_17_0_62`](https://github.com/horizon-research/CamJ/tree/main/examples/isscc_17_0_62):  A 0.62mW Ultra-Low-Power Convolutional-NeuralNetwork Face-Recognition Processor and a CIS Integrated with Always-On Haar-Like Face Detector. [(Link)](https://ieeexplore.ieee.org/abstract/document/7870354)
 * [`jssc_19`](https://github.com/horizon-research/CamJ/tree/main/examples/jssc_19):  A Data-Compressive 1.5/2.75-bit Log-Gradient QVGA Image Sensor With Multi-Scale Readout for Always-On Object Detection. [(Link)](https://ieeexplore.ieee.org/document/8844721)
