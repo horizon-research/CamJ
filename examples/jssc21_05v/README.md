@@ -2,6 +2,8 @@
 
 This example describes the sensor design from the JSSC 2021 paper: [A 0.5-V Real-Time Computational CMOS Image Sensor With Programmable Kernel for Feature Extraction](https://ieeexplore.ieee.org/document/9250500)
 
+## Described Pipeline
+
 In this example, we only simulate the analog part of this sensor design which contains a PWM pixel
 array and a convolution PE array as shown in the following figure:
 

@@ -2,6 +2,8 @@
 
 This example describes the sensor design from the VLSI 2021 paper: [A 2.6 e-rms Low-Random-Noise, 116.2 mW Low-Power 2-Mp Global Shutter CMOS Image Sensor with Pixel-Level ADC and In-Pixel Memory](https://ieeexplore.ieee.org/document/9492357)
 
+## Described Pipeline
+
 This is the camera sensor that implemented in this example:
 
 <p align="center">

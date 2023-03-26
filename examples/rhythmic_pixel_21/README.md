@@ -7,7 +7,9 @@ towards High-Precision Visual Computing at Low Power](https://meteor.ame.asu.edu
 
 The following figure shows the software pipeline that this example describes:
 
-![asplos_21_flowchart](https://user-images.githubusercontent.com/21286132/227810191-be44f2a9-ef46-4c15-9ce3-143cf5ed1598.png)
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/21286132/227810191-be44f2a9-ef46-4c15-9ce3-143cf5ed1598.png">
+</p>
 
 We slightly modified the original pipeline so that it can be better described using CamJ API.
 
