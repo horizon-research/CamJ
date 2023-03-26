@@ -15,7 +15,7 @@ This directory contains all the examples we used in the original ISCA 2023 paper
 * [`rhythmic_pixel_21`](https://github.com/horizon-research/CamJ/tree/main/examples/rhythmic_pixel_21): Rhythmic Pixel Regions: Multi-resolution Visual Sensing System
 towards High-Precision Visual Computing at Low Power. [(Link)](https://meteor.ame.asu.edu/publications/asplos21_rhythmic_pixel_regions.pdf)
 
-The table below summarizes the high-level hardware specifications of the CIS we modeled.
+The table below summarizes the high-level hardware specifications of the CIS we modeled, which covers a wide variety of design variations. Unit of analog memory size is “number of analog values”.
 
 <table>
     <tr>
