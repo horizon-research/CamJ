@@ -12,6 +12,8 @@ This directory contains all the examples that we use in the original ISCA 2023 p
 * [`isscc_22_08v`](https://github.com/horizon-research/CamJ/tree/main/examples/isscc_22_08v): A 0.8V Intelligent Vision Sensor with Tiny Convolutional Neural Network and Programmable Weights Using Mixed-Mode Processing-in-Sensor Technique for Image Classification. [(Link)](https://ieeexplore.ieee.org/document/9731675)
 * [`tcas_i22`](https://github.com/horizon-research/CamJ/tree/main/examples/tcas_i22): Senputing: An Ultra-Low-Power Always-On Vision Perception Chip Featuring the Deep Fusion of Sensing and Computing. [(Link)](https://ieeexplore.ieee.org/document/9464962)
 * [`ieee_vr22`](https://github.com/horizon-research/CamJ/tree/main/examples/ieee_vr22): Real-Time Gaze Tracking with Event-Driven Eye Segmentation. [(Link)](https://arxiv.org/abs/2201.07367)
+* [`rhythmic_pixel_21`](https://github.com/horizon-research/CamJ/tree/main/examples/rhythmic_pixel_21): Rhythmic Pixel Regions: Multi-resolution Visual Sensing System
+towards High-Precision Visual Computing at Low Power. [(Link)](https://meteor.ame.asu.edu/publications/asplos21_rhythmic_pixel_regions.pdf)
 
 The following table shows what computing domain each paper involves and what kind of simulation each
 case has:
@@ -130,6 +132,16 @@ case has:
         <td>Voltage</td>
         <td>64K</td>
         <td>16x16</td>
+    </tr>
+    <tr>
+        <td>rhythmic_pixel_21</td>
+        <td>3T APS</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>2560B</td>
+        <td>1x16</td>
     </tr>
 </table>
 
