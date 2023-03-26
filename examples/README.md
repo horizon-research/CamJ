@@ -136,7 +136,7 @@ case has:
     <tr>
         <td>rhythmic_pixel_21</td>
         <td>3T APS</td>
-        <td>-</td>
+        <td>No</td>
         <td>-</td>
         <td>-</td>
         <td>-</td>
