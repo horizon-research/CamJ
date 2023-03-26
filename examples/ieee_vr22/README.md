@@ -28,14 +28,3 @@ To be noticed, `hw_config_w_analog()` function also includes a customized analog
 in `customized_analog_component.py`. 
 
 `mapping_file.py` defines the mapping between software stages and hardware components.
-
-
-## How to run
-
-Run python script `run.py`. You will simulate the example above:
-```
- $ python run.py
-```
-
-You can also run power simulation where eventification is operated in digital domain, please see 
-`run.py` for more details.
