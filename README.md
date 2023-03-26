@@ -40,3 +40,14 @@ Orthogonally, a designer can use CamJ to explore optimal mapping and partitionin
 CamJ is *not* a synthesis tool; it does not generate a digital accelerator (or analog circuits for that matter), which is the goal of a High-Level Synthesis (HLS) tool.
 Rather, CamJ can be used in conjunction with HLS: one could use HLS to first generate an accelerator and then use CamJ to explore, in the
 bigger system, how/whether that accelerator would fit in a computational CIS to maximize end-to-end application gains.
+
+## Citation
+
+```
+@inproceedings{ma2023camj,
+  title={CamJ: Enabling System-Level Energy Modeling and Architectural Exploration for In-Sensor Visual Computing},
+  author={Ma, Tianrui and Feng, Yu and Zhang, Xuan and Zhu, Yuhao},
+  booktitle={Proceedings of the 50th Annual International Symposium on Computer Architecture},
+  year={2023}
+}
+```
