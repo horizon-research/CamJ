@@ -1,8 +1,8 @@
 # Computational CIS Modeled Using CamJ
 
-This directory contains all the examples that we use in the original ISCA 2023 paper for validating and show-casing CamJ. In total, we modeled nine computational CIS using CamJ as listed below. The first nine papers are used for validation and the last two are for evaluation.
+This directory contains all the examples we used in the original ISCA 2023 paper for validating and show-casing the capabilities of CamJ. In total, we modeled nine computational CIS as listed below. The first nine papers are used for validation and the last two are used as CamJ use-cases.
 
-* [`isscc_17_0_62`](https://github.com/horizon-research/CamJ/tree/main/examples/isscc_17_0_62):  A 0.62mW Ultra-Low-Power Convolutional-NeuralNetwork Face-Recognition Processor and a CIS Integrated with Always-On Haar-Like Face Detector. [(Link)](https://ieeexplore.ieee.org/abstract/document/7870354)
+* [`isscc_17_0_62`](https://github.com/horizon-research/CamJ/tree/main/examples/isscc_17_0_62):  [A 0.62mW Ultra-Low-Power Convolutional-NeuralNetwork Face-Recognition Processor and a CIS Integrated with Always-On Haar-Like Face Detector](https://ieeexplore.ieee.org/abstract/document/7870354) (ISSCC 2017).
 * [`jssc_19`](https://github.com/horizon-research/CamJ/tree/main/examples/jssc_19):  A Data-Compressive 1.5/2.75-bit Log-Gradient QVGA Image Sensor With Multi-Scale Readout for Always-On Object Detection. [(Link)](https://ieeexplore.ieee.org/document/8844721)
 * [`sensors_20`](https://github.com/horizon-research/CamJ/tree/main/examples/sensors_20):  Design of an Always-On Image Sensor Using an Analog Lightweight Convolutional Neural Network. [(Link)](https://www.mdpi.com/1424-8220/20/11/3101)
 * [`isscc_21_back_illuminated`](https://github.com/horizon-research/CamJ/tree/main/examples/isscc_21_back_illuminated): A 1/2.3inch 12.3Mpixel with On-Chip 4.97TOPS/W CNN Processor Back-Illuminated Stacked CMOS Image Sensor. [(Link)](https://ieeexplore.ieee.org/document/9365965)
@@ -15,8 +15,7 @@ This directory contains all the examples that we use in the original ISCA 2023 p
 * [`rhythmic_pixel_21`](https://github.com/horizon-research/CamJ/tree/main/examples/rhythmic_pixel_21): Rhythmic Pixel Regions: Multi-resolution Visual Sensing System
 towards High-Precision Visual Computing at Low Power. [(Link)](https://meteor.ame.asu.edu/publications/asplos21_rhythmic_pixel_regions.pdf)
 
-The following table shows what computing domain each paper involves and what kind of simulation each
-case has:
+The table below summarizes the high-level hardware specifications of the CIS we modeled, which covers a wide variety of design variations. Unit of analog memory size is “number of analog values”.
 
 <table>
     <tr>

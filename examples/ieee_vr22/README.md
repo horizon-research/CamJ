@@ -1,7 +1,6 @@
 # IEEE VR Eye Tracking
 
-This example shows how to describe paper [IEEE VR22](https://horizon-lab.org/pubs/vr22.pdf) using 
-CamJ API.
+This example shows how to describe the IEEE VR22 paper [Real-Time Gaze Tracking with Event-Driven Eye Segmentation](https://horizon-lab.org/pubs/vr22.pdf) using CamJ.
 
 ## Described Pipeline
 
