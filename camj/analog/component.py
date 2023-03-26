@@ -1147,7 +1147,7 @@ class Adder(object):
     """Adder
 
     This class models the behavior of adder in analog processing. It can be used to model element-wise
-    addition for two matrices of analog signals. This adder class contains two column ampilifer....[TODO]
+    addition for two matrices of analog signals. This adder class contains one column ampilifer. [TODO]
 
     This class can be implemented as a pixel-wise component (each pixel contains an adder) or a column-wise
     component (one-dimensional array to perform addition for all 2D pixel array).
@@ -1251,7 +1251,7 @@ class Subtractor(object):
     """Subtractor
 
     This class models the behavior of subtractor in analog processing. It can be used to model element-wise
-    subtraction for two matrices of analog signals. This adder class contains two column ampilifer....[TODO]
+    subtraction for two matrices of analog signals. This adder class contains one column ampilifer....[TODO]
 
     This class can be implemented as a pixel-wise component (each pixel contains an sub) or a column-wise
     component (one-dimensional array to perform subtraction for all 2D pixel array).
@@ -1357,7 +1357,7 @@ class AbsoluteDifference(object):
 
     This class models the behavior of absolution difference in analog processing. It can be used to 
     model element-wise subtraction for two matrices of analog signals. This adder class contains 
-    two column ampilifer....[TODO]
+    one column ampilifer....[TODO]
 
     This class can be implemented as a pixel-wise component (each pixel contains an abs) or a column-wise
     component (one-dimensional array to perform absolute difference for all 2D pixel array).
@@ -2226,7 +2226,8 @@ class Time2VoltageConv(object):
 
     This class performs convolution operations in analog domain. The convolution is realized by
     current mirror, the input current is used as kernel weight and the time signal from PWM pixel
-    is used as input in convolution layer. Passive Analog Memory is used to store signal readout. [TODO]
+    is used as input in convolution layer. Passive Analog Memory is used to store convolution output.
+    [TODO]
 
     .. Note::
         Map corresponding ``WeightInput`` in software pipeline definition to a ``DigitalToCurrentConverter``
@@ -2412,12 +2413,12 @@ class Time2VoltageConv(object):
 
 
 class BinaryWeightConv(object):
-    """Binary Weight Convolution
+    """Binary Weight Convolution [TODO: questionable]
 
     This class performs binary convolution operations in analog domain. All the kernel weights in this
     convolution operation should be either ``-1`` or ``1``. The convolution is realized by
     driving all positive weight input signals to one capacitor and all negative ones to another capacitor,
-    and then, uses a comparator to compare the final output. [TODO]
+    and then, uses a comparator to generate the final output.
 
     .. Note::
         Map corresponding ``WeightInput`` in software pipeline definition directly to this class 
@@ -2578,7 +2579,7 @@ class BinaryWeightConv(object):
 class AnalogReLU(object):
     """Analog ReLU
 
-    This class performs ReLU operation using analog comparator.
+    This class performs ReLU operation using analog comparator. [TODO: explain the reality of rely ops]
 
     To see the details of energy modeling, please check out:
         * ``analog.energy_model.ComparatorEnergy``.
