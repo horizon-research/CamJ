@@ -539,6 +539,7 @@ class CurrentMirrorEnergy(object):
         self.supply = supply
         self.load_capacitance = load_capacitance
         self.t_readout = t_readout
+        # if the output is not voltage, then define i_dc
         if i_dc is None:
             self.i_dc = self.load_capacitance * self.supply / self.t_readout
         else:

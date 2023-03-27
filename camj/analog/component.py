@@ -161,7 +161,20 @@ class ActivePixelSensor(object):
         """
         return self.energy_model.energy()
 
-    def noise(self, input_signal_list):
+    def noise(self, input_signal_list: list):
+        """Perform functional simulation
+
+        This function simulates the signal processing behavior inside APS, including signal 
+        processing in photodiode, floating diffusion and source follower. Each input signal
+        in ``input_signal_list`` will perform functional simulation sequentially. 
+            
+        Args:
+            input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is the simulated result.
+        """
         if not isinstance(input_signal_list, list):
             raise Exception("Input signal to APS needs to be a list of numpy array!")
 
@@ -338,10 +351,18 @@ class DigitalPixelSensor(object):
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
-        """Calculate Energy
+        """Perform functional simulation
+
+        This function simulates the signal processing behavior inside DPS, including signal 
+        processing in photodiode, floating diffusion, source follower and ADC. Each input signal
+        in ``input_signal_list`` will perform functional simulation sequentially. 
+            
+        Args:
+            input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
 
         Returns:
-            float: the energy consumption of this analog compoenent in unit of ``J``.
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is the simulated result.
         """
         if not isinstance(input_signal_list, list):
             raise Exception("Input signal to DPS needs to be a list of numpy array!")
@@ -397,6 +418,19 @@ class PulseWidthModulationPixel(object):
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        .. Note::
+            Currently, we don't support the functional simulation for PWM pixels, ``input_signal_list``
+            will be directly returned ny this function.
+
+        Args:
+            input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is the simulated result.
+        """
         # haven't implemented the noise model for PWM pixel yet.
         return ("PulseWidthModulationPixel", input_signal_list)
 
@@ -489,6 +523,19 @@ class ColumnAmplifier(object):
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        This function simulates the signal processing behavior of column amplifier. Each input signal
+        in ``input_signal_list`` will perform functional simulation sequentially. Please check out
+        ``analog.function_model.ColumnwiseFunc`` for more details.
+            
+        Args:
+            input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         output_signal_list = []
         for input_signal in input_signal_list:
             if input_signal.ndim == 2:
@@ -564,6 +611,18 @@ class SourceFollower(object):
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        Simulate the functional behavior of a source follower. For more details, please check
+        out ``analog.function_model.PixelwiseFunc`` for more details.
+
+        Args:
+            input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         output_signal_list = []
         for input_signal in input_signal_list:
             if input_signal.ndim != 3:
@@ -642,6 +701,18 @@ class ActiveAnalogMemory(object):
         return self.energy_model.energy() 
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        Simulate the functional behavior of an acitve analog memory. For more details, please check
+        out ``analog.PixelwiseFunc``. 
+
+        Args:
+            input_signal_list (list): A list of input signals. Each input signal should be a 2D/3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         output_signal_list = []
         for input_signal in input_signal_list:
             if input_signal.ndim != 3:
@@ -710,6 +781,18 @@ class PassiveAnalogMemory(object):
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        Simulate the functional behavior of an passive analog memory. For more details, please check
+        out ``analog.PixelwiseFunc``. 
+
+        Args:
+            input_signal_list (list): A list of input signals. Each input signal should be a 2D/3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         output_signal_list = []
         for input_signal in input_signal_list:
             if input_signal.ndim != 3:
@@ -726,6 +809,12 @@ class CurrentMirror(object):
 
     This class models the behavior of current mirror. The class models a constant current path and
     a load capacitor.
+
+    .. Note::
+        This class can perform current duplication or current-time multiplication depending on
+        user's definition. When ``i_dc`` is None, this class will perform current duplication and
+        the output signal domain is current. Otherwise, this class performs current-time multiplication
+        and accumulate the charges on its own load capacitor. The output signal domain would be voltage.
     
     To see the details of energy modeling, please check out:
         * ``analog.energy_model.CurrentMirrorEnergy``.
@@ -787,6 +876,24 @@ class CurrentMirror(object):
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        This function simulates the functional behavior of an current mirror.
+
+        .. Note::
+            This function accepts two types of inputs. When the length of ``input_signal_list`` is ``1``.
+            This function will perform copy operation that directly copy the input signal to the output
+            signal with noise simulation. When the length of ``input_signal_list`` is ``2``. This 
+            function will perform element-wise multiplication. One input is the time signal and the 
+            second one is the current signal.
+
+        Args:
+            input_signal_list (list): A list of input signals. Each input signal should be a 3D array. The length of ``input_signal_list``  should be either ``1`` or ``2``.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         # if input is two signal matrices, current mirror performs element-wise multiplication.
         if len(input_signal_list) == 2:
             return (
@@ -809,6 +916,12 @@ class PassiveSwitchedCapacitorArray(object):
     The model consists of a list of capacitors and a list of voltages that corresponds to 
     the voltage swing at each capacitor. The model is used to represent all passive 
     switched-capacitor computational circuits, including charge-redistribution-based MAC operation.
+
+    .. Note::
+        The default behavior of this class is to perform element-wise accumulation. For instance,
+        if ``input_signal_list`` is ``[np.array([1, 2, 3]), np.array([1, 2, 3]), np.array([1, 2, 3])]``,
+        the output from ``noise`` function is ``np.array([3, 6, 9])``. For achieve functionality of
+        convolution, please check out ``analog.component.Voltage2VoltageConv``.
 
     To see the details of energy modeling, please check out:
         * ``analog.energy_model.PassiveSwitchedCapacitorArrayEnergy``.
@@ -849,6 +962,17 @@ class PassiveSwitchedCapacitorArray(object):
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        This function simulates the functional behavior of a passive switched capacitor array.
+
+        Args:
+            input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         # perform element-wise addition across different input signals.
         return (
             self.func_model.name, 
@@ -859,6 +983,13 @@ class Comparator(object):
     """Dynamic Voltage Comparator
 
     The class models the behavior of dynamic voltage comparator.
+
+    .. Note::
+        The functional simulation of this class is slightly different than the actual analog
+        comparator. In the actual comparator, it compares the two different input signals 
+        (``In1`` and ``In2``) and output either ``Vdd`` (if ``In1`` >= ``In2``) or ``0`` (if 
+        ``In1`` < ``In2``). Here, in order to support other computations, we modified the output
+        of the comparator to be ``In1`` (if ``In1`` >= ``In2``) or ``0`` (if ``In1`` < ``In2``).
 
     To see the details of energy modeling, please check out:
         * ``analog.energy_model.ComparatorEnergy``.
@@ -912,6 +1043,17 @@ class Comparator(object):
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        This function simulates the functional behavior of a comparator.
+
+        Args:
+            input_signal_list (list): A list of input signals. The length of this list is 2. Each input signal should be a 3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         if len(input_signal_list) == 2:
             return (
                 self.func_model.name, 
@@ -973,6 +1115,19 @@ class AnalogToDigitalConverter(object):
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        This function simulates the functional behavior of a ADC. The output value range depends on
+        the ``resolution`` parameter. For instance, when ``resolution = 8``, the output value range
+        is ``[0, 256)``.
+
+        Args:
+            input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         output_signal_list = []
         for input_signal in input_signal_list:
             output_signal_list.append(
@@ -1042,6 +1197,17 @@ class DigitalToCurrentConverter(object):
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        This function simulates the functional behavior of a DAC.
+
+        Args:
+            input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         output_signal_list = []
         for input_signal in input_signal_list:
             output_signal_list.append(
@@ -1111,6 +1277,19 @@ class MaximumVoltage(object):
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        This function simulates the functional behavior of a maximum voltage. This function takes a
+        list of input signals and performs element-wise max comparison. The output of this function
+        is a list of signal with length of 1.
+
+        Args:
+            input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         return (
                 self.func_model.name, 
                 [self.func_model.simulate_output(input_signal_list)]
@@ -1236,6 +1415,18 @@ class Adder(object):
         return self.energy_model.energy() * 2 
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        This function simulates the functional behavior of an adder. This function takes two input 
+        signals and adds them together element-wise.
+
+        Args:
+            input_signal_list (list): A list of input signals. The length of this list of 2. Each input signal should be a 3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         if len(input_signal_list) == 2:
             if input_signal_list[0].shape != input_signal_list[1].shape:
                 raise Exception("Two inputs to 'Adder' need to be in the same shape.")
@@ -1342,6 +1533,18 @@ class Subtractor(object):
         return self.energy_model.energy() * 2 
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        This function simulates the functional behavior of an subtractor. This function takes two input 
+        signals (``In1`` and ``In2``) and subtract ``In2`` from ``In1`` element-wise.
+
+        Args:
+            input_signal_list (list): A list of input signals. The length of this list of 2. Each input signal should be a 3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         if len(input_signal_list) == 2:
             if input_signal_list[0].shape != input_signal_list[1].shape:
                 raise Exception("Two inputs to 'Adder' need to be in the same shape.")
@@ -1441,6 +1644,18 @@ class AbsoluteDifference(object):
         return self.energy_model.energy() * 2 
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        This function simulates the functional behavior of an absolute difference. This function
+        takes two input signals and performs absolute difference element-wise.
+
+        Args:
+            input_signal_list (list): A list of input signals. The length of this list of 2. Each input signal should be a 3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         if len(input_signal_list) == 2:
             return (
                 self.func_model.name, 
@@ -1527,7 +1742,17 @@ class MaxPool(object):
         return self.energy_model.energy() * self.kernel_size[0] * self.kernel_size[1]
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
 
+        This function simulates the functional behavior of an max pooling.
+
+        Args:
+            input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         output_signal_list = []
         for input_signal in input_signal_list:
             input_shape = input_signal.shape
@@ -1567,7 +1792,7 @@ class PassiveAverage(object):
     """Passive Average
 
     The class performs element-wise average. It uses passive switched capacitor array to realize
-    the functionality of averaging and uses source followers for signal readout.
+    the functionality of averaging (charge redistribution) and uses source followers for signal readout.
 
     For instance:
         if two input signals, ``[1, 2, 3]`` and ``[3, 4, 5]``, are used as input in ``noise()`` function,
@@ -1648,6 +1873,17 @@ class PassiveAverage(object):
         return self.psca_energy_model.energy() + self.sf_energy_model.energy()
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        This function simulates the functional behavior of an averaging.
+
+        Args:
+            input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         return (
             "PassiveAverage", 
             [
@@ -1663,7 +1899,7 @@ class PassiveBinning(object):
     """Passive Binning
 
     The class performs binning operations. It uses passive switched capacitor array to realize
-    the functionality of averaging (binning) and uses source followers for signal readout.
+    the functionality of binning (via charge redistribution) and uses source followers for signal readout.
 
     The binning kernel size and stride are determined by the mapped software stage.
 
@@ -1757,6 +1993,17 @@ class PassiveBinning(object):
         return self.psca_energy_model.energy() + self.sf_energy_model.energy()
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        This function simulates the functional behavior of binning.
+
+        Args:
+            input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         output_signal_list = []
         for input_signal in input_signal_list:
             input_shape = input_signal.shape
@@ -1891,6 +2138,17 @@ class ActiveAverage(object):
         return self.energy_model.energy() * self.kernel_size[0] * self.kernel_size[1]
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        This function simulates the functional behavior of averaging.
+
+        Args:
+            input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         output_signal_list = []
         for input_signal in input_signal_list:
             output_signal_list.append(
@@ -1909,7 +2167,7 @@ class ActiveAverage(object):
 class ActiveBinning(object):
     """Active Binning
 
-    The class performs binning operations. It is implemented by one column amplifier. [TODO:class changed!!].
+    The class performs binning operations. It is implemented by one column amplifier.
     The amplifier transfers the input elements sequentially to its load capacitor, and the transferred inputs are
     averaged at the capacitor by charge-redistribution.
 
@@ -2004,6 +2262,17 @@ class ActiveBinning(object):
         return self.energy_model.energy() * self.kernel_size[0] * self.kernel_size[1]
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        This function simulates the functional behavior of binning.
+
+        Args:
+            input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         output_signal_list = []
         for input_signal in input_signal_list:
             input_shape = input_signal.shape
@@ -2178,6 +2447,17 @@ class Voltage2VoltageConv(object):
         return output_signal
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        This function simulates the functional behavior of convolution operation.
+
+        Args:
+            input_signal_list (list): A list of input signals. One input should be input signal and the other one should be weight signal. 
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
 
         if len(input_signal_list) != 2:
             raise Exception("Input to Voltage2VoltageConv limits to 2 (input+weight)!")
@@ -2378,6 +2658,17 @@ class Time2VoltageConv(object):
         return output_signal
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        This function simulates the functional behavior of convolution operation.
+
+        Args:
+            input_signal_list (list): A list of input signals. One input should be input signal and the other one should be weight signal. 
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         if len(input_signal_list) != 2:
             raise Exception("Input to 'Time2VoltageConv' limits to 2 (input+weight)!")
 
@@ -2550,7 +2841,17 @@ class BinaryWeightConv(object):
         return positive_output_signal, negative_output_signal
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
 
+        This function simulates the functional behavior of convolution operation.
+
+        Args:
+            input_signal_list (list): A list of input signals. One input should be input signal and the other one should be weight signal. 
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
         if len(input_signal_list) != 2:
             raise Exception("Input to 'BinaryWeightConv' limits to 2 (input+weight)!")
 
@@ -2652,6 +2953,17 @@ class AnalogReLU(object):
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
+        """Perform functional simulation
+
+        This function simulates the functional behavior of ReLU operation.
+
+        Args:
+            input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
+
+        Returns:
+            Simulation result (tuple): The first element in the tuple is the name of this simulated
+            analog component, the second one is a list of simulation results.
+        """
 
         output_signal_list = []
 
