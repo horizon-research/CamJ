@@ -1147,7 +1147,9 @@ class Adder(object):
     """Adder
 
     This class models the behavior of adder in analog processing. It can be used to model element-wise
-    addition for two matrices of analog signals. This adder class contains one column ampilifer. [TODO]
+    addition for two matrices of analog signals. This class contains one column ampilifer. [TODO:fixed]
+    The amplifier first samples one input element to the output then accumulates the other input element to
+    the previous input element at the output. 
 
     This class can be implemented as a pixel-wise component (each pixel contains an adder) or a column-wise
     component (one-dimensional array to perform addition for all 2D pixel array).
@@ -1251,7 +1253,9 @@ class Subtractor(object):
     """Subtractor
 
     This class models the behavior of subtractor in analog processing. It can be used to model element-wise
-    subtraction for two matrices of analog signals. This adder class contains one column ampilifer....[TODO]
+    subtraction for two matrices of analog signals. This class contains one column ampilifer.[TODO:fixed]
+    The amplifier first samples one input element to the output then subtracts the other input element from
+    the previous input element at the output. 
 
     This class can be implemented as a pixel-wise component (each pixel contains an sub) or a column-wise
     component (one-dimensional array to perform subtraction for all 2D pixel array).
@@ -1356,8 +1360,11 @@ class AbsoluteDifference(object):
     """Absolute Difference
 
     This class models the behavior of absolution difference in analog processing. It can be used to 
-    model element-wise subtraction for two matrices of analog signals. This adder class contains 
-    one column ampilifer....[TODO]
+    model element-wise subtraction for two matrices of analog signals. This class contains one comparator and
+    one column ampilifer.[TODO: class changed!!]
+    The comparator determines which input element is larger. The amplifier first samples the larger input element to the output
+    then subtracts the smaller input element from the larger input element at the output. Note that the digital logic that
+    determines the amplifier's sampling order based on the comparator's output is ignored. 
 
     This class can be implemented as a pixel-wise component (each pixel contains an abs) or a column-wise
     component (one-dimensional array to perform absolute difference for all 2D pixel array).
@@ -1793,7 +1800,9 @@ class PassiveBinning(object):
 class ActiveAverage(object):
     """Active Average
 
-    The class performs element-wise average. It is implemented by two column amplifiers. [TODO].
+    The class performs element-wise average. It is implemented by two column amplifiers. [TODO:fixed].
+    The two amplifiers first transfer the two input elements to two load capacitors, respectively, then the
+    two capacitors are connected together for charge-redistribution.
 
     For instance:
         if two input signals, ``[1, 2, 3]`` and ``[3, 4, 5]``, are used as input in ``noise()`` function,
@@ -1900,7 +1909,9 @@ class ActiveAverage(object):
 class ActiveBinning(object):
     """Active Binning
 
-    The class performs binning operations. It is implemented by two column amplifiers. [TODO].
+    The class performs binning operations. It is implemented by one column amplifier. [TODO:class changed!!].
+    The amplifier transfers the input elements sequentially to its load capacitor, and the transferred inputs are
+    averaged at the capacitor by charge-redistribution.
 
     The binning kernel size and stride are determined by the mapped software stage.
 
@@ -2227,7 +2238,7 @@ class Time2VoltageConv(object):
     This class performs convolution operations in analog domain. The convolution is realized by
     current mirror, the input current is used as kernel weight and the time signal from PWM pixel
     is used as input in convolution layer. Passive Analog Memory is used to store convolution output.
-    [TODO]
+    [TODO:fixed] The memory accumulates convolutional partial sums sequentially.
 
     .. Note::
         Map corresponding ``WeightInput`` in software pipeline definition to a ``DigitalToCurrentConverter``
@@ -2579,7 +2590,15 @@ class BinaryWeightConv(object):
 class AnalogReLU(object):
     """Analog ReLU
 
-    This class performs ReLU operation using analog comparator. [TODO: explain the reality of rely ops]
+    This class performs ReLU operation using analog comparator. [TODO: fixed]
+    Funtionally, this class performs ReLU after getting the convolutional results:
+    the class outputs 0 when the result is negative and outputs the result as-is when the result is positive.
+    Note that in real circuits the analog ReLU is performed before getting the convolutional results:
+    the convolutional results are stored at two memories (positive part and negative part) based on the output polarity.
+    If the positive part is smaller than the negative part, the output is set to 0; otherwise, the ReLU transfers the
+    two parts as-is to the next analog processing stage. No subtractor is needed since the next stage usually takes
+    differential inputs.
+     
 
     To see the details of energy modeling, please check out:
         * ``analog.energy_model.ComparatorEnergy``.

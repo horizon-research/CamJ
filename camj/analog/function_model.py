@@ -30,6 +30,8 @@ This module includes all basic noise model for CamJ functional simulation.
 References Link:
     * JSSC-2019: A Data-Compressive 1.5/2.75-bit Log-Gradient QVGA Image Sensor With Multi-Scale Readout for Always-On Object Detection.
         https://ieeexplore.ieee.org/document/8844721
+    * Sensors-2020: Design of an Always-On Image Sensor Using an Analog Lightweight Convolutional Neural Network.
+        https://www.mdpi.com/1424-8220/20/11/3101
 """
 
 import numpy as np
