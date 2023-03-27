@@ -34,7 +34,7 @@ from camj.analog.function_model import ColumnwiseFunc, PixelwiseFunc, FloatingDi
                                 CurrentMirrorFunc, ComparatorFunc, AnalogToDigitalConverterFunc,\
                                 PassiveSwitchedCapacitorArrayFunc, CorrelatedDoubleSamplingFunc,\
                                 AbsoluteDifferenceFunc, MaximumVoltageFunc, PhotodiodeFunc
-
+from camj.general.enum import ProcessDomain
 
 # Active pxiel sensor
 class ActivePixelSensor(object):
@@ -53,6 +53,10 @@ class ActivePixelSensor(object):
         * ``analog.function_model.PixelwiseFunc``. 
 
     Please check out those classes for more details.
+
+    Input/Output domains:
+        * input domain: ``ProcessDomain.OPTICAL``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
 
     Args:
         pd_capacitance (float): [unit: F] the capacitance of PD.
@@ -108,6 +112,10 @@ class ActivePixelSensor(object):
         sf_noise = 0.,
         sf_prnu_std = 0.001
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.OPTICAL]
+        self.output_domain = ProcessDomain.VOLTAGE
 
         self.enable_cds = enable_cds
         if enable_cds:
@@ -200,6 +208,10 @@ class DigitalPixelSensor(object):
         * ``analog.function_model.CorrelatedDoubleSamplingFunc``.
         * ``analog.function_model.AnalogToDigitalConverterFunc``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.OPTICAL``.
+        * output domain: ``ProcessDomain.DIGITAL``.
+
     Args:
         pd_capacitance (float): [unit: F] the capacitance of PD.
         pd_supply (float): [unit: V] supply voltage of pixel.
@@ -277,6 +289,10 @@ class DigitalPixelSensor(object):
         # ADC parameters
         adc_noise = 0.,
     ):
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.OPTICAL]
+        self.output_domain = ProcessDomain.DIGITAL
+
         self.enable_cds = enable_cds
         if enable_cds:
             self.num_readout = 2
@@ -383,6 +399,10 @@ class PulseWidthModulationPixel(object):
     For energy modeling, please check out ``analog.energy_model.PulseWidthModulationPixelEnergy``
     for more details.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.OPTICAL``.
+        * output domain: ``ProcessDomain.TIME``.
+
     Args:
         pd_capacitance: PD capacitance.
         pd_supply: PD voltage supply.
@@ -400,6 +420,10 @@ class PulseWidthModulationPixel(object):
         gate_capacitance = 10e-15,  # [F]
         num_readout = 1,
     ):
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.OPTICAL]
+        self.output_domain = ProcessDomain.TIME
+
         self.energy_model = PulseWidthModulationPixelEnergy(
             pd_capacitance = pd_capacitance,
             pd_supply = pd_supply,
@@ -449,6 +473,10 @@ class ColumnAmplifier(object):
     To see the details of function modeling, please refer:
         * ``analog.function_model.ColumnwiseFunc``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
+
     Args:
         load_capacitance (float): [unit: F] load capacitance.
         input_capacitance (float): [unit: F] input capacitance.
@@ -492,6 +520,10 @@ class ColumnAmplifier(object):
         pixel_offset_voltage = 0.1,
         col_offset_voltage = 0.05
     ):
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
+
         self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
@@ -560,6 +592,9 @@ class SourceFollower(object):
     To see the details of function modeling, please refer:
         * ``analog.function_model.PixelwiseFunc``.
     
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
 
     Args:
         load_capacitance (float): [unit: F] load capacitance.
@@ -587,6 +622,10 @@ class SourceFollower(object):
         enable_prnu = False,
         prnu_std = 0.001,
     ):
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
+
         self.energy_model = SourceFollowerEnergy(
             load_capacitance = load_capacitance,
             supply = supply,
@@ -647,6 +686,10 @@ class ActiveAnalogMemory(object):
     To see the details of function modeling, please refer:
         * ``analog.function_model.PixelwiseFunc``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
+
     Args:
         sample_capacitance (float): [unit: F] sample capacitance.
         comp_capacitance (float): [unit: F] compensation capacitance
@@ -676,6 +719,11 @@ class ActiveAnalogMemory(object):
         enable_prnu = False,
         prnu_std = 0.001,
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
+
         self.energy_model = ActiveAnalogMemoryEnergy(
             sample_capacitance = sample_capacitance,
             comp_capacitance = comp_capacitance,
@@ -737,6 +785,10 @@ class PassiveAnalogMemory(object):
     To see the details of function modeling, please refer:
         * ``analog.function_model.PixelwiseFunc``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
+
     Args:
         sample_capacitance (float): [unit: F] sample capacitance.
         supply (float): [unit: V] supply voltage.
@@ -759,6 +811,10 @@ class PassiveAnalogMemory(object):
         enable_prnu = False,
         prnu_std = 0.001,
     ):
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
+
         self.energy_model = PassiveAnalogMemoryEnergy(
             sample_capacitance = sample_capacitance,
             supply = supply
@@ -784,7 +840,7 @@ class PassiveAnalogMemory(object):
         """Perform functional simulation
 
         Simulate the functional behavior of an passive analog memory. For more details, please check
-        out ``analog.PixelwiseFunc``. 
+        out ``analog.PixelwiseFunc``.
 
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 2D/3D array.
@@ -822,6 +878,10 @@ class CurrentMirror(object):
     To see the details of function modeling, please refer:
         * ``analog.function_model.CurrentMirrorFunc``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.CURRENT`` and ``ProcessDomain.TIME``.
+        * output domain: if ``i_dc`` is ``None``, then ``ProcessDomain.CURRENT``, else, ``ProcessDomain.VOLTAGE``.
+
     Args:
         supply (float): [unit: V] supply voltage.
         load_capacitance (float): [unit: F] load capacitance.
@@ -851,6 +911,14 @@ class CurrentMirror(object):
         prnu_std = 0.001
 
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.CURRENT, ProcessDomain.TIME]
+        if i_dc is None:
+            self.output_domain = ProcessDomain.CURRENT
+        else:
+            self.output_domain = ProcessDomain.VOLTAGE
+
         self.energy_model = CurrentMirrorEnergy(
             supply = supply,
             load_capacitance = load_capacitance,
@@ -929,6 +997,10 @@ class PassiveSwitchedCapacitorArray(object):
     To see the details of function modeling, please refer:
         * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
+
     Args:
         capacitance_array (array, float): [unit: F] a list of capacitors.
         vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing at each capacitor.
@@ -942,6 +1014,11 @@ class PassiveSwitchedCapacitorArray(object):
         # noise parameters
         noise = 0.,
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
+
         self.energy_model = PassiveSwitchedCapacitorArrayEnergy(
             capacitance_array = capacitance_array,
             vs_array = vs_array
@@ -997,6 +1074,10 @@ class Comparator(object):
     To see the details of function modeling, please refer:
         * ``analog.function_model.ComparatorFunc``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
+
     Args:
         supply (float): [unit: V] supply voltage.
         i_bias (float): [unit: A] bias current of the circuit.
@@ -1020,6 +1101,11 @@ class Comparator(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
+
         self.energy_model = ComparatorEnergy(
             supply = supply,
             i_bias = i_bias,
@@ -1074,6 +1160,10 @@ class AnalogToDigitalConverter(object):
     To see the details of function modeling, please refer:
         * ``analog.function_model.AnalogToDigitalConverterFunc``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.DIGITAL``.
+
     Args:
         supply (float): [unit: V] supply voltage.
         type (str): ADC type.
@@ -1092,6 +1182,11 @@ class AnalogToDigitalConverter(object):
         # noise parameters
         adc_noise = 0.,
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.DIGITAL
+
         self.energy_model = AnalogToDigitalConverterEnergy(
             supply = supply,
             type = type,
@@ -1150,6 +1245,10 @@ class DigitalToCurrentConverter(object):
     To see the details of function modeling, please refer:
         * ``analog.function_model.PixelwiseFunc``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.DIGITAL``.
+        * output domain: ``ProcessDomain.CURRENT``.
+
     Args:
         supply (float): [unit: V] supply voltage.
         load_capacitance (float): [unit: F] load capacitance.
@@ -1174,6 +1273,11 @@ class DigitalToCurrentConverter(object):
         enable_prnu = False,
         prnu_std = 0.001,
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.DIGITAL]
+        self.output_domain = ProcessDomain.CURRENT
+
         self.energy_model = DigitalToCurrentConverterEnergy(
             supply = supply,
             load_capacitance = load_capacitance,
@@ -1229,6 +1333,10 @@ class MaximumVoltage(object):
         two lists as input signals, ``[0, 1, 2, 3]`` and ``[3, 2, 1, 0]`` will output ``[3, 2, 2, 3]``
         as the result.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
+
     To see the details of energy modeling, please check out:
         * ``analog.energy_model.MaximumVoltageEnergy``.
 
@@ -1254,6 +1362,10 @@ class MaximumVoltage(object):
         noise = 0.0,
     ):
         super(MaximumVoltage, self).__init__()
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
 
         self.energy_model = MaximumVoltageEnergy(
             supply = supply,  # [V]
@@ -1342,6 +1454,10 @@ class Adder(object):
 
     To see the details of function modeling, please refer its function ``noise()``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
+
     Args:
         load_capacitance (float): [unit: F] load capacitance.
         input_capacitance (float): [unit: F] input capacitance.
@@ -1377,6 +1493,11 @@ class Adder(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
+
         self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
@@ -1460,6 +1581,10 @@ class Subtractor(object):
 
     To see the details of function modeling, please refer its function ``noise()``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
+
     Args:
         load_capacitance (float): [unit: F] load capacitance.
         input_capacitance (float): [unit: F] input capacitance.
@@ -1495,6 +1620,11 @@ class Subtractor(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
+
         self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
@@ -1581,6 +1711,10 @@ class AbsoluteDifference(object):
 
     To see the details of function modeling, please refer its function ``noise()``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
+
     Args:
         load_capacitance (float): [unit: F] load capacitance.
         input_capacitance (float): [unit: F] input capacitance.
@@ -1615,6 +1749,11 @@ class AbsoluteDifference(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
+
         self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
@@ -1688,6 +1827,10 @@ class MaxPool(object):
     To see the details of function modeling, please refer:
         * ``analog.function_model.MaximumVoltageFunc``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
+
     Args:
         supply (float): [unit: V] supply voltage.
         t_hold (float): [unit: s] holding time, during which the circuit is turned on and consumes power relentlessly.
@@ -1706,6 +1849,11 @@ class MaxPool(object):
         # noise parameters
         noise = 0.0,
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
+
         self.kernel_size = None
 
         self.energy_model = MaximumVoltageEnergy(
@@ -1806,6 +1954,10 @@ class PassiveAverage(object):
         * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
         * ``analog.function_model.PixelwiseFunc``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
+
     Args:
         capacitance_array (array, float): [unit: F] a list of capacitors.
         vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing at each capacitor.
@@ -1838,6 +1990,11 @@ class PassiveAverage(object):
         sf_prnu_std = 0.001,
         
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
+
         self.psca_energy_model = PassiveSwitchedCapacitorArrayEnergy(
             capacitance_array = capacitance_array,
             vs_array = vs_array
@@ -1915,6 +2072,10 @@ class PassiveBinning(object):
         * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
         * ``analog.function_model.PixelwiseFunc``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
+
     Args:
         capacitance_array (array, float): [unit: F] a list of capacitors.
         vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing at each capacitor.
@@ -1947,6 +2108,10 @@ class PassiveBinning(object):
         sf_prnu_std = 0.001,
         
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
 
         self.kernel_size = None
         self.psca_energy_model = PassiveSwitchedCapacitorArrayEnergy(
@@ -2061,6 +2226,10 @@ class ActiveAverage(object):
     To see the details of function modeling, please refer:
         * ``analog.function_model.ColumnwiseFunc``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
+
     Args:
         load_capacitance (float): [unit: F] load capacitance.
         input_capacitance (float): [unit: F] input capacitance.
@@ -2101,6 +2270,11 @@ class ActiveAverage(object):
         pixel_offset_voltage = 0.1,
         col_offset_voltage = 0.05
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
+
         self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
@@ -2185,6 +2359,10 @@ class ActiveBinning(object):
         * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
         * ``analog.function_model.PixelwiseFunc``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
+
     Args:
         load_capacitance (float): [unit: F] load capacitance.
         input_capacitance (float): [unit: F] input capacitance.
@@ -2225,6 +2403,11 @@ class ActiveBinning(object):
         pixel_offset_voltage = 0.1,
         col_offset_voltage = 0.05
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
+
         self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
@@ -2333,6 +2516,10 @@ class Voltage2VoltageConv(object):
         * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
         * ``analog.function_model.PixelwiseFunc``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
+
     Args:
         capacitance_array (array, float): [unit: F] a list of capacitors.
         vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing at each capacitor.
@@ -2366,6 +2553,11 @@ class Voltage2VoltageConv(object):
         sf_prnu_std = 0.001,
         
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
+
         if len(capacitance_array) != len(vs_array):
             raise Exception(
                 "The length of 'capacitance_array' (%d) and the length of 'vs_array' (%d) should be the same!"\
@@ -2531,6 +2723,10 @@ class Time2VoltageConv(object):
     To see the details of function modeling, please refer:
         * ``analog.function_model.CurrentMirrorFunc``.
         * ``analog.function_model.PixelwiseFunc``.
+
+    Input/Output domains:
+        * input domain: ``ProcessDomain.CURRENT`` and ``ProcessDomain.TIME``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
     
     Args:
         cm_supply (float): [unit: V] supply voltage of current mirror.
@@ -2575,6 +2771,10 @@ class Time2VoltageConv(object):
         am_prnu_std = 0.001,
         
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.TIME, ProcessDomain.CURRENT]
+        self.output_domain = ProcessDomain.VOLTAGE
 
         self.kernel_size = None
         self.num_kernels = None
@@ -2732,6 +2932,10 @@ class BinaryWeightConv(object):
     To see the details of function modeling, please refer:
         * ``analog.function_model.ColumnwiseFunc``.
 
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
+
     Args:
         load_capacitance (float): [unit: F] load capacitance.
         input_capacitance (float): [unit: F] input capacitance.
@@ -2772,6 +2976,10 @@ class BinaryWeightConv(object):
         pixel_offset_voltage = 0.1,
         col_offset_voltage = 0.05
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
 
         self.kernel_size = None
         self.num_kernels = None
@@ -2906,6 +3114,10 @@ class AnalogReLU(object):
 
     To see the details of function modeling, please refer:
         * ``analog.function_model.ComparatorFunc``.
+
+    Input/Output domains:
+        * input domain: ``ProcessDomain.VOLTAGE``.
+        * output domain: ``ProcessDomain.VOLTAGE``.
     
     Args:
         supply (float): [unit: V] supply voltage.
@@ -2929,6 +3141,11 @@ class AnalogReLU(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
+
         self.name = "ReLU"
         self.energy_model = ComparatorEnergy(
             supply = supply,
