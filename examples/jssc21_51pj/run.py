@@ -24,10 +24,6 @@ def run_energy_simulation(hw_desc, mapping, sw_desc):
         sw_desc = sw_desc
     )
 
-    print("Total energy: ", total_energy, "pJ")
-    print("Energy breakdown (pJ):")
-    pprint(energy_breakdown)
-
 if __name__ == '__main__':
 
     hw_desc = hw_config()

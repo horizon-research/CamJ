@@ -1,5 +1,6 @@
 import copy
 from pprint import pprint
+from prettytable import PrettyTable
 import numpy as np
 from inspect import signature
 
@@ -35,18 +36,25 @@ def energy_simulation(hw_desc, mapping, sw_desc):
     print("###  Launch analog simulation  ###")
     analog_energy_dict = analog_energy_simulation(hw_dict["analog"], sw_stage_list, mapping_dict)
 
-    print("\n\n###  Launch digital simulation  ###")
+    print("\n###  Launch digital simulation  ###")
     digital_energy_dict = digital_energy_simulation(hw_dict, mapping_dict, sw_stage_list)
 
     ret_energy_dict = {}
+    print_tab = PrettyTable(["Component Name", "Energy (pJ)"])
     total_energy = 0
     for name in analog_energy_dict.keys():
         ret_energy_dict[name] = analog_energy_dict[name]
         total_energy += analog_energy_dict[name]
+        print_tab.add_row([name, analog_energy_dict[name]])
 
     for name in digital_energy_dict.keys():
         ret_energy_dict[name] = digital_energy_dict[name]
         total_energy += digital_energy_dict[name]
+        print_tab.add_row([name, digital_energy_dict[name]])
+
+    print("\nTotal energy: ", total_energy, "pJ")
+    print("Energy breakdown:")
+    print(print_tab)
 
     return total_energy, ret_energy_dict
 
@@ -65,6 +73,11 @@ def digital_energy_simulation(hw_desc, mapping, sw_desc):
     reservation_board = ReservationBoard(hw_desc["compute"])
     # find software stages that are only in digital simulation
     sw_stage_list = find_digital_sw_stages(sw_desc, hw_desc["compute"], mapping)
+
+    if len(sw_stage_list) == 0:
+        print("[DIGITAL] No software stages are mapped to digital domain.\n")
+        return {}
+
     # find interface stages
     sw_stage_list, mapping_dict = _find_analog_interface_stages(
         sw_stage_list, 

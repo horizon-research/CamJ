@@ -24,10 +24,6 @@ def run_energy_simulation(hw_desc, mapping, sw_desc):
         sw_desc = sw_desc
     )
 
-    print("Total energy: ", total_energy, "pJ")
-    print("Energy breakdown (pJ):")
-    pprint(energy_breakdown)
-
 def run_functional_simulation(hw_desc, mapping, sw_desc, test_img_name):
 
     img_input = np.array(Image.open(test_img_name).convert("L"))
