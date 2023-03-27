@@ -9,8 +9,7 @@ import sys
 sys.path.append(os.path.dirname(os.getcwd()))
 
 # import local modules
-from camj.sim_core.launch import launch_simulation
-from camj.functional_core.launch import launch_functional_simulation
+from camj.general.launch import energy_simulation, functional_simulation
 
 from examples.opt import options
 
@@ -30,16 +29,17 @@ def eventification_noise_simulation_example(
     curr_img = np.array(Image.open(curr_img_name).convert("L"))
 
     # a simple inverse img to photon
-    photon_input = curr_img/255.*pixel_full_well_capacity
+    electron_input = np.expand_dims(curr_img / 255 * pixel_full_well_capacity, axis = 2)
 
-    prev_img = np.array(Image.open(prev_img_name).convert("L"))/255.*full_scale_input_voltage
+    prev_img = np.array(Image.open(prev_img_name).convert("L"))
+    prev_img = np.expand_dims(prev_img / 255. * full_scale_input_voltage, axis = 2)
 
     input_mapping = {
-        "CurrInput" : [photon_input],
+        "CurrInput" : [electron_input],
         "PrevResizedInput" : [prev_img]
     }
 
-    simulation_res = launch_functional_simulation(
+    simulation_res = functional_simulation(
         sw_desc, 
         hw_desc, 
         mapping, 
@@ -47,20 +47,16 @@ def eventification_noise_simulation_example(
     )
 
     img_after_adc = simulation_res['Eventification'][0]
-    img_res = Image.fromarray(np.uint8(img_after_adc * 255) , 'L')
-    img_res.save("tmp.png")
+    img_res = Image.fromarray(np.uint8(np.squeeze(img_after_adc) * 255) , 'L')
+    img_res.show()
 
 def run_energy_simulation(hw_desc, mapping, sw_desc):
 
-    total_energy, energy_breakdown = launch_simulation(
+    total_energy, energy_breakdown = energy_simulation(
         hw_desc = hw_desc,
         mapping = mapping,
         sw_desc = sw_desc
     )
-
-    print("Total energy: ", total_energy)
-    print("Energy breakdown:")
-    pprint(energy_breakdown)
 
 
 ########################################################
@@ -230,6 +226,7 @@ def run_tcas_i22():
 #               Evaluation Examples                    # 
 ########################################################
 
+# Real Time Gaze Tracking with Event Driven Eye Segmentation
 def run_ieee_vr22():
 
     from examples.ieee_vr22.mapping import mapping_function_w_analog
@@ -255,6 +252,23 @@ def run_ieee_vr22():
         sw_desc = sw_desc
     )
 
+# Rhythmic Pixel Regions: Multi-resolution Visual Sensing System
+# towards High-Precision Visual Computing at Low Power
+def run_rhythmic_pixel_21():
+
+    from examples.rhythmic_pixel_21.mapping import mapping_function
+    from examples.rhythmic_pixel_21.sw import sw_pipeline
+    from examples.rhythmic_pixel_21.hw import hw_config
+    
+    hw_desc = hw_config()
+    mapping = mapping_function()
+    sw_desc = sw_pipeline()
+
+    run_energy_simulation(
+        hw_desc = hw_desc,
+        mapping = mapping,
+        sw_desc = sw_desc
+    )
 
 if __name__ == '__main__':
 
@@ -283,4 +297,6 @@ if __name__ == '__main__':
     # Evaluation
     if args.ieee_vr22:
         run_ieee_vr22()
+    if args.rhythmic_pixel_21:
+        run_rhythmic_pixel_21()
 

@@ -72,5 +72,12 @@ def options():
         action="store_true",
         help="Run IEEE VR22 example",
     )
+    # evaluation examples
+    parser.add_argument(
+        "--rhythmic_pixel_21",
+        default=False,
+        action="store_true",
+        help="Run ASPLOS21 Rhythmic Pixel example",
+    )
 
     return parser.parse_args()
