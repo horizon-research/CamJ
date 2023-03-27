@@ -167,17 +167,18 @@ Run with `--help` to see how to run each example individually:
  $ python example_run.py --help
 
 optional arguments:
-  -h, --help       show this help message and exit
-  --isscc_17_0_62  Run ISSCC 17 0.62V example
-  --jssc_19        Run JSSC 19 example
-  --sensors_20     Run Sensors 20 example
-  --isscc_21       Run ISSCC 21 Back-illuminated example
-  --jssc21_05v     Run JSSC 21 0.5V example
-  --jssc21_51pj    Run JSSC 21 51pJ example
-  --vlsi_21        Run VLSI 21 example
-  --isscc_22_08v   Run ISSCC 22 0.8V example
-  --tcas_i22       Run TCAS-I 22 example
-  --ieee_vr22      Run IEEE VR22 example
+  -h, --help           show this help message and exit
+  --isscc_17_0_62      Run ISSCC 17 0.62V example
+  --jssc_19            Run JSSC 19 example
+  --sensors_20         Run Sensors 20 example
+  --isscc_21           Run ISSCC 21 Back-illuminated example
+  --jssc21_05v         Run JSSC 21 0.5V example
+  --jssc21_51pj        Run JSSC 21 51pJ example
+  --vlsi_21            Run VLSI 21 example
+  --isscc_22_08v       Run ISSCC 22 0.8V example
+  --tcas_i22           Run TCAS-I 22 example
+  --ieee_vr22          Run IEEE VR22 example
+  --rhythmic_pixel_21  Run ASPLOS21 Rhythmic Pixel example
   ...
   
 ```
