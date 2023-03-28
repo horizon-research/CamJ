@@ -55,7 +55,7 @@ def _check_array_internal_connect_consistency(analog_array):
             )
 
         head_component = next_component
-        if index + 1 < len(analog_arrays.components):
+        if index + 1 < len(analog_array.components):
             next_component = analog_array.components[index+1]
             index += 1
         else:
