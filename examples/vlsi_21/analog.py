@@ -6,7 +6,7 @@ parent_directory = os.path.dirname(os.getcwd())
 sys.path.append(os.path.dirname(parent_directory))
 
 # import local modules
-from camj.analog.component import DigitalPixelSensor, GeneralCircuit
+from camj.analog.component import ActivePixelSensor, GeneralCircuit, AnalogToDigitalConverter
 from camj.analog.infra import AnalogArray, AnalogComponent
 from camj.analog.utils import check_analog_connect_consistency, compute_total_energy,\
                             analog_energy_simulation
@@ -30,10 +30,10 @@ def analog_config():
     pixel = AnalogComponent(
         name = "DPSPixel",
         input_domain =[ProcessDomain.OPTICAL],
-        output_domain = ProcessDomain.VOLTAGE,
+        output_domain = ProcessDomain.DIGITAL,
         component_list = [
             (
-                DigitalPixelSensor(
+                ActivePixelSensor(
                     # performance parameters
                     pd_capacitance = 100e-15, # [F]
                     pd_supply = 2.8, # [V]
@@ -46,10 +46,6 @@ def analog_config():
                     tech_node = 130,  # [um]
                     pitch = 4,  # [um]
                     array_vsize = 0, # pixel array vertical size
-                    # ADC performance parameters
-                    adc_type = 'SS',
-                    adc_fom = 4300e-15,  # [J/conversion]
-                    adc_reso = 10,
                     # noise parameters
                     dark_current_noise = 0.,
                     enable_dcnu = False,
@@ -62,13 +58,7 @@ def analog_config():
                     # SF parameters
                     sf_gain = 1.0,
                     sf_noise = 0.,
-                    sf_prnu_std = 0.001,
-                    # CDS parameters
-                    cds_gain = 1.0,
-                    cds_noise = 0.,
-                    cds_prnu_std = 0.001,
-                    # ADC parameters
-                    adc_noise = 0.,
+                    sf_prnu_std = 0.001
                 ),
                 1
             ),
@@ -80,6 +70,18 @@ def analog_config():
                 ),
                 2*2*2
             ),
+            (
+                AnalogToDigitalConverter(
+                    # performance parameters
+                    supply = 2.8, # [V]
+                    type = 'SS',
+                    fom = 4300e-15,  # [J/conversion]
+                    resolution = 10,
+                    adc_noise = 0.,
+                ),
+                1
+            ),
+
         ],
         num_input = [(1, 1, 1)],
         num_output = (1, 1, 1)

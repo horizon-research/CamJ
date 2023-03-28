@@ -4,51 +4,63 @@ import copy
 from camj.analog.infra import AnalogArray, AnalogComponent
 from camj.general.enum import ProcessDomain
 
-
 def _check_component_internal_connect_consistency(analog_component):
-    # if there is no component or one component inside the analog component,
-    # no need to check the consistency
-    if len(analog_component.components) <= 1:
-        return True
+    # if this component list contains a single element, if so, directly return
+    if len(analog_component.component_list) <= 1:
+        return
+    # find the head and next component
+    head_component = analog_component.component_list[0]
+    next_component = analog_component.component_list[1]
+    index = 1
+    exit_flag = False
 
-    head_list = analog_component.source_component
-    new_head_list = []
+    while exit_flag != True:
+        # check output domain of the head component is in the input domain of the next component
+        # if not, raise an exception
+        if not head_component[0].output_domain in next_component[0].input_domain:
+            raise Exception("The intra-component connection has mismatch in analog component '%s'" % (analog_component.name))
 
-    while len(head_list) > 0:
-        for component in head_list:
-            for output_component in component.output_component:
-                if component.output_domain not in output_component.input_domain:
-                    raise Exception("Internal connection consistency failed. Domain mismatch.")
-
-                if output_component not in new_head_list:
-                    new_head_list.append(output_component)
-
-        head_list = new_head_list
-        new_head_list = []
-
-    return True
-
+        head_component = next_component
+        if index + 1 < len(analog_component.component_list):
+            next_component = analog_component.component_list[index+1]
+            index +=1
+        else:
+            exit_flag = True
 
 def _check_array_internal_connect_consistency(analog_array):
     """Check analog internal connection correctness"""
-    # first check the correctness of every component internal connection
+
+    # first check the correctness of intra-component connection
     for analog_component in analog_array.components:
         _check_component_internal_connect_consistency(analog_component)
 
-    # then check the correctness of inter-component internal connection
-    head_list = analog_array.source_components
-    new_head_list = []
-    while len(head_list) > 0:
-        for component in head_list:
-            for output_component in component.output_components:
-                if component.output_domain not in output_component.input_domain:
-                    raise Exception("Internal connection consistency failed. Domain mismatch.")
+    # if this component list contains a single component, if so, directly return
+    if len(analog_array.components) <= 1:
+        return
 
-                if output_component not in new_head_list:
-                    new_head_list.append(output_component)
+    # check the correctness of inter-component internal connection
+    head_component = analog_array.components[0]
+    next_component = analog_array.components[1]
+    index = 1
+    exit_flag = False
 
-        head_list = new_head_list
-        new_head_list = []
+    while exit_flag != True:
+        # check output domain of the head component is in the input domain of the next component
+        # if not, raise an exception
+        if head_component.component_list[-1][0].output_domain not in next_component.component_list[0][0].input_domain:
+            raise Exception(
+                "In '%s', the output domain of '%s' doesn't match the input domain of '%s'." % (
+                    analog_array.name, head_component.name, next_component.name
+                )
+            )
+
+        head_component = next_component
+        if index + 1 < len(analog_arrays.components):
+            next_component = analog_array.components[index+1]
+            index += 1
+        else:
+            exit_flag = True
+
 
 def _find_head_analog_array(analog_arrays):
     """find the header analog array in the analog configuration"""
@@ -89,6 +101,10 @@ def check_analog_connect_consistency(analog_arrays: list):
     Returns:
         None
     """
+    # check each analog array internal connection consistency
+    for analog_array in analog_arrays:
+        _check_array_internal_connect_consistency(analog_array)
+
     # find those analog stages that don't need any dependencies.
     head_analog_arrays = _find_head_analog_array(analog_arrays)
     new_head_analog_arrays = []

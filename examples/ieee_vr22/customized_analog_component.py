@@ -1,6 +1,7 @@
 import numpy as np
 
 from camj.analog.component import ColumnAmplifier
+from camj.general.enum import ProcessDomain
 
 class EventificationUnit(object):
     """docstring for EventificationUnit"""
@@ -29,6 +30,10 @@ class EventificationUnit(object):
 
         self.name = "Eventification"
         
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
+
         # this column amplifier is used to read the absolute value.
         self.colamp_model1 = ColumnAmplifier(
             load_capacitance = load_capacitance,

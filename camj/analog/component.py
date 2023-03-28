@@ -1395,6 +1395,10 @@ class MaximumVoltage(object):
         list of input signals and performs element-wise max comparison. The output of this function
         is a list of signal with length of 1.
 
+        Input/Output domains:
+            * input domain: ``ProcessDomain.VOLTAGE``.
+            * output domain: ``ProcessDomain.VOLTAGE``.
+
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
 
@@ -1416,6 +1420,10 @@ class GeneralCircuit(object):
         t_operation = 30e-3,  # [s]
         i_dc = 1e-6,  # [s]
     ):
+
+        # set input/output signal domain.
+        self.input_domain = [ProcessDomain.VOLTAGE]
+        self.output_domain = ProcessDomain.VOLTAGE
     
         self.energy_model = GeneralCircuitEnergy(
             supply = supply,  # [V]
