@@ -53,11 +53,9 @@ def analog_config():
                     dcnu_std = 0.001,
                     # FD parameters
                     fd_gain = 1.0,
-                    fd_noise = 0.,
                     fd_prnu_std = 0.001,
                     # SF parameters
                     sf_gain = 1.0,
-                    sf_noise = 0.,
                     sf_prnu_std = 0.001
                 ),
                 1
