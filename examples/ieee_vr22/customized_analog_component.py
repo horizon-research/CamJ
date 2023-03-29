@@ -18,7 +18,6 @@ class EventificationUnit(object):
         gain_open = 256,
         differential = False,
         # noise parameters
-        noise = 0.,
         gain = 1.0,
         enable_prnu = False,
         prnu_std = 0.001,
@@ -43,7 +42,6 @@ class EventificationUnit(object):
             supply = supply,
             gain_close = gain_close,
             gain_open = gain_open,
-            noise = noise,
             differential = differential,
             enable_prnu = enable_prnu,
             prnu_std = prnu_std,
@@ -61,7 +59,6 @@ class EventificationUnit(object):
             supply = supply,
             gain_close = gain_close,
             gain_open = gain_open,
-            noise = noise,
             differential = differential,
             enable_prnu = enable_prnu,
             prnu_std = prnu_std,

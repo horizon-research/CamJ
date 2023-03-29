@@ -51,10 +51,8 @@ def analog_config():
                     enable_prnu = True,
                     dcnu_std = 0.001,
                     fd_gain = conversion_gain,
-                    fd_noise = 0.005,
                     fd_prnu_std = 0.001,
                     sf_gain = 1.0,
-                    sf_noise = 0.005,
                     sf_prnu_std = 0.001
                 ),
                 4
@@ -81,7 +79,6 @@ def analog_config():
             (
                 ColumnAmplifier(
                     gain = 1.0,
-                    noise = 0.005,
                     enable_prnu = True,
                     prnu_std = 0.001,
                 ), 
@@ -94,7 +91,6 @@ def analog_config():
                     t_sample = 1e-6,
                     t_hold = 10e-3,
                     supply = 1.8, # V
-                    noise = 0.005,
                     enable_prnu = True,
                     prnu_std = 0.001,
                 ),
@@ -124,7 +120,6 @@ def analog_config():
                     t_sample = 1e-6,
                     t_hold = 10e-3,
                     supply = 1.8, # V
-                    noise = 0.005,
                     enable_prnu = True,
                     prnu_std = 0.001,
                 ),
@@ -134,7 +129,6 @@ def analog_config():
                 SourceFollower(
                     supply = 1.8,
                     gain = 1.0,
-                    noise = 0.005,
                     enable_prnu = True,
                     prnu_std = 0.001,
                 ),
@@ -153,7 +147,6 @@ def analog_config():
                     gain_open = 256,
                     differential = False,
                     # noise parameters
-                    noise = 0.,
                     gain = 1.0,
                     enable_prnu = False,
                     prnu_std = 0.001,
@@ -166,8 +159,6 @@ def analog_config():
             (
                 Comparator(
                     supply = 1.8,
-                    gain = 1.0,
-                    noise = 0.005,
                     enable_prnu = True,
                     prnu_std = 0.001,
                 ),
