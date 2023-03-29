@@ -1,4 +1,26 @@
 from inspect import signature
+from math import sqrt
+
+# import local modules
+from camj.general.flags import OP_TEMP, ELECTRON_CHARGE, K_B
+
+def _cap_thermal_noise(capacitance):
+
+    return sqrt(K_B * OP_TEMP / capacitance)
+
+def _single_pole_rc_circuit_thermal_noise(num_transistor, inversion_level, capacitance):
+
+    if inversion_level == 'strong':
+        gm_id_ratio = 10
+    elif inversion_level == 'moderate':
+        gm_id_ratio = 16
+    elif inversion_level == 'weak':
+        gm_id_ratio = 20
+    else:
+        raise Exception("Defined inversion_level is not supported.")
+
+    return sqrt(num_transistor * ELECTRON_CHARGE / (2 * gm_id_ratio * capacitance))
+
 
 def process_signal_stage(stage, input_signals):
 
