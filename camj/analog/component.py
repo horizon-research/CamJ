@@ -18,11 +18,14 @@ Examples:
 
 """
 
+# TODO [Tianrui]: check if we need to consider input noise in column amplifier
+
 import numpy as np
 import time
 
 # import local modules
-from camj.analog.function_utils import default_functional_simulation
+from camj.analog.function_utils import default_functional_simulation, _cap_thermal_noise,\
+                                _single_pole_rc_circuit_thermal_noise
 from camj.analog.energy_model import  ColumnAmplifierEnergy, SourceFollowerEnergy,\
                                 ActiveAnalogMemoryEnergy, PassiveAnalogMemoryEnergy,\
                                 DigitalToCurrentConverterEnergy, CurrentMirrorEnergy,\
@@ -78,11 +81,9 @@ class ActivePixelSensor(object):
             to ``dark_current_noise``, the dcnu standard deviation is,
             ``dcnu_std`` * ``dark_current_noise``, the default value is ``0.001``.
         fd_gain (float): the gain of FD, the default value is ``1.0``.
-        fd_noise (float): the standard deviation of read noise from FD. the default value is ``0.``.
         fd_prnu_std (float): relative PRNU standard deviation respect to FD gain. 
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
         sf_gain (float): the gain of SF, the default value is ``1.0``.
-        sf_noise (float): the standard deviation of read noise from SF. the default value is ``0.``.
         sf_prnu_std (float): relative PRNU standard deviation respect to SF gain. 
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
     """
@@ -106,10 +107,8 @@ class ActivePixelSensor(object):
         enable_prnu = False,
         dcnu_std = 0.001,
         fd_gain = 1.0,
-        fd_noise = 0.,
         fd_prnu_std = 0.001,
         sf_gain = 1.0,
-        sf_noise = 0.,
         sf_prnu_std = 0.001
     ):
 
@@ -135,6 +134,14 @@ class ActivePixelSensor(object):
             tech_node = tech_node,
             pitch = pitch,
             array_vsize = array_vsize
+        )
+
+        # calculate thermal noise
+        fd_noise = _cap_thermal_noise(fd_capacitance)
+        sf_noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 2,
+            inversion_level = "strong",
+            capacitance = load_capacitance
         )
 
         self.noise_components = [
@@ -238,15 +245,12 @@ class DigitalPixelSensor(object):
             to ``dark_current_noise``, the dcnu standard deviation is,
             ``dcnu_std`` * ``dark_current_noise``, the default value is ``0.001``.
         fd_gain (float): the gain of FD, the default value is ``1.0``.
-        fd_noise (float): the standard deviation of read noise from FD. the default value is ``0.``.
         fd_prnu_std (float): relative PRNU standard deviation respect to FD gain. 
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
         sf_gain (float): the gain of SF, the default value is ``1.0``.
-        sf_noise (float): the standard deviation of read noise from SF. the default value is ``0.``.
         sf_prnu_std (float): relative PRNU standard deviation respect to SF gain. 
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
         cds_gain (float): the gain of CDS, the default value is ``1.0``.
-        cds_noise (float): the standard deviation of read noise from CDS. the default value is ``0.``.
         cds_prnu_std (float): relative PRNU standard deviation respect to CDS gain. 
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
         adc_noise (float): the standard deviation of read noise from ADC. the default value is ``0.``.
@@ -276,15 +280,12 @@ class DigitalPixelSensor(object):
         dcnu_std = 0.001,
         # FD parameters
         fd_gain = 1.0,
-        fd_noise = 0.,
         fd_prnu_std = 0.001,
         # SF parameters
         sf_gain = 1.0,
-        sf_noise = 0.,
         sf_prnu_std = 0.001,
         # CDS parameters
         cds_gain = 1.0,
-        cds_noise = 0.,
         cds_prnu_std = 0.001,
         # ADC parameters
         adc_noise = 0.,
@@ -316,6 +317,19 @@ class DigitalPixelSensor(object):
             adc_reso = 8
         )
 
+        # calculate thermal noise
+        # if enable cds then there is no fd noise, else otherwise.
+        if enable_cds:
+            fd_noise = 0
+        else:
+            fd_noise = _cap_thermal_noise(fd_capacitance)
+        
+        sf_noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 2,
+            inversion_level = "strong",
+            capacitance = load_capacitance
+        )
+
         self.noise_components = [
             PhotodiodeFunc(
                 name = "PhotodiodeFunc",
@@ -344,7 +358,7 @@ class DigitalPixelSensor(object):
                 CorrelatedDoubleSamplingFunc(
                     name = "CorrelatedDoubleSampling",
                     gain = cds_gain,
-                    noise = cds_noise,
+                    noise = 0.,
                     enable_prnu = enable_prnu,
                     prnu_std = cds_prnu_std
                 )
@@ -443,6 +457,8 @@ class PulseWidthModulationPixel(object):
 
     def noise(self, input_signal_list):
         """Perform functional simulation
+        
+        TODO: (tianrui)
 
         .. Note::
             Currently, we don't support the functional simulation for PWM pixels, ``input_signal_list``
@@ -491,7 +507,6 @@ class ColumnAmplifier(object):
             amplifier's bias current by gm/id method.
         differential (bool): if using differential-input amplifier or single-input amplifier.
         gain (float): the average gain. Default value is ``1.0``.
-        noise (float): the standard deviation of read noise. Default value is ``None``.
         ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative PRNU standard deviation respect to gain.
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
@@ -512,7 +527,6 @@ class ColumnAmplifier(object):
         gain_open = 256,
         differential = False,
         # noise parameters
-        noise = 0.,
         gain = 1,
         enable_prnu = False,
         prnu_std = 0.001,
@@ -533,6 +547,12 @@ class ColumnAmplifier(object):
             gain_close = gain_close,
             gain_open = gain_open,
             differential = differential
+        )
+
+        noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 8,
+            inversion_level = "strong",
+            capacitance = load_capacitance
         )
 
         self.func_model = ColumnwiseFunc(
@@ -602,7 +622,6 @@ class SourceFollower(object):
         output_vs (float): [unit: V] voltage swing at the SF's output node.
         bias_current (float): [unit: A] bias current.
         gain (float): the average gain. Default value is ``1.0``.
-        noise (float): the standard deviation of read noise. Default value is ``None``.
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative prnu standard deviation respect to gain.
                   prnu gain standard deviation = prnu_std * gain.
@@ -618,7 +637,6 @@ class SourceFollower(object):
         bias_current = 5e-6,  # [A]
         # noise parameters
         gain = 1.0,
-        noise = 0.,
         enable_prnu = False,
         prnu_std = 0.001,
     ):
@@ -631,6 +649,12 @@ class SourceFollower(object):
             supply = supply,
             output_vs = output_vs,
             bias_current = bias_current,
+        )
+
+        noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 4,
+            inversion_level = "strong",
+            capacitance = load_capacitance
         )
 
         self.func_model = PixelwiseFunc(
@@ -697,8 +721,6 @@ class ActiveAnalogMemory(object):
         t_hold (float): [unit: s] holding time, during which the amplifier is turned on and consumes
             power relentlessly.
         supply (float): [unit: V] supply voltage.
-        gain (float): the average gain. Default value is ``1.0``.
-        noise (float): the standard deviation of read noise. Default value is ``None``.
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative prnu standard deviation respect to gain.
                   prnu gain standard deviation = prnu_std * gain.
@@ -714,8 +736,6 @@ class ActiveAnalogMemory(object):
         t_hold = 10e-3,  # [s]
         supply = 1.8,  # [V]
         # noise parameters
-        gain = 1.0,
-        noise = 0.,
         enable_prnu = False,
         prnu_std = 0.001,
     ):
@@ -723,6 +743,23 @@ class ActiveAnalogMemory(object):
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # noise from sample (input)
+        input_noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 8,
+            inversion_level = "strong",
+            capacitance = comp_capacitance+sample_capacitance
+        )
+
+        # noise from hold (output)
+        output_noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 8,
+            inversion_level = "strong",
+            capacitance = comp_capacitance
+        )
+        # because gain is 1 so input and output noise can be added together
+        noise = input_noise + output_noise
+        gain = 1.0
 
         self.energy_model = ActiveAnalogMemoryEnergy(
             sample_capacitance = sample_capacitance,
@@ -806,8 +843,6 @@ class PassiveAnalogMemory(object):
         supply = 1.8,  # [V]
         # eqv_reso  # equivalent resolution
         # noise parameters
-        gain = 1.0,
-        noise = 0.,
         enable_prnu = False,
         prnu_std = 0.001,
     ):
@@ -819,6 +854,9 @@ class PassiveAnalogMemory(object):
             sample_capacitance = sample_capacitance,
             supply = supply
         )
+
+        noise = _cap_thermal_noise(sample_capacitance)
+        gain = 1.0
 
         self.func_model = PixelwiseFunc(
             name = "PassiveAnalogMemory",
@@ -868,7 +906,7 @@ class CurrentMirror(object):
 
     .. Note::
         This class can perform current duplication or current-time multiplication depending on
-        user's definition. When ``i_dc`` is None, this class will perform current duplication and
+        user's definition. When ``i_dc`` is not None, this class will perform current duplication and
         the output signal domain is current. Otherwise, this class performs current-time multiplication
         and accumulate the charges on its own load capacitor. The output signal domain would be voltage.
     
@@ -880,7 +918,7 @@ class CurrentMirror(object):
 
     Input/Output domains:
         * input domain: ``ProcessDomain.CURRENT`` and ``ProcessDomain.TIME``.
-        * output domain: if ``i_dc`` is ``None``, then ``ProcessDomain.CURRENT``, else, ``ProcessDomain.VOLTAGE``.
+        * output domain: if ``i_dc`` is ``None``, then ``ProcessDomain.VOLTAGE``, else, ``ProcessDomain.CURRENT``.
 
     Args:
         supply (float): [unit: V] supply voltage.
@@ -889,9 +927,6 @@ class CurrentMirror(object):
             the load capacitance from 0 to VDD.
         i_dc (float): [unit: A] the constant current. If ``i_dc == None``, then i_dc is
             estimated from the other parameters.
-        gain (float): the average gain. Default value is ``1.0``.
-        noise (float): the standard deviation of read noise. Default value is ``None``.
-        enable_compute (bool): flag to enable compute and output charges. Default value is ``False``.
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative prnu standard deviation respect to gain.
             prnu gain standard deviation = prnu_std * gain. The default value is ``0.001``.
@@ -904,9 +939,6 @@ class CurrentMirror(object):
         t_readout = 1e-6,  # [s]
         i_dc = 1e-6,  # [A]
         # noise parameters
-        gain = 1.0,
-        noise = 0.,
-        enable_compute = False,
         enable_prnu = False,
         prnu_std = 0.001
 
@@ -915,9 +947,22 @@ class CurrentMirror(object):
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.CURRENT, ProcessDomain.TIME]
         if i_dc is None:
-            self.output_domain = ProcessDomain.CURRENT
-        else:
             self.output_domain = ProcessDomain.VOLTAGE
+            # if output domain is voltage, the noise is the load capacitor's thermal noise.
+            noise = _single_pole_rc_circuit_thermal_noise(
+                num_transistor = 1,
+                inversion_level = "strong",
+                capacitance = load_capacitance
+            )
+            enable_compute = True
+        else:
+            self.output_domain = ProcessDomain.CURRENT
+            # when the output domain is current, the major noise comes from current mismatch.
+            # Here, we can't model directly and we set the noise to be 0. [TODO]
+            noise = 0
+            enable_compute = False
+
+        gain = 1.0
 
         self.energy_model = CurrentMirrorEnergy(
             supply = supply,
@@ -1004,15 +1049,12 @@ class PassiveSwitchedCapacitorArray(object):
     Args:
         capacitance_array (array, float): [unit: F] a list of capacitors.
         vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing at each capacitor.
-        noise (float): the standard deviation of read noise. Default value is ``None``.
     """
     def __init__(
         self,
         # peformance parameters
         capacitance_array,
         vs_array,
-        # noise parameters
-        noise = 0.,
     ):
 
         # set input/output signal domain.
@@ -1022,6 +1064,11 @@ class PassiveSwitchedCapacitorArray(object):
         self.energy_model = PassiveSwitchedCapacitorArrayEnergy(
             capacitance_array = capacitance_array,
             vs_array = vs_array
+        )
+        # because we can't accurately model the compute pattern at this point, we simply 
+        # average the capacitance and model the average noise
+        noise = _cap_thermal_noise(
+            capacitance = np.mean(capacitance_array)
         )
 
         self.func_model = PassiveSwitchedCapacitorArrayFunc(
@@ -1082,8 +1129,6 @@ class Comparator(object):
         supply (float): [unit: V] supply voltage.
         i_bias (float): [unit: A] bias current of the circuit.
         t_readout (float): [unit: s] readout time, during which the comparison is finished.
-        gain (float): the average gain. Default value is ``1.0``.
-        noise (float): the standard deviation of read noise. Default value is ``None``.
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative prnu standard deviation respect to gain.
                   prnu gain standard deviation = prnu_std * gain.
@@ -1096,8 +1141,6 @@ class Comparator(object):
         i_bias = 10e-6,  # [A]
         t_readout = 1e-9,  # [s]
         # noise parameters
-        gain = 1.0,
-        noise = 0.,
         enable_prnu = False,
         prnu_std = 0.001
     ):
@@ -1254,8 +1297,8 @@ class DigitalToCurrentConverter(object):
         load_capacitance (float): [unit: F] load capacitance.
         t_readout (float): [unit: s] readout time, during which the constant current drives
             the load capacitance from 0 to VDD.
-        gain (float): the average gain. Default value is ``1.0``.
-        noise (float): the standard deviation of read noise. Default value is ``None``.
+        gain (float): the average gain. Default value is ``10e-6/256`` in unit of [A/digital number].
+            Here, we assume the maximum current is 10 uA and the input digital resolution is 8 bits. 
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative prnu standard deviation respect to gain.
                   prnu gain standard deviation = prnu_std * gain.
@@ -1268,8 +1311,7 @@ class DigitalToCurrentConverter(object):
         load_capacitance = 2e-12,  # [F]
         t_readout = 16e-6,  # [s]
         # noise parameters
-        gain = 1.0,
-        noise = 0.,
+        gain = 10e-6/256,  # [A/digital number]
         enable_prnu = False,
         prnu_std = 0.001,
     ):
@@ -1282,6 +1324,12 @@ class DigitalToCurrentConverter(object):
             supply = supply,
             load_capacitance = load_capacitance,
             t_readout = t_readout,
+        )
+
+        noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 2,
+            inversion_level = "strong",
+            capacitance = load_capacitance
         )
 
         self.func_model = PixelwiseFunc(
@@ -1349,7 +1397,6 @@ class MaximumVoltage(object):
         t_readout (float): [unit: s] readout time, during which the maximum voltage is output.
         load_capacitance (float): [unit: F] load capacitance
         gain (float): open-loop gain of the common-source amplifier.
-        noise (float): the standard deviation of read noise. Default value is ``None``.
     """
     def __init__(
         self, 
@@ -1357,9 +1404,7 @@ class MaximumVoltage(object):
         t_frame = 30e-3,  # [s]
         t_acomp = 1e-6,  # [s]
         load_capacitance = 1e-12,  # [F]
-        gain = 10,
-        # noise parameters
-        noise = 0.0,
+        gain = 10
     ):
         super(MaximumVoltage, self).__init__()
 
@@ -1373,6 +1418,12 @@ class MaximumVoltage(object):
             t_acomp = t_acomp,  # [s]
             load_capacitance = load_capacitance,  # [F]
             gain = gain
+        )
+
+        noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 3,
+            inversion_level = "moderate",
+            capacitance = load_capacitance
         )
 
         self.func_model = MaximumVoltageFunc(
@@ -1413,7 +1464,18 @@ class MaximumVoltage(object):
 
 
 class GeneralCircuit(object):
-    """docstring for MaximumVoltage"""
+    """A model for general circuits from first principle.
+
+    TODO: Tianrui.
+
+    .. Note::
+        This class is just a rough estimation for its energy, no functional simulation is implemented.
+
+    Args:
+        supply (float): [unit: V] supply voltage.
+        i_dc (float): [unit: A] direct current of the circuit.
+        t_operation (float): [unit: s] operation time, during which the circuit completes its particular operation.
+    """
     def __init__(
         self, 
         supply = 1.8,  # [V]
@@ -1440,7 +1502,7 @@ class GeneralCircuit(object):
         return self.energy_model.energy()
 
     def noise(self, input_signal_list):
-        raise Exception("noise function in MaximumVoltage has not been implemented yet!")
+        raise Exception("noise function in 'GeneralCircuit' has not been implemented yet!")
 
 class Adder(object):
     """Adder
@@ -1479,7 +1541,6 @@ class Adder(object):
         gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
             amplifier's bias current by gm/id method.
         differential (bool): if using differential-input amplifier or single-input amplifier.
-        noise (float): the standard deviation of read noise. Default value is ``None``.
         ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative PRNU standard deviation respect to gain.
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
@@ -1497,7 +1558,6 @@ class Adder(object):
         differential = False,
         # noise parameters
         columnwise_op = True,
-        noise = 0.,
         enable_prnu = False,
         prnu_std = 0.001
     ):
@@ -1515,6 +1575,12 @@ class Adder(object):
             gain_close = gain_close,
             gain_open = gain_open,
             differential = differential
+        )
+
+        noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 8,
+            inversion_level = "strong",
+            capacitance = load_capacitance
         )
 
         if columnwise_op:
@@ -1606,7 +1672,6 @@ class Subtractor(object):
         gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
             amplifier's bias current by gm/id method.
         differential (bool): if using differential-input amplifier or single-input amplifier.
-        noise (float): the standard deviation of read noise. Default value is ``None``.
         ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative PRNU standard deviation respect to gain.
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
@@ -1624,7 +1689,6 @@ class Subtractor(object):
         differential = False,
         # noise parameters
         columnwise_op = True,
-        noise = 0.,
         enable_prnu = False,
         prnu_std = 0.001
     ):
@@ -1642,6 +1706,12 @@ class Subtractor(object):
             gain_close = gain_close,
             gain_open = gain_open,
             differential = differential
+        )
+
+        noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 8,
+            inversion_level = "strong",
+            capacitance = load_capacitance
         )
 
         if columnwise_op:
@@ -1736,7 +1806,6 @@ class AbsoluteDifference(object):
         gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
             amplifier's bias current by gm/id method.
         differential (bool): if using differential-input amplifier or single-input amplifier.
-        noise (float): the standard deviation of read noise. Default value is ``None``.
         ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative PRNU standard deviation respect to gain.
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
@@ -1753,7 +1822,6 @@ class AbsoluteDifference(object):
         gain_open = 256,
         differential = False,
         # noise parameters
-        noise = 0.,
         enable_prnu = False,
         prnu_std = 0.001
     ):
@@ -1771,6 +1839,12 @@ class AbsoluteDifference(object):
             gain_close = gain_close,
             gain_open = gain_open,
             differential = differential
+        )
+
+        noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 8,
+            inversion_level = "strong",
+            capacitance = load_capacitance
         )
 
         self.func_model = AbsoluteDifferenceFunc(
@@ -1845,7 +1919,6 @@ class MaxPool(object):
         t_readout (float): [unit: s] readout time, during which the maximum voltage is output.
         load_capacitance (float): [unit: F] load capacitance
         gain (float): open-loop gain of the common-source amplifier.
-        noise (float): the standard deviation of read noise. Default value is ``None``.
     """
     def __init__(
         self, 
@@ -1854,8 +1927,6 @@ class MaxPool(object):
         t_readout = 1e-6,  # [s]
         load_capacitance = 1e-12,  # [F]
         gain = 10,
-        # noise parameters
-        noise = 0.0,
     ):
 
         # set input/output signal domain.
@@ -1870,6 +1941,12 @@ class MaxPool(object):
             t_readout = t_readout,  # [s]
             load_capacitance = load_capacitance,  # [F]
             gain = gain
+        )
+
+        noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 3,
+            inversion_level = "moderate",
+            capacitance = load_capacitance
         )
 
         self.func_model = MaximumVoltageFunc(
@@ -1973,10 +2050,7 @@ class PassiveAverage(object):
         sf_supply (float): [unit: V] supply voltage.
         sf_output_vs (float): [unit: V] voltage swing at the SF's output node.
         sf_bias_current (float): [unit: A] bias current.
-        psca_noise (float): the standard deviation of read noise from passive switched capacitor array. 
-            Default value is ``None``.
         sf_gain (float): the average gain of SF. Default value is ``1.0``.
-        sf_noise (float): the standard deviation of SF read noise. Default value is ``None``.
         sf_enable_prnu (bool): flag to enable SF PRNU. Default value is ``False``.
         sf_prnu_std (float): the relative prnu standard deviation respect to SF gain.
                   prnu gain standard deviation = prnu_std * gain. the default value is ``0.001``.
@@ -1991,9 +2065,7 @@ class PassiveAverage(object):
         sf_output_vs = 1,  # [V]
         sf_bias_current = 5e-6,  # [A]
         # noise parameters
-        psca_noise = 0.,
         sf_gain = 1.0,
-        sf_noise = 0.,
         sf_enable_prnu = False,
         sf_prnu_std = 0.001,
         
@@ -2013,6 +2085,17 @@ class PassiveAverage(object):
             supply = sf_supply,
             output_vs = sf_output_vs,
             bias_current = sf_bias_current,
+        )
+
+        # here, we approximate the noise from PSCA.
+        psca_noise = _cap_thermal_noise(
+            capacitance = np.mean(capacitance_array)
+        )
+
+        sf_noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 2,
+            inversion_level = "strong",
+            capacitance = sf_load_capacitance
         )
 
         self.psca_func_model = PassiveSwitchedCapacitorArrayFunc(
@@ -2091,10 +2174,6 @@ class PassiveBinning(object):
         sf_supply (float): [unit: V] supply voltage.
         sf_output_vs (float): [unit: V] voltage swing at the SF's output node.
         sf_bias_current (float): [unit: A] bias current.
-        psca_noise (float): the standard deviation of read noise from passive switched capacitor array. 
-            Default value is ``None``.
-        sf_gain (float): the average gain of SF. Default value is ``1.0``.
-        sf_noise (float): the standard deviation of SF read noise. Default value is ``None``.
         sf_enable_prnu (bool): flag to enable SF PRNU. Default value is ``False``.
         sf_prnu_std (float): the relative prnu standard deviation respect to SF gain.
                   prnu gain standard deviation = prnu_std * gain. the default value is ``0.001``.
@@ -2109,9 +2188,6 @@ class PassiveBinning(object):
         sf_output_vs = 1,  # [V]
         sf_bias_current = 5e-6,  # [A]
         # noise parameters
-        psca_noise = 0.,
-        sf_gain = 1.0,
-        sf_noise = 0.,
         sf_enable_prnu = False,
         sf_prnu_std = 0.001,
         
@@ -2133,6 +2209,19 @@ class PassiveBinning(object):
             output_vs = sf_output_vs,
             bias_current = sf_bias_current,
         )
+
+        # here, we approximate the noise from PSCA.
+        psca_noise = _cap_thermal_noise(
+            capacitance = np.mean(capacitance_array)
+        )
+
+        sf_noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 2,
+            inversion_level = "strong",
+            capacitance = sf_load_capacitance
+        )
+        # set sf gain
+        sf_gain = 1.0
 
         self.psca_func_model = PassiveSwitchedCapacitorArrayFunc(
             name = "PassiveSwitchedCapacitorArray",
@@ -2271,7 +2360,6 @@ class ActiveAverage(object):
         gain_open = 256,
         differential = False,
         # noise parameters
-        noise = 0.,
         enable_prnu = False,
         prnu_std = 0.001,
         enable_offset = False,
@@ -2294,9 +2382,16 @@ class ActiveAverage(object):
             differential = differential
         )
 
+        noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 8,
+            inversion_level = "strong",
+            capacitance = load_capacitance
+        )
+        gain = 1.0
+
         self.func_model = ColumnwiseFunc(
             name = "ColumnAmplifier",
-            gain = 1.0,
+            gain = gain,
             noise = noise,
             enable_prnu = enable_prnu,
             prnu_std = prnu_std
@@ -2384,7 +2479,6 @@ class ActiveBinning(object):
         gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
             amplifier's bias current by gm/id method.
         differential (bool): if using differential-input amplifier or single-input amplifier.
-        noise (float): the standard deviation of read noise. Default value is ``None``.
         ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative PRNU standard deviation respect to gain.
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
@@ -2404,7 +2498,6 @@ class ActiveBinning(object):
         gain_open = 256,
         differential = False,
         # noise parameters
-        noise = 0.,
         enable_prnu = False,
         prnu_std = 0.001,
         enable_offset = False,
@@ -2427,9 +2520,16 @@ class ActiveBinning(object):
             differential = differential
         )
 
+        noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 8,
+            inversion_level = "strong",
+            capacitance = load_capacitance
+        )
+        gain = 1.0
+
         self.func_model = ColumnwiseFunc(
             name = "ColumnAmplifier",
-            gain = 1.0,
+            gain = gain,
             noise = noise,
             enable_prnu = enable_prnu,
             prnu_std = prnu_std
@@ -2535,10 +2635,6 @@ class Voltage2VoltageConv(object):
         sf_supply (float): [unit: V] supply voltage.
         sf_output_vs (float): [unit: V] voltage swing at the SF's output node.
         sf_bias_current (float): [unit: A] bias current.
-        psca_noise (float): the standard deviation of read noise from passive switched capacitor array. 
-            Default value is ``None``.
-        sf_gain (float): the average gain of SF. Default value is ``1.0``.
-        sf_noise (float): the standard deviation of SF read noise. Default value is ``None``.
         sf_enable_prnu (bool): flag to enable SF PRNU. Default value is ``False``.
         sf_prnu_std (float): the relative prnu standard deviation respect to SF gain.
                   prnu gain standard deviation = prnu_std * gain. the default value is ``0.001``.
@@ -2554,9 +2650,6 @@ class Voltage2VoltageConv(object):
         sf_output_vs = 1,  # [V]
         sf_bias_current = 5e-6,  # [A]
         # noise parameters
-        psca_noise = 0.,
-        sf_gain = 1.0,
-        sf_noise = 0.,
         sf_enable_prnu = False,
         sf_prnu_std = 0.001,
         
@@ -2587,6 +2680,18 @@ class Voltage2VoltageConv(object):
             output_vs = sf_output_vs,
             bias_current = sf_bias_current,
         )
+
+        # here, we approximate the noise from PSCA.
+        psca_noise = _cap_thermal_noise(
+            capacitance = np.mean(capacitance_array)
+        )
+
+        sf_noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 2,
+            inversion_level = "strong",
+            capacitance = sf_load_capacitance
+        )
+        sf_gain = 1.0
 
         # initialize random number generator
         self.psca_noise = psca_noise
@@ -2768,13 +2873,9 @@ class Time2VoltageConv(object):
         am_supply = 1.8,  # [V]
         # eqv_reso  # equivalent resolution
         # noise parameters for current mirror
-        cm_gain = 1.0,
-        cm_noise = 0.,
         cm_enable_prnu = False,
         cm_prnu_std = 0.001,
         # noise parameters for analog memory
-        am_gain = 1.0,
-        am_noise = 0.,
         am_enable_prnu = False,
         am_prnu_std = 0.001,
         
@@ -2799,6 +2900,16 @@ class Time2VoltageConv(object):
             sample_capacitance = am_sample_capacitance,
             supply = am_supply
         )
+
+        cm_noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 1,
+            inversion_level = "strong",
+            capacitance = cm_load_capacitance
+        )
+        cm_gain = 1.0
+
+        am_noise = _cap_thermal_noise(am_sample_capacitance)
+        am_gain = 1.0
 
         self.cm_func_model = CurrentMirrorFunc(
             name = "CurrentMirror",
@@ -2977,7 +3088,6 @@ class BinaryWeightConv(object):
         gain_open = 256,
         differential = False,
         # noise parameters
-        noise = 0.,
         enable_prnu = False,
         prnu_std = 0.001,
         enable_offset = False,
@@ -3004,9 +3114,16 @@ class BinaryWeightConv(object):
             differential = differential
         )
 
+        noise = _single_pole_rc_circuit_thermal_noise(
+            num_transistor = 8,
+            inversion_level = "strong",
+            capacitance = load_capacitance
+        )
+        gain = 1.0
+
         self.func_model = ColumnwiseFunc(
             name = "ColumnAmplifier",
-            gain = 1.0,
+            gain = gain,
             noise = noise,
             enable_prnu = enable_prnu,
             prnu_std = prnu_std
@@ -3144,8 +3261,6 @@ class AnalogReLU(object):
         i_bias = 10e-6,  # [A]
         t_readout = 1e-9,  # [s]
         # noise parameters
-        gain = 1.0,
-        noise = 0.,
         enable_prnu = False,
         prnu_std = 0.001
     ):
