@@ -38,11 +38,11 @@ def analog_config():
                     pd_capacitance = 100e-15, # F
                     pd_supply = full_scale_input_voltage, # V
                     dynamic_sf = True,
-                    output_vs = 1.1, # V 
+                    output_vs = 1.8, # V 
                     num_transistor = 3,
                     enable_cds = False,
                     fd_capacitance = 10e-15,  # [F]
-                    load_capacitance = 0,  # [F]
+                    load_capacitance = 10e-15,  # [F]
                     tech_node = 110,  # [um]
                     pitch = 4,  # [um]
                     array_vsize = 480,
@@ -52,10 +52,8 @@ def analog_config():
                     enable_prnu = True,
                     dcnu_std = 0.01,
                     fd_gain = conversion_gain,
-                    fd_noise = 0.05,
                     fd_prnu_std = 0.01,
                     sf_gain = 1.0,
-                    sf_noise = 0.05,
                     sf_prnu_std = 0.01
                 ),
                 1
@@ -73,7 +71,7 @@ def analog_config():
         component_list = [
             (
                 ColumnAmplifier(
-                    load_capacitance = 1e-23,  # [F]
+                    load_capacitance = 1e-15,  # [F]
                     input_capacitance = 1e-15,  # [F]
                     t_sample = 2e-6,  # [s]
                     t_hold = 10e-3,  # [s]
@@ -81,7 +79,6 @@ def analog_config():
                     gain_close = 1,
                     # noise parameters
                     gain = 1,
-                    noise = 0.05,
                     enable_prnu = True,
                     prnu_std = 0.01,
                 ),
