@@ -52,10 +52,8 @@ def analog_config():
                     enable_prnu = True,
                     dcnu_std = 0.001,
                     fd_gain = 1.0,
-                    fd_noise = 0.005,
                     fd_prnu_std = 0.001,
                     sf_gain = 1.0,
-                    sf_noise = 0.005,
                     sf_prnu_std = 0.001
                 ),
                 1
@@ -88,9 +86,6 @@ def analog_config():
                     sf_output_vs = 1,  # [V]
                     sf_bias_current = 5e-6,  # [A]
                     # noise parameters
-                    psca_noise = 0.,
-                    sf_gain = 1.0,
-                    sf_noise = 0.,
                     sf_enable_prnu = False,
                     sf_prnu_std = 0.001,
                     
@@ -153,9 +148,6 @@ def analog_config():
                     sf_output_vs = 1,  # [V]
                     sf_bias_current = 5e-6,  # [A]
                     # noise parameters
-                    psca_noise = 0.,
-                    sf_gain = 1.0,
-                    sf_noise = 0.,
                     sf_enable_prnu = False,
                     sf_prnu_std = 0.001,
                     
