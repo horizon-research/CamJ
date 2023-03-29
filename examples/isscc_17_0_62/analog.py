@@ -53,10 +53,8 @@ def analog_config():
                     enable_prnu = True,
                     dcnu_std = 0.001,
                     fd_gain = 1.0,
-                    fd_noise = 0.005,
                     fd_prnu_std = 0.001,
                     sf_gain = 1.0,
-                    sf_noise = 0.005,
                     sf_prnu_std = 0.001
                 ),
                 1
@@ -89,7 +87,6 @@ def analog_config():
                     gain_close = 4,
                     gain_open = 300,
                     # noise parameters
-                    noise = 0.,
                     enable_prnu = False,
                     prnu_std = 0.001,
                     enable_offset = False,
@@ -115,11 +112,7 @@ def analog_config():
                     t_sample = 1e-3,  # [s]
                     t_hold = 20*2.375e-3,  # [s]
                     supply = 1.2,  # [V]
-                    # eqv_reso,# equivalent resolution
-                    # opamp_dcgain
                     # noise parameters
-                    gain = 1.0,
-                    noise = 0.,
                     enable_prnu = False,
                     prnu_std = 0.001,
                 ),
@@ -155,7 +148,6 @@ def analog_config():
                     gain_open = 300,
                     differential = True,
                     # noise parameters
-                    noise = 0.,
                     enable_prnu = False,
                     prnu_std = 0.001,
                     enable_offset = False,
@@ -171,8 +163,6 @@ def analog_config():
                     i_bias = 10e-6,  # [A]
                     t_readout = 10e-9,  # [s]
                     # noise parameters
-                    gain = 1.0,
-                    noise = 0.,
                     enable_prnu = False,
                     prnu_std = 0.001
                 ),

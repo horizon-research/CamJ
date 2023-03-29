@@ -55,12 +55,12 @@ if __name__ == '__main__':
     mapping = mapping_function()
     sw_desc = sw_pipeline()
 
-    run_functional_simulation(
-        hw_desc = hw_desc,
-        mapping = mapping,
-        sw_desc = sw_desc,
-        test_img_name = "../../test_imgs/test_eye1.png",
-    )
+    # run_functional_simulation(
+    #     hw_desc = hw_desc,
+    #     mapping = mapping,
+    #     sw_desc = sw_desc,
+    #     test_img_name = "../../test_imgs/test_eye1.png",
+    # )
 
     run_energy_simulation(
         hw_desc = hw_desc,
