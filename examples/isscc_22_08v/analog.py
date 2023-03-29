@@ -42,7 +42,6 @@ def analog_config():
                     ramp_capacitance = 1e-12,  # [F]
                     gate_capacitance = 10e-15,  # [F]
                     num_readout = 8
-                    # noise parameters
                 ),
                 1
             )
@@ -70,8 +69,7 @@ def analog_config():
                     load_capacitance = 2e-12,  # [F]
                     t_readout = 7.9e-6,  # [s]
                     # noise parameters
-                    gain = 1.0,
-                    noise = 0.0,
+                    gain = 1,
                     enable_prnu = False,
                     prnu_std = 0.001,
                 ),
@@ -106,13 +104,9 @@ def analog_config():
                     am_supply = 0.8,  # [V]
                     # eqv_reso  # equivalent resolution
                     # noise parameters for current mirror
-                    cm_gain = 1.0,
-                    cm_noise = 0.,
                     cm_enable_prnu = False,
                     cm_prnu_std = 0.001,
                     # noise parameters for analog memory
-                    am_gain = 1.0,
-                    am_noise = 0.,
                     am_enable_prnu = False,
                     am_prnu_std = 0.001,
                 ),
@@ -142,8 +136,6 @@ def analog_config():
                     i_bias = 10e-6,  # [A]
                     t_readout = 1e-9,  # [s]
                     # noise parameters
-                    gain = 1.0,
-                    noise = 0.0,
                     enable_prnu =  False,
                     prnu_std = 0.001
                 ),

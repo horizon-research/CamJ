@@ -71,7 +71,6 @@ def analog_config():
                     t_readout = 16e-6,  # [s]
                     # noise parameters
                     gain = 1.0,
-                    noise = 0.005,
                     enable_prnu = True,
                     prnu_std = 0.001,
                 ),
@@ -107,13 +106,9 @@ def analog_config():
                     am_supply = 0.5,  # [V]
                     # eqv_reso  # equivalent resolution
                     # noise parameters for current mirror
-                    cm_gain = 1.0,
-                    cm_noise = 0.,
                     cm_enable_prnu = False,
                     cm_prnu_std = 0.001,
                     # noise parameters for analog memory
-                    am_gain = 1.0,
-                    am_noise = 0.,
                     am_enable_prnu = False,
                     am_prnu_std = 0.001,
                 ),
