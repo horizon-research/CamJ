@@ -31,5 +31,6 @@ To know more about **CamJ**, please check out our `paper <https://horizon-lab.or
 
    intro
    tutorial
+   apis
    camj
 
