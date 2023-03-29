@@ -42,7 +42,7 @@ def analog_config():
                     num_transistor = 4,
                     enable_cds = True,
                     fd_capacitance = 10e-15,  # [F]
-                    load_capacitance = 0,  # [F]
+                    load_capacitance = 10e-15,  # [F]
                     tech_node = 110,  # [um]
                     pitch = 4,  # [um]
                     array_vsize = 480,
@@ -52,10 +52,8 @@ def analog_config():
                     enable_prnu = True,
                     dcnu_std = 0.001,
                     fd_gain = 1.0,
-                    fd_noise = 0.005,
                     fd_prnu_std = 0.001,
                     sf_gain = 1.0,
-                    sf_noise = 0.005,
                     sf_prnu_std = 0.001
                 ),
                 1
