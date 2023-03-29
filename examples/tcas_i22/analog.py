@@ -39,8 +39,6 @@ def analog_config():
                     supply = 1.8,  # [V]
                     # eqv_reso  # equivalent resolution
                     # noise parameters
-                    gain = 1.0,
-                    noise = 0.,
                     enable_prnu = False,
                     prnu_std = 0.001,
                 ), 
