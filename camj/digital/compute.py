@@ -9,7 +9,7 @@ from camj.general.flags import *
 class ADC(object):
     """ADC compute unit
 
-    ADC is relately unique because it serves as an interface between digital and analog domain.
+    ADC is special in digital domain because it serves as an interface between digital and analog domain.
     Here, to perform digital simulation, we assume the computation starts with ADC. Users need
     to define ADC to launch digital simulation.
 
@@ -263,7 +263,7 @@ class ComputeUnit(object):
         name(str): name of this class.
         location: defines the location of the ADC. see ``general.enum`` for more details.
         output_pixels_per_cycle (list): the input pixel rate per cycle in order to perform computation.
-            It should be a list of tuple. Eacg tuple should be in ``(H, W, C)`` format.
+            It should be a list of tuple. Each tuple should be in ``(H, W, C)`` format.
         output_pixels_per_cycle (tuple): the output pixel rate per cycle. It should be in ``(H, W, C)`` format.
         energy_per_cycle (float): the average energy per cycle in unit of pJ.
         num_of_stages (int): number of stage of this compute unit in the pipeline.
@@ -575,7 +575,7 @@ class SystolicArray(object):
 
     Args:
         name(str): name of this class.
-        location: defines the location of the ADC. see ``general.enum`` for more details.
+        location: defines the location of the ADC. see ``general.enum.ProcessorLocation`` for more details.
         size_dimension (tuple): the dimension of the systolic array in a format of ``(H, W)``.
         energy_per_cycle (float): the average energy per cycle in unit of pJ.
 
@@ -930,6 +930,12 @@ class SIMDProcessor(object):
 
     It is a SIMD architecture that commonly exists in many mobile or embedded architecture 
     for DNN acceleration. Curently, the data flow only supports output stationary.
+
+    Args:
+        name(str): name of this class.
+        location: defines the location of the ADC. see ``general.enum.ProcessorLocation`` for more details.
+        size_dimension (tuple): the dimension of the systolic array in a format of ``(H, W)``.
+        energy_per_cycle (float): the average energy per cycle in unit of pJ.
 
     """
     def __init__(
