@@ -8,15 +8,20 @@ class AnalogComponent(object):
     """Analog Component
 
     This is the low-level interface to define an analog component. This class serves as a container
-    that consists of mulitple analog components which are provided from ``analog.component`` module.
+    that consists of mulitple analog components from ``analog.component`` module.
 
     Args:
         name (str): the name of this analog component.
-        input_domain (list): a list contains input domains.
-        output_domain (enum): output domain of this analog component.
+        input_domain (list): a list contains input domains. Each input domain defines the domain of
+            each input signal. This ``input_domain`` list should match ``num_input``. Domains are
+            defined in ``general.enum.ProcessDomain``.
+        output_domain (enum): the domain of the output signal of this analog component. Domains are
+            defined in ``general.enum.ProcessDomain``.
         component_list (list): a list of analog components that construct this ``AnalogComponent`` instance.
-        num_input (list): a list of tuple, each tuple represents an input shape.
-        num_output (tuple): output shape.
+        num_input (list): a list of tuple, each tuple represents an input shape. Each input shape
+            represents the number of input signals needed to obtain the output signal (``num_output``)
+            per cycle. Each input shape is a 3D tuple in (H, W, C) format.
+        num_output (tuple): the number of output signals per cycle in this output shape. 
 
     Examples:
         To create a mega-pixel component with 2x2 binning capability.
@@ -66,7 +71,11 @@ class AnalogComponent(object):
         (energy of each component) * (the number of such component)
     """
     def energy(self):
-        """Calculate the energy consumption of this analog compoenent
+        """Calculate the energy consumption of this analog compoenent.
+
+        This function calculates the overall energy consumption for this analog component per cycle.
+        The overall energy equals to the energy consumption of each component in ``component_list``
+        times the count of each component.
 
         Returns:
             Energy (float) in pJ.
@@ -81,9 +90,12 @@ class AnalogComponent(object):
     def noise(self, input_signal_list):
         """Noise Simulation
 
-        The noise function performs the noise simulation based on the noise model
-        of each component in ``component_list``. The input signal will pass through
-        each component's noise model one-by-one.
+        The noise function performs the functional/noise simulation based on the functional model
+        of each component in ``component_list``. The input signal will pass through each component's
+        functional model one-by-one.
+
+        Args:
+            input_signal_list (list): a list of input signals in a form of numpy array.
 
         Returns:
             Simulated output signal after each analog component (dict)
@@ -96,6 +108,11 @@ class AnalogComponent(object):
         return output_signal_list
 
     def _configure_operation(self, sw_stage):
+        """COnfigure analog component
+
+        This function configure the analog component based on the software stage information.
+        
+        """
         for comp, _ in self.component_list:
             if isinstance(comp, Voltage2VoltageConv) or isinstance(comp, Time2VoltageConv) or isinstance(comp, BinaryWeightConv):
                 comp._set_conv_config(
@@ -120,14 +137,16 @@ class AnalogArray(object):
     """AnalogArray
 
     The High-level interface to define analog structures. In ``CamJ``, each analog array is
-    defined as a 2D structure. In this structure, it contains multiple ``AnalogComponent``s.
+    defined as a 2D structure. In this structure, it contains multiple ``AnalogComponent`` s.
     Additionally, each ``AnalogArray`` has a regular input/output rate.
 
     Args:
         name (str): the name of this analog array.
-        layer (int): the location of this analog array. Please see ``general.ProcessorLocation``.
-        num_input (list): a list of input shapes. Each input shape is a 3D tuple in (H, W, C) format.
-        num_output (tuple): output shape in 3D shape (H, W, C).
+        layer (int): the location of this analog array. Please see ``general.enum.ProcessorLocation``.
+        num_input (list): a list of input 3D shapes in (H, W, C) format. Each input defines the number
+            of input signals needed per cycle in order to obtain the output define in ``num_output``.
+
+        num_output (tuple): output signals per cycle in 3D shape (H, W, C).
     """
     def __init__(
         self,
@@ -168,8 +187,8 @@ class AnalogArray(object):
         Multiple calls of this function will add multiple components to this analog array.
 
         Args:
-            component (AnalogComponent): the analog component that construct this analog array.
-            component_size (tuple): the number of compoenent needs in this analog array.
+            component (AnalogComponent): the analog component that constructs this analog array.
+            component_size (tuple): the number of compoenent needs for this analog array.
                 ``Component_size`` needs in a 3D shape (H, W, C).
 
         Returns:

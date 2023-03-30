@@ -45,17 +45,7 @@ class ActivePixelSensor(object):
 
     Our APS model includes modeling photodiode (PD), floating diffusion (FD), source follower (SF),
     and parasitic during the readout. This APS model supports energy estimation for both 3T-APS and
-    4T-APS. Users need to define `num_transistor` to get the correct energy estimation.
-
-    This APS model is a wrapper class for its energy model:
-        * ``analog.energy_model.ActivePixelSensorEnergy``.
-    
-    The functional models are:
-        * ``analog.function_model.PhotodiodeFunc``.
-        * ``analog.function_model.FloatingDiffusionFunc``.
-        * ``analog.function_model.PixelwiseFunc``. 
-
-    Please check out those classes for more details.
+    4T-APS. Users need to define ``num_transistor`` to get the correct energy estimation.
 
     Input/Output domains:
         * input domain: ``ProcessDomain.OPTICAL``.
@@ -64,22 +54,25 @@ class ActivePixelSensor(object):
     Args:
         pd_capacitance (float): [unit: F] the capacitance of PD.
         pd_supply (float): [unit: V] supply voltage of pixel.
-        dynamic_sf (bool): using dynamic SF or not. In most cases, the in-pixel SF is not dynamic, meaning that it is
-        statically-biased by a constant current. However, some works [JSSC-2021] use dynamic SF to save energy.
-        output_vs (float): [unit: V] voltage swing at SF's output node.
-        Typically it is one or two units of threshold voltage smaller than pd_supply, depending on the pixel's circuit structure.
+        dynamic_sf (bool): using dynamic SF or not. In most cases, the in-pixel SF is not dynamic, 
+            meaning that it is statically-biased by a constant current. However, some works [JSSC-2021]
+            use dynamic SF to save energy.
+        output_vs (float): [unit: V] voltage swing at SF's output node. Typically it is one or two 
+            units of threshold voltage smaller than pd_supply, depending on the pixel's circuit structure.
         num_transistor (int): {3 or 4}. It defines using 3T APS or 4T APS.
-        num_readout (int): {2 or 1}. It defines enabling CDS or not.
+        enable_cds (bool): enabling CDS or not.
+        fd_capacitance (float): the capacitance of FD.
         load_capacitance (float): [unit: F] load capacitance at the SF's output node.
         tech_node (int): [unit: nm] pixel's process node.
         pitch (float): [unit: um] pixel pitch size (width or height).
-        array_vsize (int): the vertical size of the entire pixel array. This is used to estimate the parasitic capacitance on the SF's readout wire.
+        array_vsize (int): the vertical size of the entire pixel array. This is used to estimate 
+            the parasitic capacitance on the SF's readout wire.
         dark_current_noise (float): average dark current noise in unit of electrons (e-).
         enable_dcnu (bool): flag to enable dark current non-uniformity, the default value is ``False``.
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         dcnu_std (float): dcnu standard deviation percentage. it is relative number respect
             to ``dark_current_noise``, the dcnu standard deviation is,
-            ``dcnu_std`` * ``dark_current_noise``, the default value is ``0.001``.
+            ``dcnu_std`` * ``dark_current_noise``, the default value is ``0.001``. 
         fd_gain (float): the gain of FD, the default value is ``1.0``.
         fd_prnu_std (float): relative PRNU standard deviation respect to FD gain. 
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
@@ -171,6 +164,11 @@ class ActivePixelSensor(object):
     def energy(self):
         """Calculate Energy
 
+        This APS model is a wrapper class for its energy model:
+            * ``analog.energy_model.ActivePixelSensorEnergy``.
+
+        Please check out this class for more details.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -181,7 +179,13 @@ class ActivePixelSensor(object):
 
         This function simulates the signal processing behavior inside APS, including signal 
         processing in photodiode, floating diffusion and source follower. Each input signal
-        in ``input_signal_list`` will perform functional simulation sequentially. 
+        in ``input_signal_list`` will go through each analog componennt functional simulation
+        sequentially.
+
+        Please refer to these functions for more detailed descriptions:
+            * Photodiode: ``analog.function_model.PhotodiodeFunc``.
+            * Floating Diffusion: ``analog.function_model.FloatingDiffusionFunc``.
+            * Source Follower: ``analog.function_model.PixelwiseFunc``. 
             
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
@@ -205,16 +209,6 @@ class DigitalPixelSensor(object):
     This class models the energy consumption of digital pixel sensor (DPS). This DPS class models
     behavior of a APS and an per-pixel ADC.
 
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.DigitalPixelSensorEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.PhotodiodeFunc``.
-        * ``analog.function_model.FloatingDiffusionFunc``.
-        * ``analog.function_model.PixelwiseFunc``.
-        * ``analog.function_model.CorrelatedDoubleSamplingFunc``.
-        * ``analog.function_model.AnalogToDigitalConverterFunc``.
-
     Input/Output domains:
         * input domain: ``ProcessDomain.OPTICAL``.
         * output domain: ``ProcessDomain.DIGITAL``.
@@ -229,7 +223,8 @@ class DigitalPixelSensor(object):
             one or two units of threshold voltage smaller than pd_supply, depending on 
             the pixel's circuit structure.
         num_transistor (int): {3 or 4}. It defines using 3T APS or 4T APS.
-        num_readout (int): {2 or 1}. It defines enabling CDS or not.
+        enable_cds (bool): enabling CDS or not.
+        fd_capacitance (float): [unit: F] the capacitance of FD.
         load_capacitance (float): [unit: F] load capacitance at the SF's output node.
         tech_node (int): [unit: nm] pixel's process node.
         pitch (float): [unit: um] pixel pitch size (width or height).
@@ -237,7 +232,7 @@ class DigitalPixelSensor(object):
             the parasitic capacitance on the SF's readout wire.
         adc_type (str): the actual ADC type. Please check ADC class for more details.
         adc_fom (float): [unit: J/conversion] ADC's Figure-of-Merit, expressed by energy per conversion.
-        adc_resolution (int): ADC's resolution.
+        adc_resolution (int): ADC's resolution. ``8`` stands for 8-bit digital resolution, [0, 256).
         dark_current_noise (float): average dark current noise in unit of electrons (e-).
         enable_dcnu (bool): flag to enable dark current non-uniformity, the default value is ``False``.
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
@@ -375,6 +370,9 @@ class DigitalPixelSensor(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.DigitalPixelSensorEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -385,7 +383,14 @@ class DigitalPixelSensor(object):
 
         This function simulates the signal processing behavior inside DPS, including signal 
         processing in photodiode, floating diffusion, source follower and ADC. Each input signal
-        in ``input_signal_list`` will perform functional simulation sequentially. 
+        in ``input_signal_list`` will perform functional simulation sequentially.
+
+        To see the details of function modeling, please refer:
+            * Photodiode: ``analog.function_model.PhotodiodeFunc``.
+            * Floating Diffusion: ``analog.function_model.FloatingDiffusionFunc``.
+            * Source Follower: ``analog.function_model.PixelwiseFunc``.
+            * Correlated Double Sampling: ``analog.function_model.CorrelatedDoubleSamplingFunc``.
+            * Analog-To-Digital Converter: ``analog.function_model.AnalogToDigitalConverterFunc``.
             
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
@@ -410,9 +415,6 @@ class PulseWidthModulationPixel(object):
 
     This PWM pixel class **ONLY** supports energy modeling, currently no functional modeling.
 
-    For energy modeling, please check out ``analog.energy_model.PulseWidthModulationPixelEnergy``
-    for more details.
-
     Input/Output domains:
         * input domain: ``ProcessDomain.OPTICAL``.
         * output domain: ``ProcessDomain.TIME``.
@@ -420,10 +422,11 @@ class PulseWidthModulationPixel(object):
     Args:
         pd_capacitance: PD capacitance.
         pd_supply: PD voltage supply.
-        ramp_capacitance: capacitance of ramp signal generator.
+        array_vsize:, the vertical size of the pixel array. For A ``720x1280`` (H, W) resolution
+            pixel array, its vertical size is ``720``.
+        ramp_capacitance: the capacitance of ramp signal generator.
         gate_capacitance: the gate capacitance of readout transistor.
         num_readout: number of read from pixel.
-
     """
     def __init__(
         self,
@@ -449,6 +452,9 @@ class PulseWidthModulationPixel(object):
 
     def energy(self):
         """Calculate Energy
+
+        For energy modeling, please check out ``analog.energy_model.PulseWidthModulationPixelEnergy``
+        for more details.
 
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
@@ -482,12 +488,6 @@ class ColumnAmplifier(object):
     a feedback capacitor, a load capacitor, and an amplifier. This amplifier can be used either as 
     pixel array's column amplifier or as a general-purpose switched-capacitor amplifier, such as
     switched-capacitor integrator, switched-capacitor subtractor, and switched-capacitor multiplier.
-
-    This class supports both energy modeling and functional modeling. The details of energy modeling, please check out:
-        * ``analog.energy_model.ColumnAmplifierEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.ColumnwiseFunc``.
 
     Input/Output domains:
         * input domain: ``ProcessDomain.VOLTAGE``.
@@ -569,6 +569,9 @@ class ColumnAmplifier(object):
     def energy(self):
         """Calculate Energy
 
+        This class supports both energy modeling and functional modeling. The details of energy modeling, please check out:
+            * ``analog.energy_model.ColumnAmplifierEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -578,8 +581,10 @@ class ColumnAmplifier(object):
         """Perform functional simulation
 
         This function simulates the signal processing behavior of column amplifier. Each input signal
-        in ``input_signal_list`` will perform functional simulation sequentially. Please check out
-        ``analog.function_model.ColumnwiseFunc`` for more details.
+        in ``input_signal_list`` will perform functional simulation sequentially.
+
+        To see the details of function modeling, please refer:
+            * ``analog.function_model.ColumnwiseFunc``.
             
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
@@ -606,12 +611,6 @@ class SourceFollower(object):
     This class models the behavior of source follower. It can be applied to not only the single-transistor
     source follower but also flipped-voltage-follower (FVF).
     
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.SourceFollowerEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.PixelwiseFunc``.
-    
     Input/Output domains:
         * input domain: ``ProcessDomain.VOLTAGE``.
         * output domain: ``ProcessDomain.VOLTAGE``.
@@ -624,8 +623,7 @@ class SourceFollower(object):
         gain (float): the average gain. Default value is ``1.0``.
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative prnu standard deviation respect to gain.
-                  prnu gain standard deviation = prnu_std * gain.
-                  the default value is ``0.001``.
+            prnu gain standard deviation = prnu_std * gain. the default value is ``0.001``.
     """
 
     def __init__(
@@ -668,6 +666,9 @@ class SourceFollower(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.SourceFollowerEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -676,8 +677,11 @@ class SourceFollower(object):
     def noise(self, input_signal_list):
         """Perform functional simulation
 
-        Simulate the functional behavior of a source follower. For more details, please check
-        out ``analog.function_model.PixelwiseFunc`` for more details.
+        Simulate the functional behavior of a source follower. Here, we use a generic functional
+        modeling class to model source follower.
+
+        To see the details of function modeling, please refer the pixel-wise generic modeling class:
+            * ``analog.function_model.PixelwiseFunc``.
 
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
@@ -703,12 +707,6 @@ class ActiveAnalogMemory(object):
     
     This class models the behavior of active analog memory. The model itself consists of a capacitor,
     a compensation capacitor, and an amplifier which holds the stored analog data through feedback.
-    
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.ActiveAnalogMemoryEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.PixelwiseFunc``.
 
     Input/Output domains:
         * input domain: ``ProcessDomain.VOLTAGE``.
@@ -780,6 +778,9 @@ class ActiveAnalogMemory(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.ActiveAnalogMemoryEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -788,8 +789,11 @@ class ActiveAnalogMemory(object):
     def noise(self, input_signal_list):
         """Perform functional simulation
 
-        Simulate the functional behavior of an acitve analog memory. For more details, please check
-        out ``analog.PixelwiseFunc``. 
+        Simulate the functional behavior of an acitve analog memory. Here, we use a generic functional
+        modeling class.
+
+        To see the details of function modeling, please refer:
+            * ``analog.function_model.PixelwiseFunc``.
 
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 2D/3D array.
@@ -815,12 +819,6 @@ class PassiveAnalogMemory(object):
 
     This class models the behavior of passive analog memory. The model only contains a sample capacitor. 
     Compared to active analog memory, it has higher data leakage rate.
-    
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.PassiveAnalogMemoryEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.PixelwiseFunc``.
 
     Input/Output domains:
         * input domain: ``ProcessDomain.VOLTAGE``.
@@ -829,8 +827,6 @@ class PassiveAnalogMemory(object):
     Args:
         sample_capacitance (float): [unit: F] sample capacitance.
         supply (float): [unit: V] supply voltage.
-        gain (float): the average gain. Default value is ``1.0``.
-        noise (float): the standard deviation of read noise. Default value is ``None``.
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative prnu standard deviation respect to gain.
                   prnu gain standard deviation = prnu_std * gain.
@@ -869,6 +865,9 @@ class PassiveAnalogMemory(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.PassiveAnalogMemoryEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -877,8 +876,11 @@ class PassiveAnalogMemory(object):
     def noise(self, input_signal_list):
         """Perform functional simulation
 
-        Simulate the functional behavior of an passive analog memory. For more details, please check
-        out ``analog.PixelwiseFunc``.
+        Simulate the functional behavior of an passive analog memory. The functional behavior of
+        this component is used a generic noise model.
+
+        To see the details of function modeling, please refer:
+            * ``analog.function_model.PixelwiseFunc``.
 
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 2D/3D array.
@@ -909,12 +911,6 @@ class CurrentMirror(object):
         user's definition. When ``i_dc`` is not None, this class will perform current duplication and
         the output signal domain is current. Otherwise, this class performs current-time multiplication
         and accumulate the charges on its own load capacitor. The output signal domain would be voltage.
-    
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.CurrentMirrorEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.CurrentMirrorFunc``.
 
     Input/Output domains:
         * input domain: ``ProcessDomain.CURRENT`` and ``ProcessDomain.TIME``.
@@ -983,6 +979,9 @@ class CurrentMirror(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.CurrentMirrorEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -999,6 +998,9 @@ class CurrentMirror(object):
             signal with noise simulation. When the length of ``input_signal_list`` is ``2``. This 
             function will perform element-wise multiplication. One input is the time signal and the 
             second one is the current signal.
+
+        To see the details of function modeling, please refer:
+            * ``analog.function_model.CurrentMirrorFunc``.
 
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 3D array. The length of ``input_signal_list``  should be either ``1`` or ``2``.
@@ -1035,12 +1037,6 @@ class PassiveSwitchedCapacitorArray(object):
         if ``input_signal_list`` is ``[np.array([1, 2, 3]), np.array([1, 2, 3]), np.array([1, 2, 3])]``,
         the output from ``noise`` function is ``np.array([3, 6, 9])``. For achieve functionality of
         convolution, please check out ``analog.component.Voltage2VoltageConv``.
-
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.PassiveSwitchedCapacitorArrayEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
 
     Input/Output domains:
         * input domain: ``ProcessDomain.VOLTAGE``.
@@ -1080,6 +1076,9 @@ class PassiveSwitchedCapacitorArray(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.PassiveSwitchedCapacitorArrayEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -1089,6 +1088,9 @@ class PassiveSwitchedCapacitorArray(object):
         """Perform functional simulation
 
         This function simulates the functional behavior of a passive switched capacitor array.
+
+        To see the details of function modeling, please refer:
+            * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
 
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
@@ -1114,12 +1116,6 @@ class Comparator(object):
         (``In1`` and ``In2``) and output either ``Vdd`` (if ``In1`` >= ``In2``) or ``0`` (if 
         ``In1`` < ``In2``). Here, in order to support other computations, we modified the output
         of the comparator to be ``In1`` (if ``In1`` >= ``In2``) or ``0`` (if ``In1`` < ``In2``).
-
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.ComparatorEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.ComparatorFunc``.
 
     Input/Output domains:
         * input domain: ``ProcessDomain.VOLTAGE``.
@@ -1166,6 +1162,9 @@ class Comparator(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.ComparatorEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -1175,6 +1174,9 @@ class Comparator(object):
         """Perform functional simulation
 
         This function simulates the functional behavior of a comparator.
+
+        To see the details of function modeling, please refer:
+            * ``analog.function_model.ComparatorFunc``.
 
         Args:
             input_signal_list (list): A list of input signals. The length of this list is 2. Each input signal should be a 3D array.
@@ -1196,12 +1198,6 @@ class AnalogToDigitalConverter(object):
     """Analog-to-Digital Converter.
 
     This class model the behavior of ADC.
-
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.AnalogToDigitalConverterEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.AnalogToDigitalConverterFunc``.
 
     Input/Output domains:
         * input domain: ``ProcessDomain.VOLTAGE``.
@@ -1247,6 +1243,9 @@ class AnalogToDigitalConverter(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.AnalogToDigitalConverterEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -1258,6 +1257,9 @@ class AnalogToDigitalConverter(object):
         This function simulates the functional behavior of a ADC. The output value range depends on
         the ``resolution`` parameter. For instance, when ``resolution = 8``, the output value range
         is ``[0, 256)``.
+
+        To see the details of function modeling, please refer:
+            * ``analog.function_model.AnalogToDigitalConverterFunc``.
 
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
@@ -1281,12 +1283,6 @@ class DigitalToCurrentConverter(object):
 
     This class models the behavior of Digital-to-Current Converter. This model consists of a 
     constant current path and a load capacitor.
-
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.DigitalToCurrentConverterEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.PixelwiseFunc``.
 
     Input/Output domains:
         * input domain: ``ProcessDomain.DIGITAL``.
@@ -1343,6 +1339,9 @@ class DigitalToCurrentConverter(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.DigitalToCurrentConverterEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -1352,6 +1351,9 @@ class DigitalToCurrentConverter(object):
         """Perform functional simulation
 
         This function simulates the functional behavior of a DAC.
+
+        To see the details of function modeling, please refer:
+            * ``analog.function_model.PixelwiseFunc``.
 
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
@@ -1384,17 +1386,11 @@ class MaximumVoltage(object):
     Input/Output domains:
         * input domain: ``ProcessDomain.VOLTAGE``.
         * output domain: ``ProcessDomain.VOLTAGE``.
-
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.MaximumVoltageEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.MaximumVoltageFunc``.
     
     Args:
         supply (float): [unit: V] supply voltage.
-        t_hold (float): [unit: s] holding time, during which the circuit is turned on and consumes power relentlessly.
-        t_readout (float): [unit: s] readout time, during which the maximum voltage is output.
+        t_frame (float): [unit: s] holding time, during which the circuit is turned on and consumes power relentlessly.
+        t_acomp (float): [unit: s] readout time, during which the maximum voltage is output.
         load_capacitance (float): [unit: F] load capacitance
         gain (float): open-loop gain of the common-source amplifier.
     """
@@ -1434,6 +1430,9 @@ class MaximumVoltage(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.MaximumVoltageEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -1446,9 +1445,8 @@ class MaximumVoltage(object):
         list of input signals and performs element-wise max comparison. The output of this function
         is a list of signal with length of 1.
 
-        Input/Output domains:
-            * input domain: ``ProcessDomain.VOLTAGE``.
-            * output domain: ``ProcessDomain.VOLTAGE``.
+        To see the details of function modeling, please refer:
+            * ``analog.function_model.MaximumVoltageFunc``.
 
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
@@ -1473,8 +1471,8 @@ class GeneralCircuit(object):
 
     Args:
         supply (float): [unit: V] supply voltage.
-        i_dc (float): [unit: A] direct current of the circuit.
         t_operation (float): [unit: s] operation time, during which the circuit completes its particular operation.
+        i_dc (float): [unit: A] direct current of the circuit.
     """
     def __init__(
         self, 
@@ -1519,9 +1517,6 @@ class Adder(object):
         two lists as input signals, ``[0, 1, 2, 3]`` and ``[3, 2, 1, 0]`` will output ``[3, 3, 3, 3]``
         as the result.
 
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.ColumnAmplifierEnergy``.
-
     To see the details of function modeling, please refer its function ``noise()``.
 
     Input/Output domains:
@@ -1541,6 +1536,8 @@ class Adder(object):
         gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
             amplifier's bias current by gm/id method.
         differential (bool): if using differential-input amplifier or single-input amplifier.
+        columnwise_op (bool): flag to set if this operation is column-wise or not. This flag
+            will affect the PRNU.
         ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative PRNU standard deviation respect to gain.
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
@@ -1603,6 +1600,9 @@ class Adder(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.ColumnAmplifierEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -1613,10 +1613,14 @@ class Adder(object):
         """Perform functional simulation
 
         This function simulates the functional behavior of an adder. This function takes two input 
-        signals and adds them together element-wise.
+        signals and adds them together element-wise. Because we implement this adder using amplifier,
+        the input signals are first read by amplifiers and then add together. Here, we model this behavior
+        by first simulating the noise effects on these two inputs and then adding the noising outputs
+        (out of the amplifier) together.
 
         Args:
-            input_signal_list (list): A list of input signals. The length of this list of 2. Each input signal should be a 3D array.
+            input_signal_list (list): A list of input signals. The length of this list of 2. 
+                Each input signal should be a 3D array.
 
         Returns:
             Simulation result (tuple): The first element in the tuple is the name of this simulated
@@ -1639,7 +1643,7 @@ class Subtractor(object):
     """Subtractor
 
     This class models the behavior of subtractor in analog processing. It can be used to model element-wise
-    subtraction for two matrices of analog signals. This class contains one column ampilifer.[TODO:fixed]
+    subtraction for two matrices of analog signals. This class contains one column ampilifer.
     The amplifier first samples one input element to the output then subtracts the other input element from
     the previous input element at the output. 
 
@@ -1649,9 +1653,6 @@ class Subtractor(object):
     For instance:
         two lists as input signals, ``[0, 1, 2, 3]`` and ``[3, 2, 1, 0]`` will output ``[-3, -1, 1, 3]``
         as the result.
-
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.ColumnAmplifierEnergy``.
 
     To see the details of function modeling, please refer its function ``noise()``.
 
@@ -1734,6 +1735,9 @@ class Subtractor(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.ColumnAmplifierEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -1747,7 +1751,8 @@ class Subtractor(object):
         signals (``In1`` and ``In2``) and subtract ``In2`` from ``In1`` element-wise.
 
         Args:
-            input_signal_list (list): A list of input signals. The length of this list of 2. Each input signal should be a 3D array.
+            input_signal_list (list): A list of input signals. The length of this list of 2. 
+                Each input signal should be a 3D array.
 
         Returns:
             Simulation result (tuple): The first element in the tuple is the name of this simulated
@@ -1772,10 +1777,12 @@ class AbsoluteDifference(object):
 
     This class models the behavior of absolution difference in analog processing. It can be used to 
     model element-wise subtraction for two matrices of analog signals. This class contains one comparator and
-    one column ampilifer.[TODO: class changed!!]
-    The comparator determines which input element is larger. The amplifier first samples the larger input element to the output
-    then subtracts the smaller input element from the larger input element at the output. Note that the digital logic that
-    determines the amplifier's sampling order based on the comparator's output is ignored. 
+    one column ampilifer.
+
+    The comparator determines which input element is larger. The amplifier first samples the larger 
+    input element to the output then subtracts the smaller input element from the larger input 
+    element at the output. Note that the digital logic that determines the amplifier's sampling 
+    order based on the comparator's output is ignored. 
 
     This class can be implemented as a pixel-wise component (each pixel contains an abs) or a column-wise
     component (one-dimensional array to perform absolute difference for all 2D pixel array).
@@ -1783,9 +1790,6 @@ class AbsoluteDifference(object):
     For instance:
         two lists as input signals, ``[0, 1, 2, 3]`` and ``[3, 2, 1, 0]`` will output ``[3, 1, 1, 3]``
         as the result.
-
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.ColumnAmplifierEnergy``.
 
     To see the details of function modeling, please refer its function ``noise()``.
 
@@ -1858,6 +1862,9 @@ class AbsoluteDifference(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.ColumnAmplifierEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -1902,12 +1909,6 @@ class MaxPool(object):
     For instance:
         If the input signal is a 2D matrix, ``[[1, 1], [2, 3]]``, a ``2x2`` max pooling will output
         ``[[3]]`` as the result.
-
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.MaximumVoltageEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.MaximumVoltageFunc``.
 
     Input/Output domains:
         * input domain: ``ProcessDomain.VOLTAGE``.
@@ -1966,6 +1967,12 @@ class MaxPool(object):
     def energy(self):
         """Calculate Energy
 
+        Here, we use some functionalities of ``analog.energy_model.MaximumVoltageEnergy`` to model
+        the energy of this class.
+
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.MaximumVoltageEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -1978,6 +1985,12 @@ class MaxPool(object):
         """Perform functional simulation
 
         This function simulates the functional behavior of an max pooling.
+
+        Here, we use some functionalities of ``analog.energy_model.MaximumVoltageFunc`` to model
+        the noise simulation of this class.
+
+        To see the details of function modeling, please refer:
+            * ``analog.function_model.MaximumVoltageFunc``.
 
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
@@ -2030,14 +2043,6 @@ class PassiveAverage(object):
     For instance:
         if two input signals, ``[1, 2, 3]`` and ``[3, 4, 5]``, are used as input in ``noise()`` function,
         the expected output signals will be ``[2, 3, 4]``.
-
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.PassiveSwitchedCapacitorArrayEnergy``.
-        * ``analog.energy_model.SourceFollowerEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
-        * ``analog.function_model.PixelwiseFunc``.
 
     Input/Output domains:
         * input domain: ``ProcessDomain.VOLTAGE``.
@@ -2115,6 +2120,12 @@ class PassiveAverage(object):
     def energy(self):
         """Calculate Energy
 
+        Passive average inherits some of the functionalities of the energy class below.
+
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.PassiveSwitchedCapacitorArrayEnergy``.
+            * ``analog.energy_model.SourceFollowerEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -2124,6 +2135,10 @@ class PassiveAverage(object):
         """Perform functional simulation
 
         This function simulates the functional behavior of an averaging.
+
+        To see the details of function modeling, please refer:
+            * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
+            * ``analog.function_model.PixelwiseFunc``.
 
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
@@ -2154,14 +2169,6 @@ class PassiveBinning(object):
     For instance:
         if ``[[1, 2], [3, 4]]`` is used as input for a ``2x2`` binning, the expected output signals
         will be ``[2.5]``.
-
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.PassiveSwitchedCapacitorArrayEnergy``.
-        * ``analog.energy_model.SourceFollowerEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
-        * ``analog.function_model.PixelwiseFunc``.
 
     Input/Output domains:
         * input domain: ``ProcessDomain.VOLTAGE``.
@@ -2249,6 +2256,10 @@ class PassiveBinning(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.PassiveSwitchedCapacitorArrayEnergy``.
+            * ``analog.energy_model.SourceFollowerEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -2258,6 +2269,10 @@ class PassiveBinning(object):
         """Perform functional simulation
 
         This function simulates the functional behavior of binning.
+
+        To see the details of function modeling, please refer:
+            * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
+            * ``analog.function_model.PixelwiseFunc``.
 
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
@@ -2316,12 +2331,6 @@ class ActiveAverage(object):
     For instance:
         if two input signals, ``[1, 2, 3]`` and ``[3, 4, 5]``, are used as input in ``noise()`` function,
         the expected output signals will be ``[2, 3, 4]``.
-
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.ColumnAmplifierEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.ColumnwiseFunc``.
 
     Input/Output domains:
         * input domain: ``ProcessDomain.VOLTAGE``.
@@ -2409,6 +2418,9 @@ class ActiveAverage(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.ColumnAmplifierEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -2418,6 +2430,9 @@ class ActiveAverage(object):
         """Perform functional simulation
 
         This function simulates the functional behavior of averaging.
+
+        To see the details of function modeling, please refer:
+            * ``analog.function_model.ColumnwiseFunc``.
 
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
@@ -2453,14 +2468,6 @@ class ActiveBinning(object):
     For instance:
         if ``[[1, 2], [3, 4]]`` is used as input for a ``2x2`` binning, the expected output signals
         will be ``[2.5]``.
-
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.PassiveSwitchedCapacitorArrayEnergy``.
-        * ``analog.energy_model.SourceFollowerEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
-        * ``analog.function_model.PixelwiseFunc``.
 
     Input/Output domains:
         * input domain: ``ProcessDomain.VOLTAGE``.
@@ -2547,6 +2554,9 @@ class ActiveBinning(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.ColumnAmplifierEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -2556,6 +2566,9 @@ class ActiveBinning(object):
         """Perform functional simulation
 
         This function simulates the functional behavior of binning.
+
+        To see the details of function modeling, please refer:
+            * ``analog.function_model.ColumnwiseFunc``.
 
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
@@ -2615,14 +2628,6 @@ class Voltage2VoltageConv(object):
     .. Note::
         Map corresponding ``WeightInput`` in software pipeline definition directly to this class 
         for correct functional simulation.
-
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.PassiveSwitchedCapacitorArrayEnergy``.
-        * ``analog.energy_model.SourceFollowerEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
-        * ``analog.function_model.PixelwiseFunc``.
 
     Input/Output domains:
         * input domain: ``ProcessDomain.VOLTAGE``.
@@ -2709,6 +2714,10 @@ class Voltage2VoltageConv(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.PassiveSwitchedCapacitorArrayEnergy``.
+            * ``analog.energy_model.SourceFollowerEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -2755,6 +2764,10 @@ class Voltage2VoltageConv(object):
         """Perform functional simulation
 
         This function simulates the functional behavior of convolution operation.
+
+        To see the details of function modeling, please refer:
+            * ``analog.function_model.PassiveSwitchedCapacitorArrayFunc``.
+            * ``analog.function_model.PixelwiseFunc``.
 
         Args:
             input_signal_list (list): A list of input signals. One input should be input signal and the other one should be weight signal. 
@@ -2828,14 +2841,6 @@ class Time2VoltageConv(object):
     .. Note::
         Map corresponding ``WeightInput`` in software pipeline definition to a ``DigitalToCurrentConverter``
         and then connect the ``DigitalToCurrentConverter`` to this class for correct functional simulation.
-
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.CurrentMirrorEnergy``.
-        * ``analog.energy_model.PassiveAnalogMemoryEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.CurrentMirrorFunc``.
-        * ``analog.function_model.PixelwiseFunc``.
 
     Input/Output domains:
         * input domain: ``ProcessDomain.CURRENT`` and ``ProcessDomain.TIME``.
@@ -2931,6 +2936,10 @@ class Time2VoltageConv(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.CurrentMirrorEnergy``.
+            * ``analog.energy_model.PassiveAnalogMemoryEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -2981,8 +2990,13 @@ class Time2VoltageConv(object):
 
         This function simulates the functional behavior of convolution operation.
 
+        To see the details of function modeling, please refer:
+            * ``analog.function_model.CurrentMirrorFunc``.
+            * ``analog.function_model.PixelwiseFunc``.
+
         Args:
-            input_signal_list (list): A list of input signals. One input should be input signal and the other one should be weight signal. 
+            input_signal_list (list): A list of input signals. One input should be input signal 
+                and the other one should be weight signal. 
 
         Returns:
             Simulation result (tuple): The first element in the tuple is the name of this simulated
@@ -3044,12 +3058,6 @@ class BinaryWeightConv(object):
     .. Note::
         Map corresponding ``WeightInput`` in software pipeline definition directly to this class 
         for correct functional simulation.
-
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.ColumnAmplifierEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.ColumnwiseFunc``.
 
     Input/Output domains:
         * input domain: ``ProcessDomain.VOLTAGE``.
@@ -3131,6 +3139,9 @@ class BinaryWeightConv(object):
 
     def energy(self):
         """Calculate Energy
+        
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.ColumnAmplifierEnergy``.
 
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
@@ -3176,10 +3187,15 @@ class BinaryWeightConv(object):
     def noise(self, input_signal_list):
         """Perform functional simulation
 
-        This function simulates the functional behavior of convolution operation.
+        This function simulates the functional behavior of convolution operation. This function
+        inherits some functionalities from ``analog.function_model.ColumnwiseFunc``.
+
+        To see the details of function modeling, please refer:
+            * ``analog.function_model.ColumnwiseFunc``.
 
         Args:
-            input_signal_list (list): A list of input signals. One input should be input signal and the other one should be weight signal. 
+            input_signal_list (list): A list of input signals. One input should be input signal 
+                and the other one should be weight signal. 
 
         Returns:
             Simulation result (tuple): The first element in the tuple is the name of this simulated
@@ -3232,13 +3248,6 @@ class AnalogReLU(object):
     If the positive part is smaller than the negative part, the output is set to 0; otherwise, the ReLU transfers the
     two parts as-is to the next analog processing stage. No subtractor is needed since the next stage usually takes
     differential inputs.
-     
-
-    To see the details of energy modeling, please check out:
-        * ``analog.energy_model.ComparatorEnergy``.
-
-    To see the details of function modeling, please refer:
-        * ``analog.function_model.ComparatorFunc``.
 
     Input/Output domains:
         * input domain: ``ProcessDomain.VOLTAGE``.
@@ -3248,8 +3257,6 @@ class AnalogReLU(object):
         supply (float): [unit: V] supply voltage.
         i_bias (float): [unit: A] bias current of the circuit.
         t_readout (float): [unit: s] readout time, during which the comparison is finished.
-        gain (float): the average gain. Default value is ``1.0``.
-        noise (float): the standard deviation of read noise. Default value is ``None``.
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative prnu standard deviation respect to gain.
                   prnu gain standard deviation = prnu_std * gain, the default value is ``0.001``.
@@ -3287,6 +3294,9 @@ class AnalogReLU(object):
     def energy(self):
         """Calculate Energy
 
+        To see the details of energy modeling, please check out:
+            * ``analog.energy_model.ComparatorEnergy``.
+
         Returns:
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
@@ -3296,6 +3306,9 @@ class AnalogReLU(object):
         """Perform functional simulation
 
         This function simulates the functional behavior of ReLU operation.
+
+        To see the details of function modeling, please refer:
+            * ``analog.function_model.ComparatorFunc``.
 
         Args:
             input_signal_list (list): A list of input signals. Each input signal should be a 3D array.
