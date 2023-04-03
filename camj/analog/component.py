@@ -74,9 +74,15 @@ class ActivePixelSensor(object):
             to ``dark_current_noise``, the dcnu standard deviation is,
             ``dcnu_std`` * ``dark_current_noise``, the default value is ``0.001``. 
         fd_gain (float): the gain of FD, the default value is ``1.0``.
+        fd_noise (float): the standard deviation of FD read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on the kTC
+            noise.
         fd_prnu_std (float): relative PRNU standard deviation respect to FD gain. 
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
         sf_gain (float): the gain of SF, the default value is ``1.0``.
+        sf_noise (float): the stadard deviation of SF read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on the kTC
+            noise.
         sf_prnu_std (float): relative PRNU standard deviation respect to SF gain. 
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
     """
@@ -100,8 +106,10 @@ class ActivePixelSensor(object):
         enable_prnu = False,
         dcnu_std = 0.001,
         fd_gain = 1.0,
+        fd_noise = None,
         fd_prnu_std = 0.001,
         sf_gain = 1.0,
+        sf_noise = None,
         sf_prnu_std = 0.001
     ):
 
@@ -130,12 +138,14 @@ class ActivePixelSensor(object):
         )
 
         # calculate thermal noise
-        fd_noise = _cap_thermal_noise(fd_capacitance)
-        sf_noise = _single_pole_rc_circuit_thermal_noise(
-            num_transistor = 2,
-            inversion_level = "strong",
-            capacitance = load_capacitance
-        )
+        if fd_noise == None:
+            fd_noise = _cap_thermal_noise(fd_capacitance)
+        if sf_noise == None:
+            sf_noise = _single_pole_rc_circuit_thermal_noise(
+                num_transistor = 2,
+                inversion_level = "strong",
+                capacitance = load_capacitance
+            )
 
         self.noise_components = [
             PhotodiodeFunc(
@@ -240,13 +250,19 @@ class DigitalPixelSensor(object):
             to ``dark_current_noise``, the dcnu standard deviation is,
             ``dcnu_std`` * ``dark_current_noise``, the default value is ``0.001``.
         fd_gain (float): the gain of FD, the default value is ``1.0``.
+        fd_noise (float): the stadard deviation of FD read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on the kTC
+            noise.
         fd_prnu_std (float): relative PRNU standard deviation respect to FD gain. 
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
         sf_gain (float): the gain of SF, the default value is ``1.0``.
+        sf_noise (float): the stadard deviation of SF read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on the kTC
+            noise.
         sf_prnu_std (float): relative PRNU standard deviation respect to SF gain. 
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
         cds_gain (float): the gain of CDS, the default value is ``1.0``.
-        cds_prnu_std (float): relative PRNU standard deviation respect to CDS gain. 
+        cds_prnu_std (float): relative PRNU standard deviation respect to CDS gain.
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
         adc_noise (float): the standard deviation of read noise from ADC. the default value is ``0.``.
     """
@@ -275,12 +291,15 @@ class DigitalPixelSensor(object):
         dcnu_std = 0.001,
         # FD parameters
         fd_gain = 1.0,
+        fd_noise = None,
         fd_prnu_std = 0.001,
         # SF parameters
         sf_gain = 1.0,
+        sf_noise = None,
         sf_prnu_std = 0.001,
         # CDS parameters
         cds_gain = 1.0,
+        cds_noise = None,
         cds_prnu_std = 0.001,
         # ADC parameters
         adc_noise = 0.,
@@ -317,13 +336,15 @@ class DigitalPixelSensor(object):
         if enable_cds:
             fd_noise = 0
         else:
-            fd_noise = _cap_thermal_noise(fd_capacitance)
+            if fd_noise is None:
+                fd_noise = _cap_thermal_noise(fd_capacitance)
         
-        sf_noise = _single_pole_rc_circuit_thermal_noise(
-            num_transistor = 2,
-            inversion_level = "strong",
-            capacitance = load_capacitance
-        )
+        if sf_noise is None:
+            sf_noise = _single_pole_rc_circuit_thermal_noise(
+                num_transistor = 2,
+                inversion_level = "strong",
+                capacitance = load_capacitance
+            )
 
         self.noise_components = [
             PhotodiodeFunc(
@@ -507,6 +528,9 @@ class ColumnAmplifier(object):
             amplifier's bias current by gm/id method.
         differential (bool): if using differential-input amplifier or single-input amplifier.
         gain (float): the average gain. Default value is ``1.0``.
+        noise (float): the stadard deviation of read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
         ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative PRNU standard deviation respect to gain.
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
@@ -528,6 +552,7 @@ class ColumnAmplifier(object):
         differential = False,
         # noise parameters
         gain = 1,
+        noise = None,
         enable_prnu = False,
         prnu_std = 0.001,
         enable_offset = False,
@@ -549,11 +574,12 @@ class ColumnAmplifier(object):
             differential = differential
         )
 
-        noise = _single_pole_rc_circuit_thermal_noise(
-            num_transistor = 8,
-            inversion_level = "strong",
-            capacitance = load_capacitance
-        )
+        if noise is None:
+            noise = _single_pole_rc_circuit_thermal_noise(
+                num_transistor = 8,
+                inversion_level = "strong",
+                capacitance = load_capacitance
+            )
 
         self.func_model = ColumnwiseFunc(
             name = "ColumnAmplifier",
@@ -621,6 +647,9 @@ class SourceFollower(object):
         output_vs (float): [unit: V] voltage swing at the SF's output node.
         bias_current (float): [unit: A] bias current.
         gain (float): the average gain. Default value is ``1.0``.
+        noise (float): the stadard deviation of read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative prnu standard deviation respect to gain.
             prnu gain standard deviation = prnu_std * gain. the default value is ``0.001``.
@@ -635,6 +664,7 @@ class SourceFollower(object):
         bias_current = 5e-6,  # [A]
         # noise parameters
         gain = 1.0,
+        noise = None,
         enable_prnu = False,
         prnu_std = 0.001,
     ):
@@ -649,11 +679,12 @@ class SourceFollower(object):
             bias_current = bias_current,
         )
 
-        noise = _single_pole_rc_circuit_thermal_noise(
-            num_transistor = 4,
-            inversion_level = "strong",
-            capacitance = load_capacitance
-        )
+        if noise is None:
+            noise = _single_pole_rc_circuit_thermal_noise(
+                num_transistor = 4,
+                inversion_level = "strong",
+                capacitance = load_capacitance
+            )
 
         self.func_model = PixelwiseFunc(
             name = "SourceFollower",
@@ -719,6 +750,9 @@ class ActiveAnalogMemory(object):
         t_hold (float): [unit: s] holding time, during which the amplifier is turned on and consumes
             power relentlessly.
         supply (float): [unit: V] supply voltage.
+        noise (float): the stadard deviation of read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative prnu standard deviation respect to gain.
                   prnu gain standard deviation = prnu_std * gain.
@@ -734,6 +768,7 @@ class ActiveAnalogMemory(object):
         t_hold = 10e-3,  # [s]
         supply = 1.8,  # [V]
         # noise parameters
+        noise = None,
         enable_prnu = False,
         prnu_std = 0.001,
     ):
@@ -755,9 +790,11 @@ class ActiveAnalogMemory(object):
             inversion_level = "strong",
             capacitance = comp_capacitance
         )
-        # because gain is 1 so input and output noise can be added together
-        noise = input_noise + output_noise
+        # set gain to 1
         gain = 1.0
+        # because gain is 1 so input and output noise can be added together
+        if noise is None:
+            noise = input_noise + output_noise
 
         self.energy_model = ActiveAnalogMemoryEnergy(
             sample_capacitance = sample_capacitance,
@@ -827,10 +864,13 @@ class PassiveAnalogMemory(object):
     Args:
         sample_capacitance (float): [unit: F] sample capacitance.
         supply (float): [unit: V] supply voltage.
+        noise (float): the stadard deviation of read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative prnu standard deviation respect to gain.
-                  prnu gain standard deviation = prnu_std * gain.
-                  the default value is ``0.001``.
+                  prnu gain standard deviation = prnu_std * gain. the default value is ``0.001``.
+        
     """
     def __init__(
         self,
@@ -839,8 +879,10 @@ class PassiveAnalogMemory(object):
         supply = 1.8,  # [V]
         # eqv_reso  # equivalent resolution
         # noise parameters
+        noise = None,
         enable_prnu = False,
         prnu_std = 0.001,
+        
     ):
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
@@ -851,7 +893,8 @@ class PassiveAnalogMemory(object):
             supply = supply
         )
 
-        noise = _cap_thermal_noise(sample_capacitance)
+        if noise is None:
+            noise = _cap_thermal_noise(sample_capacitance)
         gain = 1.0
 
         self.func_model = PixelwiseFunc(
@@ -923,6 +966,9 @@ class CurrentMirror(object):
             the load capacitance from 0 to VDD.
         i_dc (float): [unit: A] the constant current. If ``i_dc == None``, then i_dc is
             estimated from the other parameters.
+        noise (float): the stadard deviation of read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative prnu standard deviation respect to gain.
             prnu gain standard deviation = prnu_std * gain. The default value is ``0.001``.
@@ -935,6 +981,7 @@ class CurrentMirror(object):
         t_readout = 1e-6,  # [s]
         i_dc = 1e-6,  # [A]
         # noise parameters
+        noise = None,
         enable_prnu = False,
         prnu_std = 0.001
 
@@ -942,7 +989,8 @@ class CurrentMirror(object):
 
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.CURRENT, ProcessDomain.TIME]
-        if i_dc is None:
+
+        if i_dc is None and noise is None:
             self.output_domain = ProcessDomain.VOLTAGE
             # if output domain is voltage, the noise is the load capacitor's thermal noise.
             noise = _single_pole_rc_circuit_thermal_noise(
@@ -951,7 +999,7 @@ class CurrentMirror(object):
                 capacitance = load_capacitance
             )
             enable_compute = True
-        else:
+        elif i_dc is None and noise is not None:
             self.output_domain = ProcessDomain.CURRENT
             # when the output domain is current, the major noise comes from current mismatch.
             # Here, we can't model directly and we set the noise to be 0. [TODO]
@@ -1044,13 +1092,19 @@ class PassiveSwitchedCapacitorArray(object):
 
     Args:
         capacitance_array (array, float): [unit: F] a list of capacitors.
-        vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing at each capacitor.
+        vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing
+             at each capacitor.
+        noise (float): the stadard deviation of read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
     """
     def __init__(
         self,
         # peformance parameters
         capacitance_array,
         vs_array,
+        # noise parameters
+        noise = None
     ):
 
         # set input/output signal domain.
@@ -1063,9 +1117,10 @@ class PassiveSwitchedCapacitorArray(object):
         )
         # because we can't accurately model the compute pattern at this point, we simply 
         # average the capacitance and model the average noise
-        noise = _cap_thermal_noise(
-            capacitance = np.mean(capacitance_array)
-        )
+        if noise is None:
+            noise = _cap_thermal_noise(
+                capacitance = np.mean(capacitance_array)
+            )
 
         self.func_model = PassiveSwitchedCapacitorArrayFunc(
             name = "PassiveSwitchedCapacitorArray",
@@ -1294,7 +1349,10 @@ class DigitalToCurrentConverter(object):
         t_readout (float): [unit: s] readout time, during which the constant current drives
             the load capacitance from 0 to VDD.
         gain (float): the average gain. Default value is ``10e-6/256`` in unit of [A/digital number].
-            Here, we assume the maximum current is 10 uA and the input digital resolution is 8 bits. 
+            Here, we assume the maximum current is 10 uA and the input digital resolution is 8 bits.
+        noise (float): the stadard deviation of read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
         enable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative prnu standard deviation respect to gain.
                   prnu gain standard deviation = prnu_std * gain.
@@ -1308,6 +1366,7 @@ class DigitalToCurrentConverter(object):
         t_readout = 16e-6,  # [s]
         # noise parameters
         gain = 10e-6/256,  # [A/digital number]
+        noise = None,
         enable_prnu = False,
         prnu_std = 0.001,
     ):
@@ -1322,11 +1381,12 @@ class DigitalToCurrentConverter(object):
             t_readout = t_readout,
         )
 
-        noise = _single_pole_rc_circuit_thermal_noise(
-            num_transistor = 2,
-            inversion_level = "strong",
-            capacitance = load_capacitance
-        )
+        if noise is None:
+            noise = _single_pole_rc_circuit_thermal_noise(
+                num_transistor = 2,
+                inversion_level = "strong",
+                capacitance = load_capacitance
+            )
 
         self.func_model = PixelwiseFunc(
             name = "DigitalToCurrentConverter",
@@ -1393,6 +1453,9 @@ class MaximumVoltage(object):
         t_acomp (float): [unit: s] readout time, during which the maximum voltage is output.
         load_capacitance (float): [unit: F] load capacitance
         gain (float): open-loop gain of the common-source amplifier.
+        noise (float): the stadard deviation of read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
     """
     def __init__(
         self, 
@@ -1400,7 +1463,8 @@ class MaximumVoltage(object):
         t_frame = 30e-3,  # [s]
         t_acomp = 1e-6,  # [s]
         load_capacitance = 1e-12,  # [F]
-        gain = 10
+        gain = 10,
+        noise = None,
     ):
         super(MaximumVoltage, self).__init__()
 
@@ -1416,11 +1480,12 @@ class MaximumVoltage(object):
             gain = gain
         )
 
-        noise = _single_pole_rc_circuit_thermal_noise(
-            num_transistor = 3,
-            inversion_level = "moderate",
-            capacitance = load_capacitance
-        )
+        if noise is None:
+            noise = _single_pole_rc_circuit_thermal_noise(
+                num_transistor = 3,
+                inversion_level = "moderate",
+                capacitance = load_capacitance
+            )
 
         self.func_model = MaximumVoltageFunc(
             name = "MaximumVoltage",
@@ -1538,6 +1603,9 @@ class Adder(object):
         differential (bool): if using differential-input amplifier or single-input amplifier.
         columnwise_op (bool): flag to set if this operation is column-wise or not. This flag
             will affect the PRNU.
+        noise (float): the stadard deviation of read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
         ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative PRNU standard deviation respect to gain.
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
@@ -1555,6 +1623,7 @@ class Adder(object):
         differential = False,
         # noise parameters
         columnwise_op = True,
+        noise = None,
         enable_prnu = False,
         prnu_std = 0.001
     ):
@@ -1574,11 +1643,12 @@ class Adder(object):
             differential = differential
         )
 
-        noise = _single_pole_rc_circuit_thermal_noise(
-            num_transistor = 8,
-            inversion_level = "strong",
-            capacitance = load_capacitance
-        )
+        if noise is None:
+            noise = _single_pole_rc_circuit_thermal_noise(
+                num_transistor = 8,
+                inversion_level = "strong",
+                capacitance = load_capacitance
+            )
 
         if columnwise_op:
             self.func_model = ColumnwiseFunc(
@@ -1673,6 +1743,9 @@ class Subtractor(object):
         gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
             amplifier's bias current by gm/id method.
         differential (bool): if using differential-input amplifier or single-input amplifier.
+        noise (float): the stadard deviation of read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
         ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative PRNU standard deviation respect to gain.
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
@@ -1690,6 +1763,7 @@ class Subtractor(object):
         differential = False,
         # noise parameters
         columnwise_op = True,
+        noise = None,
         enable_prnu = False,
         prnu_std = 0.001
     ):
@@ -1709,11 +1783,12 @@ class Subtractor(object):
             differential = differential
         )
 
-        noise = _single_pole_rc_circuit_thermal_noise(
-            num_transistor = 8,
-            inversion_level = "strong",
-            capacitance = load_capacitance
-        )
+        if noise is None:
+            noise = _single_pole_rc_circuit_thermal_noise(
+                num_transistor = 8,
+                inversion_level = "strong",
+                capacitance = load_capacitance
+            )
 
         if columnwise_op:
             self.func_model = ColumnwiseFunc(
@@ -1810,6 +1885,9 @@ class AbsoluteDifference(object):
         gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
             amplifier's bias current by gm/id method.
         differential (bool): if using differential-input amplifier or single-input amplifier.
+        noise (float): the stadard deviation of read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
         ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative PRNU standard deviation respect to gain.
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
@@ -1826,6 +1904,7 @@ class AbsoluteDifference(object):
         gain_open = 256,
         differential = False,
         # noise parameters
+        noise = None,
         enable_prnu = False,
         prnu_std = 0.001
     ):
@@ -1845,11 +1924,12 @@ class AbsoluteDifference(object):
             differential = differential
         )
 
-        noise = _single_pole_rc_circuit_thermal_noise(
-            num_transistor = 8,
-            inversion_level = "strong",
-            capacitance = load_capacitance
-        )
+        if noise is None:
+            noise = _single_pole_rc_circuit_thermal_noise(
+                num_transistor = 8,
+                inversion_level = "strong",
+                capacitance = load_capacitance
+            )
 
         self.func_model = AbsoluteDifferenceFunc(
             name = "AbsoluteDifference",
@@ -1920,6 +2000,9 @@ class MaxPool(object):
         t_readout (float): [unit: s] readout time, during which the maximum voltage is output.
         load_capacitance (float): [unit: F] load capacitance
         gain (float): open-loop gain of the common-source amplifier.
+        noise (float): the stadard deviation of read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
     """
     def __init__(
         self, 
@@ -1944,11 +2027,12 @@ class MaxPool(object):
             gain = gain
         )
 
-        noise = _single_pole_rc_circuit_thermal_noise(
-            num_transistor = 3,
-            inversion_level = "moderate",
-            capacitance = load_capacitance
-        )
+        if noise is None:
+            noise = _single_pole_rc_circuit_thermal_noise(
+                num_transistor = 3,
+                inversion_level = "moderate",
+                capacitance = load_capacitance
+            )
 
         self.func_model = MaximumVoltageFunc(
             name = "MaximumVoltage",
@@ -2055,7 +2139,12 @@ class PassiveAverage(object):
         sf_supply (float): [unit: V] supply voltage.
         sf_output_vs (float): [unit: V] voltage swing at the SF's output node.
         sf_bias_current (float): [unit: A] bias current.
-        sf_gain (float): the average gain of SF. Default value is ``1.0``.
+        psca_noise (float): the stadard deviation of passive switched capacitor array's read noise,
+            the default value is ``None``. If users do not specific this parameter, CamJ will 
+            calculate the noise STD based on the kTC noise.
+        sf_noise (float): the stadard deviation of SF read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
         sf_enable_prnu (bool): flag to enable SF PRNU. Default value is ``False``.
         sf_prnu_std (float): the relative prnu standard deviation respect to SF gain.
                   prnu gain standard deviation = prnu_std * gain. the default value is ``0.001``.
@@ -2070,7 +2159,8 @@ class PassiveAverage(object):
         sf_output_vs = 1,  # [V]
         sf_bias_current = 5e-6,  # [A]
         # noise parameters
-        sf_gain = 1.0,
+        psca_noise = None,
+        sf_noise = None,
         sf_enable_prnu = False,
         sf_prnu_std = 0.001,
         
@@ -2093,15 +2183,19 @@ class PassiveAverage(object):
         )
 
         # here, we approximate the noise from PSCA.
-        psca_noise = _cap_thermal_noise(
-            capacitance = np.mean(capacitance_array)
-        )
+        if psca_noise is None:
+            psca_noise = _cap_thermal_noise(
+                capacitance = np.mean(capacitance_array)
+            )
 
-        sf_noise = _single_pole_rc_circuit_thermal_noise(
-            num_transistor = 2,
-            inversion_level = "strong",
-            capacitance = sf_load_capacitance
-        )
+        if sf_noise is None:
+            sf_noise = _single_pole_rc_circuit_thermal_noise(
+                num_transistor = 2,
+                inversion_level = "strong",
+                capacitance = sf_load_capacitance
+            )
+        # set sf gain
+        sf_gain = 1.0
 
         self.psca_func_model = PassiveSwitchedCapacitorArrayFunc(
             name = "PassiveSwitchedCapacitorArray",
@@ -2181,6 +2275,12 @@ class PassiveBinning(object):
         sf_supply (float): [unit: V] supply voltage.
         sf_output_vs (float): [unit: V] voltage swing at the SF's output node.
         sf_bias_current (float): [unit: A] bias current.
+        psca_noise (float): the stadard deviation of passive switched capacitor array's read noise,
+            the default value is ``None``. If users do not specific this parameter, CamJ will 
+            calculate the noise STD based on the kTC noise.
+        sf_noise (float): the stadard deviation of SF read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
         sf_enable_prnu (bool): flag to enable SF PRNU. Default value is ``False``.
         sf_prnu_std (float): the relative prnu standard deviation respect to SF gain.
                   prnu gain standard deviation = prnu_std * gain. the default value is ``0.001``.
@@ -2195,6 +2295,8 @@ class PassiveBinning(object):
         sf_output_vs = 1,  # [V]
         sf_bias_current = 5e-6,  # [A]
         # noise parameters
+        psca_noise = None,
+        sf_noise = None,
         sf_enable_prnu = False,
         sf_prnu_std = 0.001,
         
@@ -2218,15 +2320,17 @@ class PassiveBinning(object):
         )
 
         # here, we approximate the noise from PSCA.
-        psca_noise = _cap_thermal_noise(
-            capacitance = np.mean(capacitance_array)
-        )
+        if psca_noise is None:
+            psca_noise = _cap_thermal_noise(
+                capacitance = np.mean(capacitance_array)
+            )
 
-        sf_noise = _single_pole_rc_circuit_thermal_noise(
-            num_transistor = 2,
-            inversion_level = "strong",
-            capacitance = sf_load_capacitance
-        )
+        if sf_noise is None:
+            sf_noise = _single_pole_rc_circuit_thermal_noise(
+                num_transistor = 2,
+                inversion_level = "strong",
+                capacitance = sf_load_capacitance
+            )
         # set sf gain
         sf_gain = 1.0
 
@@ -2349,7 +2453,9 @@ class ActiveAverage(object):
         gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
             amplifier's bias current by gm/id method.
         differential (bool): if using differential-input amplifier or single-input amplifier.
-        noise (float): the standard deviation of read noise. Default value is ``None``.
+        noise (float): the stadard deviation of read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
         ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative PRNU standard deviation respect to gain.
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
@@ -2369,6 +2475,7 @@ class ActiveAverage(object):
         gain_open = 256,
         differential = False,
         # noise parameters
+        noise = None,
         enable_prnu = False,
         prnu_std = 0.001,
         enable_offset = False,
@@ -2391,11 +2498,12 @@ class ActiveAverage(object):
             differential = differential
         )
 
-        noise = _single_pole_rc_circuit_thermal_noise(
-            num_transistor = 8,
-            inversion_level = "strong",
-            capacitance = load_capacitance
-        )
+        if noise is None:
+            noise = _single_pole_rc_circuit_thermal_noise(
+                num_transistor = 8,
+                inversion_level = "strong",
+                capacitance = load_capacitance
+            )
         gain = 1.0
 
         self.func_model = ColumnwiseFunc(
@@ -2486,6 +2594,9 @@ class ActiveBinning(object):
         gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
             amplifier's bias current by gm/id method.
         differential (bool): if using differential-input amplifier or single-input amplifier.
+        noise (float): the stadard deviation of read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
         ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
         prnu_std (float): the relative PRNU standard deviation respect to gain.
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
@@ -2505,6 +2616,7 @@ class ActiveBinning(object):
         gain_open = 256,
         differential = False,
         # noise parameters
+        noise = None,
         enable_prnu = False,
         prnu_std = 0.001,
         enable_offset = False,
@@ -2527,11 +2639,12 @@ class ActiveBinning(object):
             differential = differential
         )
 
-        noise = _single_pole_rc_circuit_thermal_noise(
-            num_transistor = 8,
-            inversion_level = "strong",
-            capacitance = load_capacitance
-        )
+        if noise is None:
+            noise = _single_pole_rc_circuit_thermal_noise(
+                num_transistor = 8,
+                inversion_level = "strong",
+                capacitance = load_capacitance
+            )
         gain = 1.0
 
         self.func_model = ColumnwiseFunc(
@@ -2634,12 +2747,18 @@ class Voltage2VoltageConv(object):
         * output domain: ``ProcessDomain.VOLTAGE``.
 
     Args:
-        capacitance_array (array, float): [unit: F] a list of capacitors.
+        capacitance_array (array, float): [unit: F] a list of capacitors in passive switched capacitor array.
         vs_array (array, float): [unit: V] a list of voltages that corresponds to the voltage swing at each capacitor.
         sf_load_capacitance (float): [unit: F] load capacitance.
         sf_supply (float): [unit: V] supply voltage.
         sf_output_vs (float): [unit: V] voltage swing at the SF's output node.
         sf_bias_current (float): [unit: A] bias current.
+        psca_noise (float): the stadard deviation of passive switched capacitor array's read noise,
+            the default value is ``None``. If users do not specific this parameter, CamJ will 
+            calculate the noise STD based on the kTC noise.
+        sf_noise (float): the stadard deviation of SF read noise, the default value is ``None``. If
+            users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
         sf_enable_prnu (bool): flag to enable SF PRNU. Default value is ``False``.
         sf_prnu_std (float): the relative prnu standard deviation respect to SF gain.
                   prnu gain standard deviation = prnu_std * gain. the default value is ``0.001``.
@@ -2655,6 +2774,8 @@ class Voltage2VoltageConv(object):
         sf_output_vs = 1,  # [V]
         sf_bias_current = 5e-6,  # [A]
         # noise parameters
+        psca_noise = None,
+        sf_noise = None,
         sf_enable_prnu = False,
         sf_prnu_std = 0.001,
         
@@ -2687,15 +2808,17 @@ class Voltage2VoltageConv(object):
         )
 
         # here, we approximate the noise from PSCA.
-        psca_noise = _cap_thermal_noise(
-            capacitance = np.mean(capacitance_array)
-        )
+        if psca_noise is None:
+            psca_noise = _cap_thermal_noise(
+                capacitance = np.mean(capacitance_array)
+            )
 
-        sf_noise = _single_pole_rc_circuit_thermal_noise(
-            num_transistor = 2,
-            inversion_level = "strong",
-            capacitance = sf_load_capacitance
-        )
+        if sf_noise is None:
+            sf_noise = _single_pole_rc_circuit_thermal_noise(
+                num_transistor = 2,
+                inversion_level = "strong",
+                capacitance = sf_load_capacitance
+            )
         sf_gain = 1.0
 
         # initialize random number generator
@@ -2855,13 +2978,15 @@ class Time2VoltageConv(object):
             estimated from the other parameters.
         am_sample_capacitance (float): [unit: F] sample capacitance of passive analog memory.
         am_supply (float): [unit: V] supply voltage of passive analog memory.
-        cm_gain (float): the average gain of current mirror. Default value is ``1.0``.
-        cm_noise (float): the standard deviation of current mirro read noise. Default value is ``None``.
+        cm_noise (float): the standard deviation of current mirror read noise. Default value is ``None``. 
+            If users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
         cm_ennable_prnu (bool): flag to enable PRNU of current mirror. Default value is ``False``.
         cm_prnu_std (float): the relative PRNU standard deviation respect to current mirror gain.
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
-        am_gain (float): the average gain of analog memory. Default value is ``1.0``.
         am_noise (float): the standard deviation of analog memory read noise. Default value is ``None``.
+            If users do not specific this parameter, CamJ will calculate the noise STD based on 
+            the kTC noise.
         am_ennable_prnu (bool): flag to enable PRNU of analog memory. Default value is ``False``.
         am_prnu_std (float): the relative PRNU standard deviation respect to gain of analog memory.
             PRNU gain standard deviation = prnu_std * gain. The default value is ``0.001``.
@@ -2878,9 +3003,11 @@ class Time2VoltageConv(object):
         am_supply = 1.8,  # [V]
         # eqv_reso  # equivalent resolution
         # noise parameters for current mirror
+        cm_noise = None,
         cm_enable_prnu = False,
         cm_prnu_std = 0.001,
         # noise parameters for analog memory
+        am_noise = None,
         am_enable_prnu = False,
         am_prnu_std = 0.001,
         
@@ -2906,14 +3033,16 @@ class Time2VoltageConv(object):
             supply = am_supply
         )
 
-        cm_noise = _single_pole_rc_circuit_thermal_noise(
-            num_transistor = 1,
-            inversion_level = "strong",
-            capacitance = cm_load_capacitance
-        )
+        if cm_noise is None:
+            cm_noise = _single_pole_rc_circuit_thermal_noise(
+                num_transistor = 1,
+                inversion_level = "strong",
+                capacitance = cm_load_capacitance
+            )
         cm_gain = 1.0
 
-        am_noise = _cap_thermal_noise(am_sample_capacitance)
+        if am_noise is None:
+            am_noise = _cap_thermal_noise(am_sample_capacitance)
         am_gain = 1.0
 
         self.cm_func_model = CurrentMirrorFunc(
@@ -3096,6 +3225,7 @@ class BinaryWeightConv(object):
         gain_open = 256,
         differential = False,
         # noise parameters
+        noise = None,
         enable_prnu = False,
         prnu_std = 0.001,
         enable_offset = False,
@@ -3122,11 +3252,12 @@ class BinaryWeightConv(object):
             differential = differential
         )
 
-        noise = _single_pole_rc_circuit_thermal_noise(
-            num_transistor = 8,
-            inversion_level = "strong",
-            capacitance = load_capacitance
-        )
+        if noise is None:
+            noise = _single_pole_rc_circuit_thermal_noise(
+                num_transistor = 8,
+                inversion_level = "strong",
+                capacitance = load_capacitance
+            )
         gain = 1.0
 
         self.func_model = ColumnwiseFunc(
