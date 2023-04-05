@@ -15,10 +15,17 @@ def _check_component_internal_connect_consistency(analog_component):
     exit_flag = False
 
     while exit_flag != True:
-        # check output domain of the head component is in the input domain of the next component
+        # first, check output domain of the head component is in the input domain of the next component
         # if not, raise an exception
         if not head_component[0].output_domain in next_component[0].input_domain:
             raise Exception("The intra-component connection has mismatch in analog component '%s'" % (analog_component.name))
+        # second, check if the consumer needs a driver to read the input. If the producer doesn't
+        # have a driver and the consumer needs a driver then an exception will be raised.
+        if next_component[0].input_need_driver == True and head_component[0].output_driver == False:
+            raise Exception(
+                "%s needs a driver to read inputs, its producer '%s' doesn't have a driver. Please use the corresponding active one for '%s'"\
+                % (next_component[0].name, head_component[0].name, next_component[0].name)
+            )
 
         head_component = next_component
         if index + 1 < len(analog_component.component_list):
@@ -45,13 +52,20 @@ def _check_array_internal_connect_consistency(analog_array):
     exit_flag = False
 
     while exit_flag != True:
-        # check output domain of the head component is in the input domain of the next component
+        # first, check output domain of the head component is in the input domain of the next component
         # if not, raise an exception
         if head_component.component_list[-1][0].output_domain not in next_component.component_list[0][0].input_domain:
             raise Exception(
                 "In '%s', the output domain of '%s' doesn't match the input domain of '%s'." % (
                     analog_array.name, head_component.name, next_component.name
                 )
+            )
+        # second, check if the consumer needs a driver to read the input. If the producer doesn't
+        # have a driver and the consumer needs a driver then an exception will be raised.
+        if next_component.component_list[0][0].input_need_driver == True and head_component.component_list[-1][0].output_driver == False:
+            raise Exception(
+                "%s needs a driver to read inputs, its producer '%s' doesn't have a driver. Please use the corresponding active one for '%s'"\
+                % (next_component.component_list[0][0].name, head_component.component_list[-1][0].name, next_component.component_list[0][0].name)
             )
 
         head_component = next_component

@@ -112,10 +112,14 @@ class ActivePixelSensor(object):
         sf_noise = None,
         sf_prnu_std = 0.001
     ):
-
+        self.name = "ActivePixelSensor"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.OPTICAL]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = False
+        self.output_driver = True
 
         self.enable_cds = enable_cds
         if enable_cds:
@@ -304,9 +308,14 @@ class DigitalPixelSensor(object):
         # ADC parameters
         adc_noise = 0.,
     ):
+        self.name = "DigitalPixelSensor"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.OPTICAL]
         self.output_domain = ProcessDomain.DIGITAL
+
+        # set input/output driver
+        self.input_need_driver = False
+        self.output_driver = False
 
         self.enable_cds = enable_cds
         if enable_cds:
@@ -458,9 +467,14 @@ class PulseWidthModulationPixel(object):
         gate_capacitance = 10e-15,  # [F]
         num_readout = 1,
     ):
+        self.name = "PulseWidthModulationPixel"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.OPTICAL]
         self.output_domain = ProcessDomain.TIME
+
+        # set input/output driver
+        self.input_need_driver = False
+        self.output_driver = True
 
         self.energy_model = PulseWidthModulationPixelEnergy(
             pd_capacitance = pd_capacitance,
@@ -559,9 +573,14 @@ class ColumnAmplifier(object):
         pixel_offset_voltage = 0.1,
         col_offset_voltage = 0.05
     ):
+        self.name = "ColumnAmplifier"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = False
+        self.output_driver = True
 
         self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
@@ -668,9 +687,14 @@ class SourceFollower(object):
         enable_prnu = False,
         prnu_std = 0.001,
     ):
+        self.name = "SourceFollower"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = True
+        self.output_driver = True
 
         self.energy_model = SourceFollowerEnergy(
             load_capacitance = load_capacitance,
@@ -772,10 +796,14 @@ class ActiveAnalogMemory(object):
         enable_prnu = False,
         prnu_std = 0.001,
     ):
-
+        self.name = "ActiveAnalogMemory"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = False
+        self.output_driver = True
 
         # noise from sample (input)
         input_noise = _single_pole_rc_circuit_thermal_noise(
@@ -884,9 +912,14 @@ class PassiveAnalogMemory(object):
         prnu_std = 0.001,
         
     ):
+        self.name = "PassiveAnalogMemory"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = False
+        self.output_driver = False
 
         self.energy_model = PassiveAnalogMemoryEnergy(
             sample_capacitance = sample_capacitance,
@@ -986,9 +1019,13 @@ class CurrentMirror(object):
         prnu_std = 0.001
 
     ):
-
+        self.name = "CurrentMirror"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.CURRENT, ProcessDomain.TIME]
+
+        # set input/output driver
+        self.input_need_driver = True
+        self.output_driver = True
 
         if i_dc is None and noise is None:
             self.output_domain = ProcessDomain.VOLTAGE
@@ -1106,10 +1143,14 @@ class PassiveSwitchedCapacitorArray(object):
         # noise parameters
         noise = None
     ):
-
+        self.name = "PassiveSwitchedCapacitorArray"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = False
+        self.output_driver = False
 
         self.energy_model = PassiveSwitchedCapacitorArrayEnergy(
             capacitance_array = capacitance_array,
@@ -1195,10 +1236,14 @@ class Comparator(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
-
+        self.name = "Comparator"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = True
+        self.output_driver = False
 
         self.energy_model = ComparatorEnergy(
             supply = supply,
@@ -1276,10 +1321,14 @@ class AnalogToDigitalConverter(object):
         # noise parameters
         adc_noise = 0.,
     ):
-
+        self.name = "AnalogToDigitalConverter"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.DIGITAL
+
+        # set input/output driver
+        self.input_need_driver = True
+        self.output_driver = False
 
         self.energy_model = AnalogToDigitalConverterEnergy(
             supply = supply,
@@ -1370,10 +1419,14 @@ class DigitalToCurrentConverter(object):
         enable_prnu = False,
         prnu_std = 0.001,
     ):
-
+        self.name = "DigitalToCurrentConverter"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.DIGITAL]
         self.output_domain = ProcessDomain.CURRENT
+
+        # set input/output driver
+        self.input_need_driver = True
+        self.output_driver = True
 
         self.energy_model = DigitalToCurrentConverterEnergy(
             supply = supply,
@@ -1466,11 +1519,14 @@ class MaximumVoltage(object):
         gain = 10,
         noise = None,
     ):
-        super(MaximumVoltage, self).__init__()
-
+        self.name = "MaximumVoltage"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = True
+        self.output_driver = True
 
         self.energy_model = MaximumVoltageEnergy(
             supply = supply,  # [V]
@@ -1545,10 +1601,14 @@ class GeneralCircuit(object):
         t_operation = 30e-3,  # [s]
         i_dc = 1e-6,  # [s]
     ):
-
+        self.name = "GeneralCircuit"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = True
+        self.output_driver = True
     
         self.energy_model = GeneralCircuitEnergy(
             supply = supply,  # [V]
@@ -1627,10 +1687,14 @@ class Adder(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
-
+        self.name = "Adder"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = False
+        self.output_driver = True
 
         self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
@@ -1767,10 +1831,14 @@ class Subtractor(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
-
+        self.name = "Subtractor"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = False
+        self.output_driver = True
 
         self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
@@ -1908,10 +1976,14 @@ class AbsoluteDifference(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
-
+        self.name = "AbsoluteDifference"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = False
+        self.output_driver = True        
 
         self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
@@ -2005,17 +2077,24 @@ class MaxPool(object):
             the kTC noise.
     """
     def __init__(
-        self, 
+        self,
+        # performance parameters
         supply = 1.8,  # [V]
         t_hold = 30e-3,  # [s]
         t_readout = 1e-6,  # [s]
         load_capacitance = 1e-12,  # [F]
         gain = 10,
+        # noise parameters
+        noise = None
     ):
-
+        self.name = "MaxPool"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = False
+        self.output_driver = True
 
         self.kernel_size = None
 
@@ -2165,10 +2244,14 @@ class PassiveAverage(object):
         sf_prnu_std = 0.001,
         
     ):
-
+        self.name = "PassiveAverage"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = False
+        self.output_driver = True
 
         self.psca_energy_model = PassiveSwitchedCapacitorArrayEnergy(
             capacitance_array = capacitance_array,
@@ -2301,10 +2384,14 @@ class PassiveBinning(object):
         sf_prnu_std = 0.001,
         
     ):
-
+        self.name = "PassiveBinning"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = False
+        self.output_driver = True
 
         self.kernel_size = None
         self.psca_energy_model = PassiveSwitchedCapacitorArrayEnergy(
@@ -2482,10 +2569,14 @@ class ActiveAverage(object):
         pixel_offset_voltage = 0.1,
         col_offset_voltage = 0.05
     ):
-
+        self.name = "ActiveAverage"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = True
+        self.output_driver = False
 
         self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
@@ -2623,10 +2714,14 @@ class ActiveBinning(object):
         pixel_offset_voltage = 0.1,
         col_offset_voltage = 0.05
     ):
-
+        self.name = "ActiveBinning"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = True
+        self.output_driver = False
 
         self.energy_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
@@ -2780,10 +2875,14 @@ class Voltage2VoltageConv(object):
         sf_prnu_std = 0.001,
         
     ):
-
+        self.name = "Voltage2VoltageConv"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = True
+        self.output_driver = True
 
         if len(capacitance_array) != len(vs_array):
             raise Exception(
@@ -3012,10 +3111,14 @@ class Time2VoltageConv(object):
         am_prnu_std = 0.001,
         
     ):
-
+        self.name = "Time2VoltageConv"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.TIME, ProcessDomain.CURRENT]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = False
+        self.output_driver = False
 
         self.kernel_size = None
         self.num_kernels = None
@@ -3232,10 +3335,14 @@ class BinaryWeightConv(object):
         pixel_offset_voltage = 0.1,
         col_offset_voltage = 0.05
     ):
-
+        self.name = "BinaryWeightConv"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = True
+        self.output_driver = False
 
         self.kernel_size = None
         self.num_kernels = None
@@ -3402,10 +3509,14 @@ class AnalogReLU(object):
         enable_prnu = False,
         prnu_std = 0.001
     ):
-
+        self.name = "AnalogReLU"
         # set input/output signal domain.
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
+
+        # set input/output driver
+        self.input_need_driver = False
+        self.output_driver = False
 
         self.name = "ReLU"
         self.energy_model = ComparatorEnergy(

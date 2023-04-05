@@ -33,6 +33,10 @@ class EventificationUnit(object):
         self.input_domain = [ProcessDomain.VOLTAGE]
         self.output_domain = ProcessDomain.VOLTAGE
 
+        # set input/output driver
+        self.input_need_driver = False
+        self.output_driver = True
+
         # this column amplifier is used to read the absolute value.
         self.colamp_model1 = ColumnAmplifier(
             load_capacitance = load_capacitance,
