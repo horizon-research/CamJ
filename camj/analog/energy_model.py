@@ -271,10 +271,9 @@ class ColumnAmplifierEnergy(object):
         t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
             consumes power relentlessly.
         supply (float): [unit: V] supply voltage.
-        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
-            ``input_capacitance`` over feedback capacitance.
-        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
-            amplifier's bias current by gm/id method.
+        gain_cl (int): amplifier's closed-loop gain. This gain describes the ratio of 
+            ``input_capacitance`` over feedback capacitance, and determines the amplifier's bias current in gm/id method.
+        gain_open (int): amplifier's open-loop gain. 
         differential (bool): if using differential-input amplifier or single-input amplifier.
 
     References Link:
@@ -288,8 +287,7 @@ class ColumnAmplifierEnergy(object):
             t_sample=2e-6,  # [s]
             t_hold=10e-3,  # [s], FIXME: name changed!
             supply=1.8,  # [V]
-            gain_close=2,  # FIXME: name changed!
-            gain_open=256,
+            gain_cl=2,  # FIXME: name changed! gain_open deleted!
             differential=False,
     ):
         self.load_capacitance = load_capacitance
@@ -297,12 +295,11 @@ class ColumnAmplifierEnergy(object):
         self.t_sample = t_sample
         self.t_hold = t_hold
         self.supply = supply
-        self.gain_close = gain_close
-        self.gain_open = gain_open
-        self.fb_capacitance = self.input_capacitance / self.gain_close
+        self.gain_cl = gain_cl
+        self.fb_capacitance = self.input_capacitance / self.gain_cl
         [self.i_opamp, self.gm] = gm_id(
             load_capacitance=self.load_capacitance,
-            gain=self.gain_open,
+            gain=self.gain_cl,
             bandwidth=1 / self.t_sample,
             differential=differential,
             inversion_level='moderate'
@@ -418,7 +415,7 @@ class ActiveAnalogMemoryEnergy(object):
         self.supply = supply
         [self.i_opamp, self.gm] = gm_id(
             load_capacitance=self.comp_capacitance,
-            gain=300,
+            gain=1,
             bandwidth=1 / self.t_sample,
             differential=True,
             inversion_level='moderate'
@@ -598,7 +595,6 @@ class MaximumVoltageEnergy(object):
         t_hold (float): [unit: s] holding time, during which the circuit is turned on and consumes power relentlessly.
         t_readout (float): [unit: s] readout time, during which the maximum voltage is output.
         load_capacitance (float): [unit: F] load capacitance
-        gain (float): open-loop gain of the common-source amplifier.
 
     References Link:
         * Sensors-2020: Design of an Always-On Image Sensor Using an Analog Lightweight Convolutional Neural Network.
@@ -610,14 +606,12 @@ class MaximumVoltageEnergy(object):
             supply=1.8,  # [V]
             t_hold=30e-3,  # [s] FIXME: name changed!
             t_readout=1e-6,  # [s] FIXME: name changed!
-            load_capacitance=1e-12,  # [F]
-            gain=10
+            load_capacitance=1e-12,  # [F] FIXME: gain deleted!
     ):
         self.supply = supply
         self.load_capacitance = load_capacitance
         self.t_hold = t_hold
         self.t_readout = t_readout
-        self.gain = gain
 
     def energy(self):
         """Calculate Energy
@@ -627,7 +621,7 @@ class MaximumVoltageEnergy(object):
         """
         i_bias, _ = gm_id(
             self.load_capacitance,
-            gain=self.gain,
+            gain=1,
             bandwidth=1 / self.t_readout,
             differential=True,
             inversion_level='moderate'
