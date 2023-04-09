@@ -273,7 +273,6 @@ class ColumnAmplifierEnergy(object):
         supply (float): [unit: V] supply voltage.
         gain_cl (int): amplifier's closed-loop gain. This gain describes the ratio of 
             ``input_capacitance`` over feedback capacitance, and determines the amplifier's bias current in gm/id method.
-        gain_open (int): amplifier's open-loop gain. 
         differential (bool): if using differential-input amplifier or single-input amplifier.
 
     References Link:
@@ -285,9 +284,9 @@ class ColumnAmplifierEnergy(object):
             load_capacitance=1e-12,  # [F]
             input_capacitance=1e-12,  # [F]
             t_sample=2e-6,  # [s]
-            t_hold=10e-3,  # [s], FIXME: name changed!
+            t_hold=10e-3,  # [s],
             supply=1.8,  # [V]
-            gain_cl=2,  # FIXME: name changed! gain_open deleted!
+            gain_cl=2,
             differential=False,
     ):
         self.load_capacitance = load_capacitance
@@ -458,7 +457,7 @@ class PassiveAnalogMemoryEnergy(object):
 
     def __init__(
             self,
-            sample_capacitance=1e-12,  # [F] FIXME: name changed!
+            sample_capacitance=1e-12,  # [F]
             supply=1.8,  # [V]
     ):
         self.sample_capacitance = sample_capacitance
@@ -484,7 +483,7 @@ class PassiveAnalogMemoryEnergy(object):
         return [input_capacitance, output_capacitance]
 
 
-class DigitalToCurrentConverterEnergy(object):  # FIXME: function changed! may delete this class.
+class DigitalToCurrentConverterEnergy(object):
     """ Current digital-to-analog converter.
 
     The model consists of a constant current path and a load capacitor.
@@ -604,9 +603,9 @@ class MaximumVoltageEnergy(object):
     def __init__(
             self,
             supply=1.8,  # [V]
-            t_hold=30e-3,  # [s] FIXME: name changed!
-            t_readout=1e-6,  # [s] FIXME: name changed!
-            load_capacitance=1e-12,  # [F] FIXME: gain deleted!
+            t_hold=30e-3,  # [s]
+            t_readout=1e-6,  # [s]
+            load_capacitance=1e-12,  # [F]
     ):
         self.supply = supply
         self.load_capacitance = load_capacitance

@@ -1499,8 +1499,8 @@ class MaximumVoltage(object):
     
     Args:
         supply (float): [unit: V] supply voltage.
-        t_frame (float): [unit: s] holding time, during which the circuit is turned on and consumes power relentlessly.
-        t_acomp (float): [unit: s] readout time, during which the maximum voltage is output.
+        t_hold (float): [unit: s] holding time, during which the circuit is turned on and consumes power relentlessly.
+        t_readout (float): [unit: s] readout time, during which the maximum voltage is output.
         load_capacitance (float): [unit: F] load capacitance
         gain (float): open-loop gain of the common-source amplifier.
         noise (float): the stadard deviation of read noise, the default value is ``None``. If
@@ -1510,8 +1510,8 @@ class MaximumVoltage(object):
     def __init__(
         self, 
         supply = 1.8,  # [V]
-        t_frame = 30e-3,  # [s]
-        t_acomp = 1e-6,  # [s]
+        t_hold = 30e-3,  # [s]
+        t_readout = 1e-6,  # [s]
         load_capacitance = 1e-12,  # [F]
         gain = 10,
         noise = None,
@@ -1527,8 +1527,8 @@ class MaximumVoltage(object):
 
         self.energy_model = MaximumVoltageEnergy(
             supply = supply,  # [V]
-            t_frame = t_frame,  # [s]
-            t_acomp = t_acomp,  # [s]
+            t_hold = t_hold,  # [s]
+            t_readout = t_readout,  # [s]
             load_capacitance = load_capacitance,  # [F]
             gain = gain
         )
