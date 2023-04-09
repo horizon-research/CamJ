@@ -84,8 +84,7 @@ def analog_config():
                     t_sample = 1e-6,  # [s]
                     t_hold = 1e-6,  # [s] # TODO: wrong implementation
                     supply = 2.5,  # [V]
-                    gain_close = 4,
-                    gain_open = 300,
+                    gain_cl = 4,
                     # noise parameters
                     enable_prnu = False,
                     prnu_std = 0.001,
@@ -144,8 +143,7 @@ def analog_config():
                     t_sample = 1e-6,  # [s]
                     t_hold = 1e-6,  # [s] # TODO: wrong implementation
                     supply = 2.5,  # [V]
-                    gain_close = 1/64,
-                    gain_open = 300,
+                    gain_cl = 1/64,
                     differential = True,
                     # noise parameters
                     enable_prnu = False,

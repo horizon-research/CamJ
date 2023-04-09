@@ -143,8 +143,7 @@ def analog_config():
                     t_sample = 2e-6,  # [s]
                     t_hold = 10e-3,  # [s]
                     supply = 1.8,  # [V]
-                    gain_close = 1,
-                    gain_open = 256,
+                    gain_cl = 1,
                     differential = False,
                     # noise parameters
                     gain = 1.0,

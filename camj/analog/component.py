@@ -536,10 +536,8 @@ class ColumnAmplifier(object):
         t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
             consumes power relentlessly.
         supply (float): [unit: V] supply voltage.
-        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+        gain_cl (int): amplifier's closed-loop gain. This gain describes the ratio of 
             ``input_capacitance`` over feedback capacitance.
-        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
-            amplifier's bias current by gm/id method.
         differential (bool): if using differential-input amplifier or single-input amplifier.
         gain (float): the average gain. Default value is ``1.0``.
         noise (float): the stadard deviation of read noise, the default value is ``None``. If
@@ -561,7 +559,7 @@ class ColumnAmplifier(object):
         t_sample = 2e-6,  # [s]
         t_hold = 10e-3,  # [s]
         supply = 1.8,  # [V]
-        gain_close = 2,
+        gain_cl = 2,
         gain_open = 256,
         differential = False,
         # noise parameters
@@ -588,8 +586,7 @@ class ColumnAmplifier(object):
             t_sample = t_sample,
             t_hold = t_hold,
             supply = supply,
-            gain_close = gain_close,
-            gain_open = gain_open,
+            gain_cl = gain_cl,
             differential = differential
         )
 
@@ -1656,10 +1653,8 @@ class Adder(object):
         t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
             consumes power relentlessly.
         supply (float): [unit: V] supply voltage.
-        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+        gain_cl (int): amplifier's closed-loop gain. This gain describes the ratio of 
             ``input_capacitance`` over feedback capacitance.
-        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
-            amplifier's bias current by gm/id method.
         differential (bool): if using differential-input amplifier or single-input amplifier.
         columnwise_op (bool): flag to set if this operation is column-wise or not. This flag
             will affect the PRNU.
@@ -1678,8 +1673,7 @@ class Adder(object):
         t_sample = 2e-6,  # [s]
         t_hold = 10e-3,  # [s]
         supply = 1.8,  # [V]
-        gain_close = 1.0,
-        gain_open = 256,
+        gain_cl = 1.0,
         differential = False,
         # noise parameters
         columnwise_op = True,
@@ -1702,8 +1696,7 @@ class Adder(object):
             t_sample = t_sample,
             t_hold = t_hold,
             supply = supply,
-            gain_close = gain_close,
-            gain_open = gain_open,
+            gain_cl = gain_cl,
             differential = differential
         )
 
@@ -1802,10 +1795,8 @@ class Subtractor(object):
         t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
             consumes power relentlessly.
         supply (float): [unit: V] supply voltage.
-        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+        gain_cl (int): amplifier's closed-loop gain. This gain describes the ratio of 
             ``input_capacitance`` over feedback capacitance.
-        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
-            amplifier's bias current by gm/id method.
         differential (bool): if using differential-input amplifier or single-input amplifier.
         noise (float): the stadard deviation of read noise, the default value is ``None``. If
             users do not specific this parameter, CamJ will calculate the noise STD based on 
@@ -1822,8 +1813,7 @@ class Subtractor(object):
         t_sample = 2e-6,  # [s]
         t_hold = 10e-3,  # [s]
         supply = 1.8,  # [V]
-        gain_close = 1.0,
-        gain_open = 256,
+        gain_cl = 1.0,
         differential = False,
         # noise parameters
         columnwise_op = True,
@@ -1846,8 +1836,7 @@ class Subtractor(object):
             t_sample = t_sample,
             t_hold = t_hold,
             supply = supply,
-            gain_close = gain_close,
-            gain_open = gain_open,
+            gain_cl = gain_cl,
             differential = differential
         )
 
@@ -1948,10 +1937,8 @@ class AbsoluteDifference(object):
         t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
             consumes power relentlessly.
         supply (float): [unit: V] supply voltage.
-        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+        gain_cl (int): amplifier's closed-loop gain. This gain describes the ratio of 
             ``input_capacitance`` over feedback capacitance.
-        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
-            amplifier's bias current by gm/id method.
         differential (bool): if using differential-input amplifier or single-input amplifier.
         noise (float): the stadard deviation of read noise, the default value is ``None``. If
             users do not specific this parameter, CamJ will calculate the noise STD based on 
@@ -1968,8 +1955,7 @@ class AbsoluteDifference(object):
         t_sample = 2e-6,  # [s]
         t_hold = 10e-3,  # [s]
         supply = 1.8,  # [V]
-        gain_close = 1.0,
-        gain_open = 256,
+        gain_cl = 1.0,
         differential = False,
         # noise parameters
         noise = None,
@@ -1991,8 +1977,7 @@ class AbsoluteDifference(object):
             t_sample = t_sample,
             t_hold = t_hold,
             supply = supply,
-            gain_close = gain_close,
-            gain_open = gain_open,
+            gain_cl = gain_cl,
             differential = differential
         )
 
@@ -2535,10 +2520,8 @@ class ActiveAverage(object):
         t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
             consumes power relentlessly.
         supply (float): [unit: V] supply voltage.
-        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+        gain_cl (int): amplifier's closed-loop gain. This gain describes the ratio of 
             ``input_capacitance`` over feedback capacitance.
-        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
-            amplifier's bias current by gm/id method.
         differential (bool): if using differential-input amplifier or single-input amplifier.
         noise (float): the stadard deviation of read noise, the default value is ``None``. If
             users do not specific this parameter, CamJ will calculate the noise STD based on 
@@ -2558,8 +2541,7 @@ class ActiveAverage(object):
         t_sample = 2e-6,  # [s]
         t_hold = 10e-3,  # [s]
         supply = 1.8,  # [V]
-        gain_close = 1,
-        gain_open = 256,
+        gain_cl = 1,
         differential = False,
         # noise parameters
         noise = None,
@@ -2584,8 +2566,7 @@ class ActiveAverage(object):
             t_sample = t_sample,
             t_hold = t_hold,
             supply = supply,
-            gain_close = gain_close,
-            gain_open = gain_open,
+            gain_cl = gain_cl,
             differential = differential
         )
 
@@ -2680,10 +2661,8 @@ class ActiveBinning(object):
         t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
             consumes power relentlessly.
         supply (float): [unit: V] supply voltage.
-        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+        gain_cl (int): amplifier's closed-loop gain. This gain describes the ratio of 
             ``input_capacitance`` over feedback capacitance.
-        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
-            amplifier's bias current by gm/id method.
         differential (bool): if using differential-input amplifier or single-input amplifier.
         noise (float): the stadard deviation of read noise, the default value is ``None``. If
             users do not specific this parameter, CamJ will calculate the noise STD based on 
@@ -2703,8 +2682,7 @@ class ActiveBinning(object):
         t_sample = 2e-6,  # [s]
         t_hold = 10e-3,  # [s]
         supply = 1.8,  # [V]
-        gain_close = 2,
-        gain_open = 256,
+        gain_cl = 2,
         differential = False,
         # noise parameters
         noise = None,
@@ -2729,8 +2707,7 @@ class ActiveBinning(object):
             t_sample = t_sample,
             t_hold = t_hold,
             supply = supply,
-            gain_close = gain_close,
-            gain_open = gain_open,
+            gain_cl = gain_cl,
             differential = differential
         )
 
@@ -3303,10 +3280,8 @@ class BinaryWeightConv(object):
         t_hold (float): [unit: s] holding time, during which the amplifier is turned on and
             consumes power relentlessly.
         supply (float): [unit: V] supply voltage.
-        gain_close (int): amplifier's closed-loop gain. This gain describes the ratio of 
+        gain_cl (int): amplifier's closed-loop gain. This gain describes the ratio of 
             ``input_capacitance`` over feedback capacitance.
-        gain_open (int): amplifier's open-loop gain. This gain is used to determine the 
-            amplifier's bias current by gm/id method.
         differential (bool): if using differential-input amplifier or single-input amplifier.
         noise (float): the standard deviation of read noise. Default value is ``None``.
         ennable_prnu (bool): flag to enable PRNU. Default value is ``False``.
@@ -3324,8 +3299,7 @@ class BinaryWeightConv(object):
         t_sample = 2e-6,  # [s]
         t_hold = 10e-3,  # [s]
         supply = 1.8,  # [V]
-        gain_close = 2,
-        gain_open = 256,
+        gain_cl = 2,
         differential = False,
         # noise parameters
         noise = None,
@@ -3354,8 +3328,7 @@ class BinaryWeightConv(object):
             t_sample = t_sample,
             t_hold = t_hold,
             supply = supply,
-            gain_close = gain_close,
-            gain_open = gain_open,
+            gain_cl = gain_cl,
             differential = differential
         )
 
