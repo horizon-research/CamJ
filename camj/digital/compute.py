@@ -925,375 +925,375 @@ class SystolicArray(object):
         return self.name
 
 
-class SIMDProcessor(object):
-    """SIMD Processor
+# class SIMDProcessor(object):
+#     """SIMD Processor
 
-    It is a SIMD architecture that commonly exists in many mobile or embedded architecture 
-    for DNN acceleration. Curently, the data flow only supports output stationary.
+#     It is a SIMD architecture that commonly exists in many mobile or embedded architecture 
+#     for DNN acceleration. Curently, the data flow only supports output stationary.
 
-    Args:
-        name(str): name of this class.
-        location: defines the location of the ADC. see ``general.enum.ProcessorLocation`` for more details.
-        size_dimension (tuple): the dimension of the systolic array in a format of ``(H, W)``.
-        energy_per_cycle (float): the average energy per cycle in unit of pJ.
+#     Args:
+#         name(str): name of this class.
+#         location: defines the location of the ADC. see ``general.enum.ProcessorLocation`` for more details.
+#         size_dimension (tuple): the dimension of the systolic array in a format of ``(H, W)``.
+#         energy_per_cycle (float): the average energy per cycle in unit of pJ.
 
-    """
-    def __init__(
-        self,
-        name,
-        location,
-        size_dimension,
-        energy_per_cycle
-    ):
-        super(SIMDProcessor, self).__init__()
-        # store configs
-        self.name = name
-        self.location = location
-        self.size_dimension = size_dimension
-        self.energy_per_cycle = energy_per_cycle
+#     """
+#     def __init__(
+#         self,
+#         name,
+#         location,
+#         size_dimension,
+#         energy_per_cycle
+#     ):
+#         super(SIMDProcessor, self).__init__()
+#         # store configs
+#         self.name = name
+#         self.location = location
+#         self.size_dimension = size_dimension
+#         self.energy_per_cycle = energy_per_cycle
 
-        self.input_hw_units = {}
-        self.input_index_list = {}
-        self.output_buffer_size = {}
-        self.output_index_list = {}
+#         self.input_hw_units = {}
+#         self.input_index_list = {}
+#         self.output_buffer_size = {}
+#         self.output_index_list = {}
 
-        self.add_init_delay = False
-        self.initial_delay = 0
-        self.delay = 10
-        self.elapse_cycle = -1
-        # parameters for reading stage
-        self.read_cnt = -1 # num of input already being read for one compute
-        self.total_read = -1 # total num of reads
-        # parameters for writing stage
-        self.write_cnt = -1 # num of output already being written for one compute
-        self.total_write = -1 # total num of write
+#         self.add_init_delay = False
+#         self.initial_delay = 0
+#         self.delay = 10
+#         self.elapse_cycle = -1
+#         # parameters for reading stage
+#         self.read_cnt = -1 # num of input already being read for one compute
+#         self.total_read = -1 # total num of reads
+#         # parameters for writing stage
+#         self.write_cnt = -1 # num of output already being written for one compute
+#         self.total_write = -1 # total num of write
 
-        # performance counter
-        self.sys_all_compute_cycle = 0
-        self.sys_all_write_cnt = 0
-        self.sys_all_read_cnt = 0
+#         # performance counter
+#         self.sys_all_compute_cycle = 0
+#         self.sys_all_write_cnt = 0
+#         self.sys_all_read_cnt = 0
 
 
-        # simulation setup
-        self.input_hw_units = {}
-        self.input_index_list = {}
+#         # simulation setup
+#         self.input_hw_units = {}
+#         self.input_index_list = {}
 
-        self.output_buffer_size = {}
-        self.output_index_list = {}
+#         self.output_buffer_size = {}
+#         self.output_index_list = {}
 
-        self.add_init_delay = False
-        self.initial_delay = size_dimension[0]
-        self.delay = 10
-        self.elapse_cycle = -1
-        # parameters for reading stage
-        self.read_cnt = -1 # num of input already being read for one compute
-        self.total_read = -1 # total num of reads
-        # parameters for writing stage
-        self.write_cnt = -1 # num of output already being written for one compute
-        self.total_write = -1 # total num of write
+#         self.add_init_delay = False
+#         self.initial_delay = size_dimension[0]
+#         self.delay = 10
+#         self.elapse_cycle = -1
+#         # parameters for reading stage
+#         self.read_cnt = -1 # num of input already being read for one compute
+#         self.total_read = -1 # total num of reads
+#         # parameters for writing stage
+#         self.write_cnt = -1 # num of output already being written for one compute
+#         self.total_write = -1 # total num of write
 
-        # performance counter
-        self.sys_all_compute_cycle = 0
+#         # performance counter
+#         self.sys_all_compute_cycle = 0
 
-    #################################################
-    #               Public functions                #
-    #################################################
-    # needs to set the input and output buffer
-    def set_input_buffer(self, input_buffer):
-        """Set Input Buffer
+#     #################################################
+#     #               Public functions                #
+#     #################################################
+#     # needs to set the input and output buffer
+#     def set_input_buffer(self, input_buffer):
+#         """Set Input Buffer
             
-        This function sets the input buffer for this compute unit. Each compute can have
-        one input buffer, call this function multiple times will overwrite the old input
-        buffer.
+#         This function sets the input buffer for this compute unit. Each compute can have
+#         one input buffer, call this function multiple times will overwrite the old input
+#         buffer.
 
-        Args:
-            input_buffer: input buffer object for this compute instance.
+#         Args:
+#             input_buffer: input buffer object for this compute instance.
 
-        Returns:
-            None
-        """
-        self.input_buffer = input_buffer
-        input_buffer._add_access_unit(self.name)
+#         Returns:
+#             None
+#         """
+#         self.input_buffer = input_buffer
+#         input_buffer._add_access_unit(self.name)
 
-    def set_output_buffer(self, output_buffer):
-        """Set Output Buffer
+#     def set_output_buffer(self, output_buffer):
+#         """Set Output Buffer
 
-        This function sets the output buffer for this compute unit. Each compute can have
-        one output buffer, call this function multiple times will overwrite the old output
-        buffer.
+#         This function sets the output buffer for this compute unit. Each compute can have
+#         one output buffer, call this function multiple times will overwrite the old output
+#         buffer.
 
-        Args:
-            output_buffer: output buffer object for this compute instance.
+#         Args:
+#             output_buffer: output buffer object for this compute instance.
 
-        Returns:
-            None
-        """
-        self.output_buffer = output_buffer
-        output_buffer._add_access_unit(self.name)
+#         Returns:
+#             None
+#         """
+#         self.output_buffer = output_buffer
+#         output_buffer._add_access_unit(self.name)
 
-    def compute_energy(self):
-        """Total Compute Energy
+#     def compute_energy(self):
+#         """Total Compute Energy
 
-        This function calculates the total compute energy for this compute instance.
-        CamJ simulator calls this function after the simulation is finished.
+#         This function calculates the total compute energy for this compute instance.
+#         CamJ simulator calls this function after the simulation is finished.
 
-        Mathematically Expression:
-            Total Compute Energy = Energy per cycle * Compute Cycles
+#         Mathematically Expression:
+#             Total Compute Energy = Energy per cycle * Compute Cycles
 
-        Returns:
-            Compute energy number in pJ (int)
-        """
-        return int(self.energy_per_cycle * self.sys_all_compute_cycle)
+#         Returns:
+#             Compute energy number in pJ (int)
+#         """
+#         return int(self.energy_per_cycle * self.sys_all_compute_cycle)
 
-    def get_total_read(self):
-        """Calculate number of reads before output the given number of pixels defined by users.
+#     def get_total_read(self):
+#         """Calculate number of reads before output the given number of pixels defined by users.
 
-        Returns:
-            Number of Reads (int)
-        """
-        total_read = 0
-        if self.input_pixels_per_cycle != None:
-            for throughput in self.input_pixels_per_cycle:
-                read_for_one_input = 1
-                for i in range(len(throughput)):
-                    read_for_one_input *= throughput[i]
+#         Returns:
+#             Number of Reads (int)
+#         """
+#         total_read = 0
+#         if self.input_pixels_per_cycle != None:
+#             for throughput in self.input_pixels_per_cycle:
+#                 read_for_one_input = 1
+#                 for i in range(len(throughput)):
+#                     read_for_one_input *= throughput[i]
 
-                total_read += read_for_one_input
+#                 total_read += read_for_one_input
 
-        self.total_read = total_read
+#         self.total_read = total_read
 
-        return self.total_read
+#         return self.total_read
 
-    def get_total_write(self):
-        """Calculate number of writes to output the given number of pixels defined by users.
+#     def get_total_write(self):
+#         """Calculate number of writes to output the given number of pixels defined by users.
 
-        Returns:
-            Number of Write (int)
-        """
-        # need to check if total_write has been initialized
-        # if not, calculate it before return
-        total_write = 1
-        if self.output_pixels_per_cycle is not None:
-            for i in range(len(self.output_pixels_per_cycle)):
-                total_write *= self.output_pixels_per_cycle[i]
+#         Returns:
+#             Number of Write (int)
+#         """
+#         # need to check if total_write has been initialized
+#         # if not, calculate it before return
+#         total_write = 1
+#         if self.output_pixels_per_cycle is not None:
+#             for i in range(len(self.output_pixels_per_cycle)):
+#                 total_write *= self.output_pixels_per_cycle[i]
 
-        self.total_write = total_write
+#         self.total_write = total_write
 
-        return self.total_write
+#         return self.total_write
 
-    #################################################
-    #               Private functions               #
-    #################################################
+#     #################################################
+#     #               Private functions               #
+#     #################################################
 
-    def _config_throughput(self, input_size, output_size, stride, kernel_size, op_type):
-        if ENABLE_DEBUG:
-            print(
-                "[SIMDProcessor] config: ", 
-                "ifmap size (x, y, z): ", input_size, 
-                "ofmap size (x, y, z): ", output_size, 
-                "stride (x, y, z): ", stride, 
-                "kernel size (x, y, z): ", kernel_size
-            )
+#     def _config_throughput(self, input_size, output_size, stride, kernel_size, op_type):
+#         if ENABLE_DEBUG:
+#             print(
+#                 "[SIMDProcessor] config: ", 
+#                 "ifmap size (x, y, z): ", input_size, 
+#                 "ofmap size (x, y, z): ", output_size, 
+#                 "stride (x, y, z): ", stride, 
+#                 "kernel size (x, y, z): ", kernel_size
+#             )
 
-        if op_type == "Conv2D":
-            # compute throughput dimension
-            # when the input size is smaller than size_dimension, we should take input_size as throughput
-            throughput_dimension_x = min(input_size[0]//stride[0], self.size_dimension[0])
-            # same as throughput_dimension_x.
-            throughput_dimension_y = min(input_size[1]//stride[1], self.size_dimension[1])
-            # print("[SIMDProcessor]", throughput_dimension_x, throughput_dimension_y, self.size_dimension)
+#         if op_type == "Conv2D":
+#             # compute throughput dimension
+#             # when the input size is smaller than size_dimension, we should take input_size as throughput
+#             throughput_dimension_x = min(input_size[0]//stride[0], self.size_dimension[0])
+#             # same as throughput_dimension_x.
+#             throughput_dimension_y = min(input_size[1]//stride[1], self.size_dimension[1])
+#             # print("[SIMDProcessor]", throughput_dimension_x, throughput_dimension_y, self.size_dimension)
 
-            # compute the input throughput, the input dependency for computing ofmap
-            self.input_pixels_per_cycle = [
-                (
-                    throughput_dimension_x * stride[0], 
-                    throughput_dimension_y * stride[1], 
-                    input_size[-1] * 1
-                )
-            ]
+#             # compute the input throughput, the input dependency for computing ofmap
+#             self.input_pixels_per_cycle = [
+#                 (
+#                     throughput_dimension_x * stride[0], 
+#                     throughput_dimension_y * stride[1], 
+#                     input_size[-1] * 1
+#                 )
+#             ]
             
-            # compute the output throughput
-            self.output_pixels_per_cycle = (throughput_dimension_x, throughput_dimension_y, 1)
+#             # compute the output throughput
+#             self.output_pixels_per_cycle = (throughput_dimension_x, throughput_dimension_y, 1)
 
-            # calculate the delay for one compute batch
-            self.delay = kernel_size[0] * kernel_size[1] * input_size[-1] * 1
-        elif op_type == "DWConv2D":
-            # compute throughput dimension
-            # when the input size is smaller than size_dimension, we should take input_size as throughput
-            throughput_dimension_x = min(input_size[0]//stride[0], self.size_dimension[0])
-            # same as throughput_dimension_x.
-            throughput_dimension_y = min(input_size[1]//stride[1], self.size_dimension[1])
-            # print("[SIMDProcessor]", throughput_dimension_x, throughput_dimension_y, self.size_dimension)
+#             # calculate the delay for one compute batch
+#             self.delay = kernel_size[0] * kernel_size[1] * input_size[-1] * 1
+#         elif op_type == "DWConv2D":
+#             # compute throughput dimension
+#             # when the input size is smaller than size_dimension, we should take input_size as throughput
+#             throughput_dimension_x = min(input_size[0]//stride[0], self.size_dimension[0])
+#             # same as throughput_dimension_x.
+#             throughput_dimension_y = min(input_size[1]//stride[1], self.size_dimension[1])
+#             # print("[SIMDProcessor]", throughput_dimension_x, throughput_dimension_y, self.size_dimension)
 
-            # compute the input throughput, the input dependency for computing ofmap
-            self.input_pixels_per_cycle = [
-                (
-                    throughput_dimension_x * stride[0], 
-                    throughput_dimension_y * stride[1], 
-                    input_size[-1] * 1
-                )
-            ]
+#             # compute the input throughput, the input dependency for computing ofmap
+#             self.input_pixels_per_cycle = [
+#                 (
+#                     throughput_dimension_x * stride[0], 
+#                     throughput_dimension_y * stride[1], 
+#                     input_size[-1] * 1
+#                 )
+#             ]
             
-            # compute the output throughput
-            self.output_pixels_per_cycle = (throughput_dimension_x, throughput_dimension_y, 1)
+#             # compute the output throughput
+#             self.output_pixels_per_cycle = (throughput_dimension_x, throughput_dimension_y, 1)
 
-            # calculate the delay for one compute batch
-            self.delay = kernel_size[0] * kernel_size[1] * 1
-        elif op_type == "FC":
-            self.input_pixels_per_cycle = [input_size]
+#             # calculate the delay for one compute batch
+#             self.delay = kernel_size[0] * kernel_size[1] * 1
+#         elif op_type == "FC":
+#             self.input_pixels_per_cycle = [input_size]
             
-            # compute the output throughput
-            self.output_pixels_per_cycle = output_size
+#             # compute the output throughput
+#             self.output_pixels_per_cycle = output_size
 
-            fc_mac_cnt = input_size[0] * output_size[0]
-            # calculate the delay for one compute batch
-            self.delay = int(input_size[0] * output_size[0] / self.size_dimension[0])
+#             fc_mac_cnt = input_size[0] * output_size[0]
+#             # calculate the delay for one compute batch
+#             self.delay = int(input_size[0] * output_size[0] / self.size_dimension[0])
 
-        else:
-            raise Exception("Unsupported op type when configuring throughput")
+#         else:
+#             raise Exception("Unsupported op type when configuring throughput")
 
-        if ENABLE_DEBUG:
-            print(
-                "[SIMDProcessor] input throughput: ", self.input_pixels_per_cycle,
-                "output throughput: ", self.output_pixels_per_cycle,
-                "compute delay: ", self.delay 
-            )
+#         if ENABLE_DEBUG:
+#             print(
+#                 "[SIMDProcessor] input throughput: ", self.input_pixels_per_cycle,
+#                 "output throughput: ", self.output_pixels_per_cycle,
+#                 "compute delay: ", self.delay 
+#             )
 
-    # set the input hw units, the final input hw units is a list,
-    # we assume multiple hw units as input
-    def _set_input_hw_unit(self, sw_stage, hw_unit):
-        if sw_stage not in self.input_hw_units:
-            self.input_hw_units[sw_stage] = [hw_unit]
-        else:
-            self.input_hw_units[sw_stage].append(hw_unit)
+#     # set the input hw units, the final input hw units is a list,
+#     # we assume multiple hw units as input
+#     def _set_input_hw_unit(self, sw_stage, hw_unit):
+#         if sw_stage not in self.input_hw_units:
+#             self.input_hw_units[sw_stage] = [hw_unit]
+#         else:
+#             self.input_hw_units[sw_stage].append(hw_unit)
 
-    # initialize input buffer index, so that we know where to the next data
-    # the buffer index will be indexed using (source hw unit, sw stage)
-    def _init_input_buffer_index(self, src_hw_unit, sw_stage, buffer_size):
-        self.input_index_list[src_hw_unit, sw_stage] = []
-        for i in buffer_size:
-            self.input_index_list[src_hw_unit, sw_stage].append(0)
+#     # initialize input buffer index, so that we know where to the next data
+#     # the buffer index will be indexed using (source hw unit, sw stage)
+#     def _init_input_buffer_index(self, src_hw_unit, sw_stage, buffer_size):
+#         self.input_index_list[src_hw_unit, sw_stage] = []
+#         for i in buffer_size:
+#             self.input_index_list[src_hw_unit, sw_stage].append(0)
 
-    # get/set input buffer index
-    def _get_input_buffer_index(self, src_hw_unit, sw_stage):
-        return self.input_index_list[src_hw_unit, sw_stage]
+#     # get/set input buffer index
+#     def _get_input_buffer_index(self, src_hw_unit, sw_stage):
+#         return self.input_index_list[src_hw_unit, sw_stage]
 
-    def _set_input_buffer_index(self, src_hw_unit, sw_stage, input_buffer_index):
-        self.input_index_list[src_hw_unit, sw_stage] = input_buffer_index
+#     def _set_input_buffer_index(self, src_hw_unit, sw_stage, input_buffer_index):
+#         self.input_index_list[src_hw_unit, sw_stage] = input_buffer_index
 
-    # initial output buffer index, here only sw stage is used as index,
-    # because we consider only one output buffer
-    def _init_output_buffer_index(self, sw_stage, buffer_size):
+#     # initial output buffer index, here only sw stage is used as index,
+#     # because we consider only one output buffer
+#     def _init_output_buffer_index(self, sw_stage, buffer_size):
         
-        self.output_pixels_per_cycle = np.ones_like(buffer_size)
-        self.output_pixels_per_cycle[0] = self.size_dimension[0]
+#         self.output_pixels_per_cycle = np.ones_like(buffer_size)
+#         self.output_pixels_per_cycle[0] = self.size_dimension[0]
 
-        self.output_buffer_size[sw_stage] = buffer_size
+#         self.output_buffer_size[sw_stage] = buffer_size
         
-        self.output_index_list[sw_stage] = []
-        for i in buffer_size:
-            self.output_index_list[sw_stage].append(0)
+#         self.output_index_list[sw_stage] = []
+#         for i in buffer_size:
+#             self.output_index_list[sw_stage].append(0)
 
-    def _get_output_buffer_size(self, sw_stage):
-        return self.output_buffer_size[sw_stage]
+#     def _get_output_buffer_size(self, sw_stage):
+#         return self.output_buffer_size[sw_stage]
 
-    # get/set output buffer index
-    def _get_output_buffer_index(self, sw_stage):
-        return self.output_index_list[sw_stage]
+#     # get/set output buffer index
+#     def _get_output_buffer_index(self, sw_stage):
+#         return self.output_index_list[sw_stage]
 
-    def _set_output_buffer_index(self, sw_stage, output_buffer_index):
-        self.output_index_list[sw_stage] = output_buffer_index
+#     def _set_output_buffer_index(self, sw_stage, output_buffer_index):
+#         self.output_index_list[sw_stage] = output_buffer_index
 
-    # initialize the cycle number that needs to be elapsed before writing the output
-    def _init_elapse_cycle(self):
-        if self.add_init_delay:
-            self.elapse_cycle = self.delay + self.initial_delay
-            self.add_init_delay = False
-        else:
-            self.elapse_cycle = self.delay
-    # process one cycle
-    def _process_one_cycle(self):
-        self.elapse_cycle -= 1
-        self.sys_all_compute_cycle += 1
-        if ENABLE_DEBUG:
-            print("[PROCESS]", self.name, "just compute 1 cycle, %d cycles left" % self.elapse_cycle)
+#     # initialize the cycle number that needs to be elapsed before writing the output
+#     def _init_elapse_cycle(self):
+#         if self.add_init_delay:
+#             self.elapse_cycle = self.delay + self.initial_delay
+#             self.add_init_delay = False
+#         else:
+#             self.elapse_cycle = self.delay
+#     # process one cycle
+#     def _process_one_cycle(self):
+#         self.elapse_cycle -= 1
+#         self.sys_all_compute_cycle += 1
+#         if ENABLE_DEBUG:
+#             print("[PROCESS]", self.name, "just compute 1 cycle, %d cycles left" % self.elapse_cycle)
 
-    def _start_init_delay(self):
-        self.add_init_delay = True
+#     def _start_init_delay(self):
+#         self.add_init_delay = True
 
-    # check if the compute is finished, if finished, reset the elapse cycle number
-    def _finish_computation(self):
-        if self.elapse_cycle == 0:
-            self.elapse_cycle = -1
-            return True
-        else:
-            return False
+#     # check if the compute is finished, if finished, reset the elapse cycle number
+#     def _finish_computation(self):
+#         if self.elapse_cycle == 0:
+#             self.elapse_cycle = -1
+#             return True
+#         else:
+#             return False
 
-    """
-        Functions related to reading stage
-    """
-    # return number of read still un-read
-    def _num_read_remain(self):
-        total_read = self.get_total_read()
+#     """
+#         Functions related to reading stage
+#     """
+#     # return number of read still un-read
+#     def _num_read_remain(self):
+#         total_read = self.get_total_read()
 
-        # check if read_cnt has been initialized yet
-        if self.read_cnt >= 0:
-            return total_read - self.read_cnt
-        else:
-            return total_read
+#         # check if read_cnt has been initialized yet
+#         if self.read_cnt >= 0:
+#             return total_read - self.read_cnt
+#         else:
+#             return total_read
 
-    # log num of reads happened in this reading cycle
-    def _read_from_input_buffer(self, read_cnt):
-        # initialize it before count
-        if self.read_cnt == -1:
-            self.read_cnt = 0
-        self.read_cnt += read_cnt
+#     # log num of reads happened in this reading cycle
+#     def _read_from_input_buffer(self, read_cnt):
+#         # initialize it before count
+#         if self.read_cnt == -1:
+#             self.read_cnt = 0
+#         self.read_cnt += read_cnt
 
-    # check if current reading stage is finished
-    def _check_read_finish(self):
-        if self.read_cnt == self.get_total_read():
-            # reset num_read before return
-            self.read_cnt = -1
-            return True
-        else:
-            return False
+#     # check if current reading stage is finished
+#     def _check_read_finish(self):
+#         if self.read_cnt == self.get_total_read():
+#             # reset num_read before return
+#             self.read_cnt = -1
+#             return True
+#         else:
+#             return False
 
-    """
-        Functions related to writing stage
-    """
-    # return number of write still un-read
-    def _num_write_remain(self):
-        total_write = self.get_total_write()
+#     """
+#         Functions related to writing stage
+#     """
+#     # return number of write still un-read
+#     def _num_write_remain(self):
+#         total_write = self.get_total_write()
 
-        # check if write_cnt has been initialized yet
-        if self.write_cnt >= 0:
-            return total_write - self.write_cnt
-        else:
-            return total_write
+#         # check if write_cnt has been initialized yet
+#         if self.write_cnt >= 0:
+#             return total_write - self.write_cnt
+#         else:
+#             return total_write
 
-    # log num of writes happened in this writing cycle
-    def _write_to_output_buffer(self, write_cnt):
-        # initialize it before count
-        if self.write_cnt == -1:
-            self.write_cnt = 0
-        prev_write_cnt = self.write_cnt
-        self.write_cnt += write_cnt
-        return prev_write_cnt
+#     # log num of writes happened in this writing cycle
+#     def _write_to_output_buffer(self, write_cnt):
+#         # initialize it before count
+#         if self.write_cnt == -1:
+#             self.write_cnt = 0
+#         prev_write_cnt = self.write_cnt
+#         self.write_cnt += write_cnt
+#         return prev_write_cnt
 
-    # check if current writing stage is finished
-    def _check_write_finish(self):
-        if self.write_cnt == self.get_total_write():
-            # reset num_write before return
-            self.write_cnt = -1
-            return True
-        else:
-            return False
+#     # check if current writing stage is finished
+#     def _check_write_finish(self):
+#         if self.write_cnt == self.get_total_write():
+#             # reset num_write before return
+#             self.write_cnt = -1
+#             return True
+#         else:
+#             return False
 
-    def __str__(self):
-        return self.name
+#     def __str__(self):
+#         return self.name
 
-    def __repr__(self):
-        return self.name
+#     def __repr__(self):
+#         return self.name
 
 
 # this function is used to convert size (H, W, C) to (X, Y, Z)

@@ -75,7 +75,7 @@ generated, or a licensed IP), in which case one will have the per-cycle/access e
 The figure shown below presents the digital interface supported by **CamJ**. For more details, please
 check out ``camj.digital`` package.
 
-.. image:: imgs/digital_components.png
+.. image:: imgs/supported_digital_structures.png
     :width: 1000
 
 
