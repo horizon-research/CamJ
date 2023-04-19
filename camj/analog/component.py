@@ -3451,7 +3451,7 @@ class BinaryWeightConv(object):
 class AnalogReLU(object):
     """Analog ReLU
 
-    This class performs ReLU operation using analog comparator. [TODO: fixed]
+    This class performs ReLU operation using analog comparator.
     Funtionally, this class performs ReLU after getting the convolutional results:
     the class outputs 0 when the result is negative and outputs the result as-is when the result is positive.
     Note that in real circuits the analog ReLU is performed before getting the convolutional results:
