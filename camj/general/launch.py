@@ -246,7 +246,7 @@ def digital_energy_simulation(hw_desc, mapping, sw_desc):
                 if not reservation_board.check_reservation(hw_unit):
                     # check if the hw unit is a systolic array instance or SIMD processor,
                     # if yes, needs to modify the input/output throughput.
-                    if isinstance(hw_unit, SystolicArray) or isinstance(hw_unit, SIMDProcessor):
+                    if isinstance(hw_unit, SystolicArray):
                         hw_unit._config_throughput(
                             sw_stage.ifmap_size, 
                             sw_stage.output_size,
