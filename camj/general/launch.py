@@ -6,7 +6,7 @@ from inspect import signature
 
 # import local modules
 from camj.analog.utils import _find_analog_sw_stages, _find_analog_sw_mapping, analog_energy_simulation
-from camj.digital.compute import SystolicArray, SIMDProcessor
+from camj.digital.compute import SystolicArray
 from camj.digital.infra import ReservationBoard, BufferMonitor
 from camj.digital.utils import map_sw_hw, check_buffer_consistency, build_buffer_edges, \
                     allocate_output_buffer, increment_buffer_index, check_stage_finish, \
