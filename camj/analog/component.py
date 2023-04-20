@@ -1940,6 +1940,8 @@ class AbsoluteDifference(object):
         gain_cl (int): amplifier's closed-loop gain. This gain describes the ratio of 
             ``input_capacitance`` over feedback capacitance.
         differential (bool): if using differential-input amplifier or single-input amplifier.
+        i_bias (float): [unit: A] bias current of the circuit in comparator.
+        t_readout (float): [unit: s] readout time in comparator, during which the comparison is finished.
         noise (float): the stadard deviation of read noise, the default value is ``None``. If
             users do not specific this parameter, CamJ will calculate the noise STD based on 
             the kTC noise.
@@ -1957,6 +1959,8 @@ class AbsoluteDifference(object):
         supply = 1.8,  # [V]
         gain_cl = 1.0,
         differential = False,
+        i_bias = 10e-6,  # [A]
+        t_readout = 1e-9,  # [s]
         # noise parameters
         noise = None,
         enable_prnu = False,
@@ -1971,7 +1975,7 @@ class AbsoluteDifference(object):
         self.input_need_driver = False
         self.output_driver = True        
 
-        self.energy_model = ColumnAmplifierEnergy(
+        self.energy_amplifier_model = ColumnAmplifierEnergy(
             load_capacitance = load_capacitance,
             input_capacitance = input_capacitance,
             t_sample = t_sample,
@@ -1979,6 +1983,12 @@ class AbsoluteDifference(object):
             supply = supply,
             gain_cl = gain_cl,
             differential = differential
+        )
+
+        self.energy_comp_model = ComparatorEnergy(
+            supply = supply,
+            i_bias = i_bias,
+            t_readout = t_readout
         )
 
         if noise is None:
@@ -2006,7 +2016,7 @@ class AbsoluteDifference(object):
             float: the energy consumption of this analog compoenent in unit of ``J``.
         """
         # here multiply by 2, because two input signal go through column amplifier
-        return self.energy_model.energy() * 2 
+        return self.energy_amplifier_model.energy() * 2 + self.energy_comp_model.energy()
 
     def noise(self, input_signal_list):
         """Perform functional simulation
