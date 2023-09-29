@@ -37,7 +37,7 @@ id = gm_id(load_capacitance=100e-15,
            bandwidth=28.8e3,
            differential=True,
            inversion_level='strong')
-vdd = 1.2
+vdd = 1.5
 t = 1/90
 energy_opamp = vdd * (id * 1e-9) * t * 1e12
 print(id)

@@ -17,7 +17,7 @@
 
 import numpy as np
 import networkx as nx
-import HW_config_analog as config
+import acomp_library as config
 import matplotlib.pyplot as plt
 
 # Define pixel
