@@ -6,11 +6,11 @@ def gm_id(load_capacitance,
           bandwidth,
           differential=True,
           inversion_level='moderate'):
-    if inversion_level == 'weak':
+    if inversion_level == 'strong':
         gm_id_ratio = 10
     elif inversion_level == 'moderate':
         gm_id_ratio = 15
-    elif inversion_level == 'strong':
+    elif inversion_level == 'weak':
         gm_id_ratio = 20
     num_branch = np.where(differential, 2, 1)
     gm = 2 * np.pi * load_capacitance * gain * bandwidth
@@ -33,18 +33,18 @@ def get_pixel_parasitic(array_v,
 
 
 id = gm_id(load_capacitance=100e-15,
-           gain=300,
-           bandwidth=18e3/300,
+           gain=1,
+           bandwidth=28.8e3,
            differential=True,
-           inversion_level='weak')
+           inversion_level='strong')
 vdd = 1.2
 t = 1/90
 energy_opamp = vdd * (id * 1e-9) * t * 1e12
 print(id)
 print(energy_opamp)
 
-vpd = 1.8
-vsf = 1
+vpd = 2.6
+vsf = 2.2
 energy_pixel = 100e-15 * vpd ** 2 * 1e12 + 10e-15 * vpd ** 2 * 1e12 + (
-            get_pixel_parasitic(32, 180, 35) + 100e-15) * vpd * vsf * 1e12
+            get_pixel_parasitic(3040, 60, 1.55) + 10e-12) * vpd * vsf * 1e12*2
 print(energy_pixel)
